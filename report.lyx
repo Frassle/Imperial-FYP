@@ -1,0 +1,1806 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass article
+\begin_preamble
+\usepackage{url}
+\usepackage{listings}
+
+% "define" Scala
+\lstdefinelanguage{scala}{
+  morekeywords={abstract,case,catch,class,def,%
+    do,else,extends,false,final,finally,%
+    for,if,implicit,import,match,mixin,%
+    new,null,object,override,package,%
+    private,protected,requires,return,sealed,%
+    super,this,throw,trait,true,try,%
+    type,val,var,while,with,yield},
+  otherkeywords={=>,<-,<\%,<:,>:,\#,@},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[n]{/*}{*/},
+  morestring=[b]",
+  morestring=[b]',
+  morestring=[b]"""
+}
+\end_preamble
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command bibtex
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic true
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Value dependent types for the CLI
+\end_layout
+
+\begin_layout Author
+Fraser Waters
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+fraser.waters08@imperial.ac.uk
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Date
+11/05/12
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Part
+Introduction
+\end_layout
+
+\begin_layout Section
+Numerics generator
+\end_layout
+
+\begin_layout Standard
+One of the main motivations for looking into value dependence is for numeric
+ types such as Vector3, Vector4, Matrix3x4.
+ These are used for graphics and physics applications where most vectors
+ and matrices in the problem domain are small (3 or 4 elements).
+ Currently there is no nice way to represent all the different sizes for
+ types like this in C# (or any other CLI language).
+ Consequently it lead me to the creation of a numeric type generator, a
+ separate program that outputs the source code for a pre defined set of
+ configurations (currently Vector2 to Vector8 and Matrix2x2 up to Matrix4x4).
+ While the use of these types is mostly acceptable extending them is difficult.
+ The following is an example showing how these types are used currently
+ and how I imagine that would change with dependent types.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language={C++}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+var a = new Vector3(1, 1, 1);
+\end_layout
+
+\begin_layout Plain Layout
+
+var b = new Vector3(2, 2, 2);
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+var ab = b - a;
+\end_layout
+
+\begin_layout Plain Layout
+
+var dot = Vector.Dot(ab, a);
+\end_layout
+
+\begin_layout Plain Layout
+
+-------------------------------
+\end_layout
+
+\begin_layout Plain Layout
+
+var a = new Vector<3>(1, 1, 1);
+\end_layout
+
+\begin_layout Plain Layout
+
+var b = new Vector<3>(2, 2, 2);
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+var ab = b - a;
+\end_layout
+
+\begin_layout Plain Layout
+
+var dot = Vector.Dot(ab, a);
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As can be seen in this example the usage of these types remains fairly similar.
+ The usefulness of dependent types is in the implementation of these types,
+ for example a dot product function currently has to be rewritten for each
+ type.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language={C++}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+public static float Dot(Vector3 a, Vector3 b)
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+public static float Dot(Vector2 a, Vector2 b)
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	return a[0]*b[0] + a[1]*b[1];
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Alternatively we can define an interface 
+\family typewriter
+Vector
+\family default
+ that defines the indexing operator and length property.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language={C++}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+interface Vector
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	int Length { get; }
+\end_layout
+
+\begin_layout Plain Layout
+
+	float this[int index] { get; }
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+public static float Dot<T>(T a, T b) where T : Vector
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	float dot = 0;
+\end_layout
+
+\begin_layout Plain Layout
+
+	for(int i=0; i<a.Length; ++i)
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		dot += a[i]*b[i];
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+	return dot;
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset label
+LatexCommand label
+name "Vector-performance"
+
+\end_inset
+
+The issue with this (and this give some suggestions as to how we would want
+ to implement dependent types) is that it adds an extra instance variable
+ to each vector and means that the loop cannot be unrolled.
+ For high performance code that theses small vector types are supposed to
+ be used for that's an unacceptable trade off.
+\end_layout
+
+\begin_layout Standard
+With dependent types Dot could be written in a similar way but with better
+ performance characteristics.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language={C++}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+struct Vector<int n>
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	float this[int index] { get { ...
+ } }
+\end_layout
+
+\begin_layout Plain Layout
+
+	...
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+public static float Dot<int n>(Vector<n> a, Vector<n> b)
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	float dot = 0;
+\end_layout
+
+\begin_layout Plain Layout
+
+	for(int i=0; i<n; ++i)
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		dot += a[i]*b[i];
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+	return dot;	
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+While these vector types are the main motivator for value dependence there
+ are more uses for value dependent types, we explore these in the background
+ section.
+\end_layout
+
+\begin_layout Section
+Value dependent types
+\end_layout
+
+\begin_layout Standard
+Dependent types allow static typing of expression based on values rather
+ than just other types.
+ While some functional languages such as Agda, Coq and Idris support dependent
+ types dependent types are not so common in object oriented languages.
+ While fully general value dependent types are rare some weaker versions,
+ including path dependent types and virtual types, are used in some mainstream
+ languages.
+ Notably Scala supports both path dependence and virtual types, F# supports
+ units of measure allowing numbers to be typed based on a unit value, and
+ C++ has templates that can be parametrized on values.
+\end_layout
+
+\begin_layout Section
+The CLI
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Common Language Infrastructure
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The CLI is a specification for a virtual execution environment, that is
+ implemented by Microsoft’s CLR (often confused with the .NET branding) and
+ the open source Mono project.
+ It is targeted by VB, C#, F#, IronPython and other languages.
+ It retains a high level of type information, more so than the Java Virtual
+ Machine (which for example has no concept of generic types despite Java
+ supporting them).
+ 
+\emph on
+Why target the CLI? Finding it hard to phrase this.
+ But two reasons, firstly because I prefer the CLI tech to Java the only
+ other big VM, and because extensions to the CLI can then be used by languages
+ targeting the CLI opening up easy extension opportunities to many languages
+ rather that say adding dependent types to just C#.
+\end_layout
+
+\begin_layout Standard
+The ability to retain high level type information allows easy interoperability
+ between separate CLI modules, even with modules compiled using different
+ languages.
+ This feature starts to fall apart when languages add typing extensions
+ that aren't supported by the CLI.
+ Units of measure in F#, for example, are erased at compile time meaning
+ that other modules which consume an F# module where units of measure were
+ used cannot see the units.
+ This loss of typing information is not ideal, as it reduces interoperability,
+ and so prompts us to consider adding value dependence as a CLI feature
+ and not just an extension to a current CLI language such as C# or F#.
+ If units can be written in terms of dependent types then we can 
+\emph on
+fix
+\emph default
+ them, else at least our extension does not suffer the same problem of interoper
+ability.
+ Of course any new features added to the CLI should be backwards compatible
+ and efficient, we need to keep in mind the size of the new types and their
+ instances, the size of the bytecode and the speed to process it and the
+ speed and size of the JITed code.
+\end_layout
+
+\begin_layout Section
+Project
+\end_layout
+
+\begin_layout Standard
+This project will investigate value dependent types in the CLI.
+ It will be split into 3 parts.
+ 
+\end_layout
+
+\begin_layout Enumerate
+To investigate the use and benefits of value dependent typing.
+\end_layout
+
+\begin_layout Enumerate
+To show how value dependent types could be added to the CLI, preferably
+ in a clean and backwards compatible way.
+\end_layout
+
+\begin_layout Enumerate
+If part 2 is successful to implement value dependent typing in Mono.
+ 
+\end_layout
+
+\begin_layout Enumerate
+If part 2 is unsuccessful then an through explanation of why it can't be
+ done should be written.
+\end_layout
+
+\begin_layout Quotation
+
+\emph on
+It’s a good idea to try to write the introduction to your final report early
+ on in the project.
+ However, you will find it hard, as you won’t yet have a complete story
+ and you won’t know what your main contributions are going to be.
+ However, the exercise is useful as it will tell you what you don’t yet
+ know and thus what questions your project should aim to answer.
+ For the interim report this section should be a short, succinct, summary
+ of the project’s main objectives.
+ Some of this material may be re-usable in your final report, but the chances
+ are that your final introduction will be quite different.
+ You are therefore advised to keep this part of the interim report short,
+ focusing on the following questions: What is the problem, why is it interesting
+ and what’s your main idea for solving it? (DON'T use those three questions
+ as subheadings however! The answers should emerge from what you write.)
+\end_layout
+
+\begin_layout Quotation
+
+\emph on
+Also to add: some explanation of what value dependent type are, some mention
+ of other related types (eg GADTs), what I did in the end (too early to
+ say atm)
+\end_layout
+
+\begin_layout Part
+Background
+\end_layout
+
+\begin_layout Section
+The CLI
+\end_layout
+
+\begin_layout Subsection
+Generics
+\end_layout
+
+\begin_layout Standard
+The CLI supports parametric polymorphic types via generics types that are
+ parametrized on other types (value dependence would allow types to also
+ be parametrized on values).
+ The MSR White paper 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "ext-vox"
+
+\end_inset
+
+ describes some initial design considerations to do parametric polymorphism
+ in COM+ (the original name for what became the CLI and .NET).
+ While the final design and implementation differs slightly from this paper
+ it gives an insight into what we need to be thinking about while designing
+ value parametric.
+ It's worth taking some time to look at how generics ended up being specified
+ in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "ecma-335"
+
+\end_inset
+
+ and implemented in Mono (due to copyright reasons we can't look at Microsofts
+ open source CLR code).
+\end_layout
+
+\begin_layout Standard
+Generics are defined in section II.9 of 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "ecma-335"
+
+\end_inset
+
+.
+ A type in the CLI can have a fixed generic arity (that is generics are
+ not variadic), the parameters are unnamed and are accessed by index (either
+ !0 or for type parameters and !!0 for method parameters).
+ Each type parameter may be constrained by a number of properties, including
+ constraints on being a value or reference type, having a defined base class
+ or interface or being default constructable.
+ Type parameters can be value or reference types, this is a marked difference
+ from the suggestion in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "ext-vox"
+
+\end_inset
+
+ which suggested that value types should not be allowed due to having to
+ re-JIT the types code for each value type.
+\end_layout
+
+\begin_layout Standard
+Generics allow the CLI to represent types such as 
+\begin_inset Formula $List\left\langle T\right\rangle $
+\end_inset
+
+ while retaining run time information such that the run time type of 
+\begin_inset Formula $List\left\langle object\right\rangle $
+\end_inset
+
+ is different to 
+\begin_inset Formula $List\left\langle int\right\rangle $
+\end_inset
+
+.
+ 
+\begin_inset Formula $List\left\langle int\right\rangle $
+\end_inset
+
+ is also special in that 
+\begin_inset Formula $int$
+\end_inset
+
+ is a value type and yet the run time can use a 
+\begin_inset Formula $List\left\langle int\right\rangle $
+\end_inset
+
+without causing excessive boxing of values.
+\end_layout
+
+\begin_layout Standard
+If we look at the definition of
+\begin_inset Formula $List\left\langle T\right\rangle $
+\end_inset
+
+in Microsoft’s distribution of .NET 4.0 we can see how the generic parameter
+ is declared and used.
+\begin_inset listings
+lstparams "numbers=left"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+.class public auto ansi serializable beforefieldinit List`1
+\end_layout
+
+\begin_layout Plain Layout
+
+extends System.Object 
+\end_layout
+
+\begin_layout Plain Layout
+
+implements System.Collections.Generic.IList`1<!0>, 
+\end_layout
+
+\begin_layout Plain Layout
+
+	System.Collections.Generic.ICollection`1<!0>, 
+\end_layout
+
+\begin_layout Plain Layout
+
+	System.Collections.Generic.IEnumerable`1<!0>, 
+\end_layout
+
+\begin_layout Plain Layout
+
+	System.Collections.IList, 
+\end_layout
+
+\begin_layout Plain Layout
+
+	System.Collections.ICollection, 
+\end_layout
+
+\begin_layout Plain Layout
+
+	System.Collections.IEnumerable
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The declaration 
+\begin_inset Formula $.class...List`1$
+\end_inset
+
+ declares a new class type with one generic parameter, which has no constraints.
+ The implements clause lists a number of interfaces which 
+\begin_inset Formula $List$
+\end_inset
+
+ implements, the first three of these interfaces are themselves generic.
+ On line 3 the 
+\begin_inset Formula $System.Collections.Generic.IList`1$
+\end_inset
+
+ syntax indicates that we mean the generic 
+\begin_inset Formula $IList$
+\end_inset
+
+ with one parameter 
+\begin_inset Formula $`1$
+\end_inset
+
+, 
+\begin_inset Formula $\left\langle !0\right\rangle $
+\end_inset
+
+ refers to the first generic class paramter, and passes that as the type
+ argument to 
+\begin_inset Formula $IList$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section
+C++
+\end_layout
+
+\begin_layout Standard
+Uses of value templates in C++ looking at the standard library, Boost and
+ CML (the Configurable Math Library).
+ The standard C++ library uses value templates in a few places including
+ 
+\begin_inset Formula $std::ratio$
+\end_inset
+
+, the random number generation library and 
+\begin_inset Formula $type\_traits$
+\end_inset
+
+.
+ The open source Boost
+\begin_inset CommandInset citation
+LatexCommand cite
+key "boost"
+
+\end_inset
+
+ libraries make use of value templates much more, using them in obvious
+ ways in the Array library, which is for safer arrays using a new class
+ 
+\begin_inset Formula $Array\left\langle T,N\right\rangle $
+\end_inset
+
+, but also scattered throughout the other libraries.
+ For example in 
+\begin_inset Formula $Spirit::Qi$
+\end_inset
+
+, a parser combinator library, the type 
+\begin_inset Formula $uint\_parser$
+\end_inset
+
+ is templated on the typename of the integer type to return but also on
+ the values of the radix and minimum and maximum digits to parse.
+ Finally CML
+\begin_inset CommandInset citation
+LatexCommand cite
+key "cmldev"
+
+\end_inset
+
+ uses value templates to define the sizes of vectors and matrices, vector
+ is templated on a typename 
+\begin_inset Formula $ElementT$
+\end_inset
+
+ and 
+\begin_inset Formula $StorageT$
+\end_inset
+
+.
+ Moreover two of the built in storage types (fixed and external) are templated
+ on the value of how many elements they store.
+ When using these statically sized storage types you get extra static type
+ safety that you're not mixing vector sizes in operations.
+\end_layout
+
+\begin_layout Section
+F#
+\end_layout
+
+\begin_layout Standard
+F# has the ability to markup number values with units of measure that allow
+ checking of units at compile time.
+ This extra checking can prevent mistakes such as that which brought down
+ the Mars Climate Orbiter in 1999 because of a mismatch between Imperial
+ and Metric units in force calculation, a very expensive mistake as the
+ craft cost $125 million.
+ Units of measure is done at compile time and all units information is erased
+ from the run time, this means that values cast to 
+\begin_inset Formula $Object$
+\end_inset
+
+ cannot be recast to a measured type safely at run time, but also that these
+ units cannot be exposed as part of an public interface to be consumed by
+ other CLI languages such as C# or VB.
+\end_layout
+
+\begin_layout Standard
+Units of measure are declared as opaque types marked up with the 
+\family typewriter
+
+\begin_inset Formula $Measure$
+\end_inset
+
+
+\family default
+ attribute.
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+[<Measure>] type meter
+\end_layout
+
+\end_inset
+
+Units of measure can also be declared as equal to other units, for example
+ milliliters as cubic centimeters.
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+[<Measure>] type ml = cm^3
+\end_layout
+
+\end_inset
+
+The normal unit operators such as multiplication, division and powers are
+ usable and can be worked out by the type inference engine.
+ For example in the following, code type inference correctly identifies
+ 
+\family typewriter
+
+\begin_inset Formula $distance$
+\end_inset
+
+
+\family default
+ as type 
+\begin_inset Formula $float\left\langle meter\right\rangle $
+\end_inset
+
+.
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+let speed = 55.0<meter/second>
+\end_layout
+
+\begin_layout Plain Layout
+
+let time = 3.5<second>
+\end_layout
+
+\begin_layout Plain Layout
+
+let distance = speed * time;
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+speed    : float<meter/second>
+\end_layout
+
+\begin_layout Plain Layout
+
+time     : float<second>
+\end_layout
+
+\begin_layout Plain Layout
+
+distance : float<meter>
+\end_layout
+
+\end_inset
+
+The compiler will normalize units of measure to a standard form, from the
+ MSDN documentation
+\begin_inset CommandInset citation
+LatexCommand cite
+key "fsharp-units-of-measure"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Quotation
+\begin_inset Quotes eld
+\end_inset
+
+Unit formulas that mean the same thing can be written in various equivalent
+ ways.
+ Therefore, the compiler converts unit formulas into a consistent form,
+ which converts negative powers to reciprocals, groups units into a single
+ numerator and a denominator, and alphabetizes the units in the numerator
+ and denominator.
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Units of measure are a common praise of F# and provided a valuable case
+ study for us to use in our type system extension.
+\end_layout
+
+\begin_layout Section
+Path dependent types
+\end_layout
+
+\begin_layout Standard
+Path dependent types like those found in Scala are similar to value dependent
+ types in that they depend on the value of the object that created them,
+ but they are not as general.
+ An example of path dependence in Scala is the following Board and Coordinate
+ example
+\begin_inset CommandInset citation
+LatexCommand cite
+key "stack-2693067"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+lstset{
+\end_layout
+
+\begin_layout Plain Layout
+
+language=scala,
+\end_layout
+
+\begin_layout Plain Layout
+
+breaklines=true,
+\end_layout
+
+\begin_layout Plain Layout
+
+basicstyle=
+\backslash
+footnotesize,
+\end_layout
+
+\begin_layout Plain Layout
+
+numbers=left,
+\end_layout
+
+\begin_layout Plain Layout
+
+tabsize=2}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{lstlisting}
+\end_layout
+
+\begin_layout Plain Layout
+
+case class Board(length: Int, height: Int) 
+\end_layout
+
+\begin_layout Plain Layout
+
+{   
+\end_layout
+
+\begin_layout Plain Layout
+
+	case class Coordinate(x: Int, y: Int) 
+\end_layout
+
+\begin_layout Plain Layout
+
+	{      
+\end_layout
+
+\begin_layout Plain Layout
+
+		require(0 <= x && x < length && 0 <= y && y < height)    
+\end_layout
+
+\begin_layout Plain Layout
+
+	}   
+\end_layout
+
+\begin_layout Plain Layout
+
+	val occupied = scala.collection.mutable.Set[Coordinate]() 
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+val b1 = Board(20, 20) 
+\end_layout
+
+\begin_layout Plain Layout
+
+val b2 = Board(30, 30)
+\end_layout
+
+\begin_layout Plain Layout
+
+var b3 = b1
+\end_layout
+
+\begin_layout Plain Layout
+
+val c1 = b1.Coordinate(15, 15) 
+\end_layout
+
+\begin_layout Plain Layout
+
+val c2 = b2.Coordinate(25, 25) 
+\end_layout
+
+\begin_layout Plain Layout
+
+b1.occupied += c1 
+\end_layout
+
+\begin_layout Plain Layout
+
+b2.occupied += c2
+\end_layout
+
+\begin_layout Plain Layout
+
+b3.occupied += c1
+\end_layout
+
+\begin_layout Plain Layout
+
+// Next line doesn't compile 
+\end_layout
+
+\begin_layout Plain Layout
+
+b1.occupied += c2
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{lstlisting}
+\end_layout
+
+\end_inset
+
+Here the type of 
+\begin_inset Formula $c1$
+\end_inset
+
+ and 
+\begin_inset Formula $c2$
+\end_inset
+
+ depend on the values 
+\begin_inset Formula $b1$
+\end_inset
+
+ and 
+\begin_inset Formula $b2$
+\end_inset
+
+.
+ Not that it is in fact the values not these specific identifiers that are
+ the dependence, as shown on line 17.
+ Path dependence in the type system does not allow line 19, which is stricter
+ than just inner classes in Java.
+ 
+\end_layout
+
+\begin_layout Standard
+Path dependence is an extension of the fact that in Scala and Java inner
+ classes are created via an instance of the outer class and maintain a reference
+ to their creator.
+ I call the creation via an instance of the outer class an instance inner
+ types, as opposed to static inner types that do not require an instance
+ of the outer class.
+ The CLI does not support path dependent types or instance inner types,
+ the only difference between inner and outer class in the CLI is viability
+ (that is an inner class can be made private and thus only be accessed by
+ the outer class).
+ While it's possible to require a reference to the outer class as part of
+ the inner class's constructor it is not a requirement.
+ While instance created inner classes and then path dependence could be
+ added at the language level this leads to the risk that Scala ran into
+ where the virtual machine reflection system no longer resembled the language
+ type system, thus pushing for the implementation of a whole new reflection
+ system to be built.
+ 
+\end_layout
+
+\begin_layout Standard
+Therefore if we are to investigate the addition of adding path dependent
+ types we also need to add instance inner types to the CLI.
+ Alternatively we could try to design value dependence such that the following
+ was possible.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+lstset{
+\end_layout
+
+\begin_layout Plain Layout
+
+language=c++,
+\end_layout
+
+\begin_layout Plain Layout
+
+breaklines=true,
+\end_layout
+
+\begin_layout Plain Layout
+
+basicstyle=
+\backslash
+footnotesize,
+\end_layout
+
+\begin_layout Plain Layout
+
+tabsize=2}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{lstlisting}
+\end_layout
+
+\begin_layout Plain Layout
+
+class Board
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	int length, height;
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	public Board(int length, int height)
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		this.length = length;
+\end_layout
+
+\begin_layout Plain Layout
+
+		this.height = height;
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	class Coordianate<Board b>
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		public Coordinate(int x, int y)
+\end_layout
+
+\begin_layout Plain Layout
+
+		{
+\end_layout
+
+\begin_layout Plain Layout
+
+			require(0 <= x && x < b.length && 0 <= y && y < b.height)
+\end_layout
+
+\begin_layout Plain Layout
+
+		}
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	Set<Coordianate<this>> occupied = new Set<Coordinate<this>>;
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{lstlisting}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Allowing the value parameter to be any type is much more general than path
+ dependence, In this case 
+\begin_inset Formula $Coordianate$
+\end_inset
+
+ would not even need to be an inner class of 
+\begin_inset Formula $Board$
+\end_inset
+
+.
+ However  this is a very ambitious addition and if it's even possible would
+ require more investigation.
+\end_layout
+
+\begin_layout Section
+Virtual types
+\end_layout
+
+\begin_layout Standard
+Virtual types are also found in Scala, it allows a subclass to override
+ a type variable in the super class.
+ In the following example the type T declared in class A is made more specific
+ in the subclass B.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language=Java"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class A
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	type T
+\end_layout
+
+\begin_layout Plain Layout
+
+	abstract T foo();
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+class B 
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	override type T = String
+\end_layout
+
+\begin_layout Plain Layout
+
+	override T foo() { return "string"; }
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+While virtual types can be useful everything they accomplish can also be
+ done with generics, albeit with sometime much more syntax.
+\end_layout
+
+\begin_layout Section
+First class types
+\end_layout
+
+\begin_layout Standard
+Cayenne
+\begin_inset CommandInset citation
+LatexCommand cite
+key "cayenne"
+
+\end_inset
+
+ is a language with support for dependent types and first class types (i.e.
+ types can be be used like values).
+ Cayenne is a functional language inspired by Haskell, it's unlikely we
+ can straight lift ideas from it to be used in the CLI, however it provides
+ an example of a very general dependent types system.
+ Two core features of Cayenne are dependent functions and dependent records.
+ Dependent functions allow a function return type to depend on the value
+ of the parameter, as shown in the following example from 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "cayenne"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language=Haskell"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+printfType :: String -> #
+\end_layout
+
+\begin_layout Plain Layout
+
+PrintfType "" = String
+\end_layout
+
+\begin_layout Plain Layout
+
+PrintfType ('%':'d':cs) = Int    -> PrintfType cs
+\end_layout
+
+\begin_layout Plain Layout
+
+PrintfType ('%':'s':cs) = Stirng -> PrintfType cs
+\end_layout
+
+\begin_layout Plain Layout
+
+PrintfType ('%':_:cs)   =           PrintfType cs
+\end_layout
+
+\begin_layout Plain Layout
+
+PrintfType (_:cs)       =           PrintfType cs
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+printf :: (fmt::String) -> PrintfType fmt
+\end_layout
+
+\begin_layout Plain Layout
+
+printf fmt = pr fmt ""
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+pr :: (fmt::String) -> String -> PrintfType fmt
+\end_layout
+
+\begin_layout Plain Layout
+
+pr "" res = res
+\end_layout
+
+\begin_layout Plain Layout
+
+pr ('%':'d':cs) res = 
+\backslash
+(i::Int) -> pr cs (res ++ show i)
+\end_layout
+
+\begin_layout Plain Layout
+
+pr ('%':'s':cs) res = 
+\backslash
+(s::String) -> pr cs (res ++ s)
+\end_layout
+
+\begin_layout Plain Layout
+
+pr ('%':c:cs) res   = pr cs (res ++ [c])
+\end_layout
+
+\begin_layout Plain Layout
+
+pr (c:cs) res       = pr css (res ++ [c])
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In this example the type of 
+\begin_inset Formula $printf$
+\end_inset
+
+depends on the value of the parameter fmt.
+ This also shows how types and values are treated equally in Cayenne.
+ The type 
+\begin_inset Formula $\#$
+\end_inset
+
+ is the type of all types (normal notation is 
+\begin_inset Formula $*$
+\end_inset
+
+ but 
+\begin_inset Formula $\#$
+\end_inset
+
+ was chosen to avoid clashes with the infix operator 
+\begin_inset Formula $*$
+\end_inset
+
+).
+ 
+\end_layout
+
+\begin_layout Quotation
+
+\emph on
+This should form the bulk of the interim report.
+ You should consider that your objective here is to produce a near final
+ version of the background section, as it will appear in your final report.
+ All of this material should be re-usable, so it is worth getting it right
+ at this stage of the project.
+ The details of what to include can be found in the Project Report guidelines.
+\end_layout
+
+\begin_layout Quotation
+
+\emph on
+The background section of the report should set the project into context
+ by relating it to existing published work which you read at the start of
+ the project when your approach and methods were being considered.
+ There are usually many ways of solving a given problem, and you shouldn't
+ just pick one at random.
+ Describe and evaluate as many alternative approaches as possible.
+ The published work may be in the form of research papers, articles, text
+ books, technical manuals, or even existing software or hardware of which
+ you have had hands-on experience.
+ Your must acknowledge the sources of your inspiration.
+ You are expected to have seen and thought about other people's ideas; your
+ contribution will be putting them into practice in some other context.
+ However, avoid plagiarism: if you take another person's work as your own
+ and do not cite your sources of information/inspiration you are being dishonest
+; in other words you are cheating.
+ When referring to other pieces of work, cite the sources where they are
+ referred to or used, rather than just listing them at the end.
+ Make sure you read and digest the Department's plagiarism document .
+\end_layout
+
+\begin_layout Quotation
+
+\emph on
+In writing the Background chapter you must demonstrate your capability of
+ analysis, synthesis and critical judgment.
+ Analysis is shown by explaining how the proposed solution operates in your
+ own words as well as its benefits and consequences.
+ Synthesis is shown through the organization of your Related Work section
+ and through identifying and generalizing common aspects across different
+ solutions.
+ Critical judgment is shown by discussing the limitations of the solutions
+ proposed both in terms of their disadvantages and limits of applicability.
+\end_layout
+
+\begin_layout Quotation
+
+\emph on
+Typically you can look for Background work using different search engines
+ including:
+\end_layout
+
+\begin_layout Quotation
+
+\emph on
+Google Scholar IEEExplore ACM Digital Library Citeseer Science Direct
+\end_layout
+
+\begin_layout Quotation
+
+\emph on
+Note 1: Often the terms Background, Related Work or State of the Art are
+ used interchangeably.
+\end_layout
+
+\begin_layout Quotation
+
+\emph on
+Note 2: Keyword search is wonderful, but you need the right Keywords.
+\end_layout
+
+\begin_layout Quotation
+
+\emph on
+Note 2: IEEExplore, ACM Digital Library and Science Direct require you to
+ be on the College network to download the PDF of papers.
+ If at home, use VPN.
+\end_layout
+
+\begin_layout Part
+Project plan
+\end_layout
+
+\begin_layout Standard
+As already breifly mentioned in the introduction this project can be split
+ into three major parts.
+ 
+\end_layout
+
+\begin_layout Section
+Investigation
+\end_layout
+
+\begin_layout Standard
+The first part of the project is an investigation into value dependent types
+ and similar systems.
+ This has already been covered somewhat in our background research.
+ An understanding of how these systems are usefull and how they can be designed
+ and implemeneted will be used to guide us on the design of the CLI extension.
+\end_layout
+
+\begin_layout Section
+Design
+\end_layout
+
+\begin_layout Standard
+The second part of the project is to design an extension to the CLI that
+ supports dependent types.
+ Exactly what would be supported in this new system will depend on where
+ are investigation has taken us.
+ We will show what changes need to be made to ECMA-335 to support the extension.
+\end_layout
+
+\begin_layout Section
+Implementation
+\end_layout
+
+\begin_layout Standard
+The last part of the project is to implement the extension.
+ We will be using the open source Mono project for this.
+ This will require us to change both the runtime and the assembler, to support
+ the new syntax.
+\end_layout
+
+\begin_layout Quotation
+
+\emph on
+You should explain what needs to be done in order to complete the project
+ and roughly what you expect the timetable to be.
+ Don’t forget to include the project write-up, as this is a major part of
+ the exercise.
+ It’s important to identify key milestones and also fall-back positions,
+ in case you run out of time.
+ You should also identify what extensions could be added if time permits.
+ The plan should be complete and should include those parts that you have
+ already addressed (make it clear how far you have progressed at the time
+ of writing).
+ This material will not appear in the final report.
+\end_layout
+
+\begin_layout Part
+Evaluation plan
+\end_layout
+
+\begin_layout Section
+Semantics
+\end_layout
+
+\begin_layout Standard
+Defining semantics for what value dependence means can be done in two ways.
+ Firstly we could extend the ECMA specification, which is written in formal
+ specification speak.
+ Secondly we could take a formal specification of the CLI and extend that.
+ If we can work out how value dependence should work in the CLI then extending
+ the ECMA specification is a required aim.
+ Extending a formal specification would be a stretch goal to complete once
+ other goals are achieved.
+\end_layout
+
+\begin_layout Section
+Implementation
+\end_layout
+
+\begin_layout Standard
+Given an extension to the CLI specification we want to show that the extension
+ can be implemented.
+ To do this we will extend the open source Mono run time to support value
+ dependent types.
+ The most important aspect is correctness but performance should be kept
+ in mind.
+ As pointed out in 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "Vector-performance"
+
+\end_inset
+
+ we want certain performance characteristics out of the system.
+\end_layout
+
+\begin_layout Quotation
+
+\emph on
+Project evaluation is very important, so it's important to think now about
+ how you plan to measure success.
+ For example, what functionality do you need to demonstrate? What experiments
+ to you need to undertake and what outcome(s) would constitute success?
+ What benchmarks should you use? How has your project extended the state
+ of the art? How do you measure qualitative aspects, such as ease of use?
+ These are the sort of questions that your project evaluation should address;
+ this section should outline your plan.
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset bibtex
+LatexCommand bibtex
+bibfiles "report"
+options "bibtotoc,plain"
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
