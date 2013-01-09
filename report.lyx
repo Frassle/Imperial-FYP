@@ -658,6 +658,163 @@ CIL supports many features not common the low level assembly code.
  CIL instructions.
 \end_layout
 
+\begin_layout Standard
+While CIL is targeted by a variaty of languages Visual Basic and C# match
+ it's semantics most closely.
+ We will use C# code instead of raw CIL when possible in examples.
+ Some C# features are uncommon in other langauges so we we'll briefly go
+ over them.
+\end_layout
+
+\begin_layout Subsection
+Value and Referance types
+\end_layout
+
+\begin_layout Standard
+The CLI differantates between value types (structs) and referance types
+ (classes).
+ Value types are allocated inline, either on the stack or as part of a containin
+g types allocation.
+ Referance types are allocated on the heap and refered to by a pointer (called
+ a referance).
+\end_layout
+
+\begin_layout Subsection
+Properties
+\end_layout
+
+\begin_layout Standard
+As pointed out above the CIL has instructions for field access but it also
+ supports properites.
+ In the CIL code these look similar to method calls but in C# they look
+ like field access.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class Square {
+\end_layout
+
+\begin_layout Plain Layout
+
+	public int Length;
+\end_layout
+
+\begin_layout Plain Layout
+
+	public int Area { get { return Length * Length; } }
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+void Main() {
+\end_layout
+
+\begin_layout Plain Layout
+
+	Square sq = new Square();
+\end_layout
+
+\begin_layout Plain Layout
+
+	sq.Length = 4;
+\end_layout
+
+\begin_layout Plain Layout
+
+	Console.WriteLine(sq.Area); // outputs 16
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Properties support get and set methods (both optional), which do not have
+ to have the same visibility (it's valid to have a public get and private
+ set).
+ Propeties can also have parameters which turns them into indexers.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class StringIntMap {
+\end_layout
+
+\begin_layout Plain Layout
+
+	public int this[string key] { 
+\end_layout
+
+\begin_layout Plain Layout
+
+		get { ...; } set { ...; } // assuming a sensible implementation
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+void Main() {
+\end_layout
+
+\begin_layout Plain Layout
+
+	StringIntMap map = new StringIntMap();
+\end_layout
+
+\begin_layout Plain Layout
+
+	map["test"] = 1;
+\end_layout
+
+\begin_layout Plain Layout
+
+	Console.WriteLine(map["test"]); // outputs 1
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Subsection
 Generics
 \end_layout
@@ -675,9 +832,16 @@ key "ext-vox"
 
  describes some initial design considerations to do parametric polymorphism
  in COM+ (the original name for what became the CLI and .NET).
- While the final design and implementation differs slightly from this paper
- it gives an insight into what we need to be thinking about while designing
- value parametric.
+ While the final design and implementation that shipped with .NET differs
+ slightly from the design presented in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "ext-vox"
+
+\end_inset
+
+, the paper does give an insight into what we need to be thinking about
+ while designing value parametrics.
  It's worth taking some time to look at how generics ended up being specified
  in 
 \begin_inset CommandInset citation
@@ -918,13 +1082,13 @@ F# has the ability to markup number values with units of measure that allow
  the Mars Climate Orbiter in 1999 because of a mismatch between Imperial
  and Metric units in force calculation, a very expensive mistake as the
  craft cost $125 million.
- Units of measure is done at compile time and all units information is erased
- from the run time, this means that values cast to 
+ Units of measure are done at compile time and all units information is
+ erased from the run time, this means that values cast to 
 \begin_inset Formula $Object$
 \end_inset
 
  cannot be recast to a measured type safely at run time, but also that these
- units cannot be exposed as part of an public interface to be consumed by
+ units cannot be exposed as part of a public interface to be consumed by
  other CLI languages such as C# or VB.
 \end_layout
 
@@ -1947,6 +2111,9 @@ The first part of the project is an investigation into value dependent types
  This has already been covered somewhat in our background research.
  An understanding of how these systems are useful and how they can be designed
  and implemented will be used to guide us on the design of the CLI extension.
+ This investigation will form the background research part of the final
+ report and will be mostly done as part of the intrim report due January
+ the 15th.
 \end_layout
 
 \begin_layout Section
@@ -1959,6 +2126,10 @@ The second part of the project is to design an extension to the CLI that
  Exactly what would be supported in this new system will depend on where
  are investigation has taken us.
  We will show what changes need to be made to ECMA-335 to support the extension.
+ To allow time to work on an implementation the design should be completed
+ by the April 22nd, giving us two months to work on the implementation.
+ If an implementable design is not possible then those two months will be
+ used to document why this is so.
 \end_layout
 
 \begin_layout Section
@@ -1970,6 +2141,7 @@ The last part of the project is to implement the extension.
  We will be using the open source Mono project for this.
  This will require us to change both the run time and the assembler, to
  support the new syntax.
+ This will be completed by the project deadline of June 18th.
 \end_layout
 
 \begin_layout Part
