@@ -371,7 +371,7 @@ Vector
  that defines the indexing operator and length property, and then write
  functions useing this interface.
  This saves us the effort of creating and maintaining the generator but
- at the cost of runtime performance.
+ at the cost of run time performance.
 \end_layout
 
 \begin_layout Standard
@@ -484,9 +484,10 @@ Value dependent types
 \begin_layout Standard
 Dependent types allow static typing of expression based on values rather
  than just other types.
- While some functional languages such as Agda, Coq and Idris support dependent
- types dependent types are not so common in object oriented languages.
- While fully general value dependent types are rare some weaker versions,
+ There are some functional languages such as Agda, Coq and Idris that support
+ dependent types, but in object oriented languages dependent types are not
+ so common.
+ While fully general value dependent types are rare, some weaker versions,
  including path dependent types and virtual types, are used in some mainstream
  languages.
  Notably Scala supports both path dependence and virtual types, F# supports
@@ -517,12 +518,6 @@ The CLI is a specification for a virtual execution environment, that is
  Machine (which for example has no concept of generic types despite Java
  supporting them).
  
-\emph on
-Why target the CLI? Finding it hard to phrase this.
- But two reasons, firstly because I prefer the CLI tech to Java the only
- other big VM, and because extensions to the CLI can then be used by languages
- targeting the CLI opening up easy extension opportunities to many languages
- rather that say adding dependent types to just C#.
 \end_layout
 
 \begin_layout Standard
@@ -545,7 +540,7 @@ fix
 ability.
  Of course any new features added to the CLI should be backwards compatible
  and efficient, we need to keep in mind the size of the new types and their
- instances, the size of the bytecode and the speed to process it and the
+ instances, the size of the byte code and the speed to process it and the
  speed and size of the JITed code.
 \end_layout
 
@@ -591,7 +586,7 @@ Common intermediate language
 \end_layout
 
 \begin_layout Standard
-The CLI runs Common Intermediate Lanugage (CIL) bytecode.
+The CLI runs Common Intermediate Language (CIL) byte code.
  CIL is a type rich, stack based assembly language.
  
 \end_layout
@@ -691,7 +686,7 @@ key "ecma-335"
 
 \end_inset
 
- and implemented in Mono (due to copyright reasons we can't look at Microsofts
+ and implemented in Mono (due to copyright reasons we can't look at Microsoft’s
  open source CLR code).
 \end_layout
 
@@ -840,7 +835,7 @@ The declaration
 \begin_inset Formula $\left\langle !0\right\rangle $
 \end_inset
 
- refers to the first generic class paramter, and passes that as the type
+ refers to the first generic class parameter, and passes that as the type
  argument to 
 \begin_inset Formula $IList$
 \end_inset
@@ -887,7 +882,7 @@ key "boost"
 \begin_inset Formula $uint\_parser$
 \end_inset
 
- is templated on the typename of the integer type to return but also on
+ is templated on the type name of the integer type to return but also on
  the values of the radix and minimum and maximum digits to parse.
  Finally CML
 \begin_inset CommandInset citation
@@ -897,7 +892,7 @@ key "cmldev"
 \end_inset
 
  uses value templates to define the sizes of vectors and matrices, vector
- is templated on a typename 
+ is templated on a type name 
 \begin_inset Formula $ElementT$
 \end_inset
 
@@ -1443,7 +1438,7 @@ Virtual types
 \end_layout
 
 \begin_layout Standard
-Virtual types are also found in Scala, it allows a subclass to override
+Virtual types are also found in Scala, they allow a subclass to override
  a type variable in the super class.
  In the following example the type T declared in class A is made more specific
  in the subclass B.
@@ -1517,6 +1512,19 @@ class B
 \begin_layout Standard
 While virtual types can be useful everything they accomplish can also be
  done with generics, albeit with sometime much more syntax.
+ 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "staticvts"
+
+\end_inset
+
+ shows how the same program can be expressed with virtual types or parametrized
+ types.
+ While one way is often more elegant than the other you gain little in supportin
+g both.
+ As parametrized types are already supported by the CLI virtual types are
+ not hugely interesting.
 \end_layout
 
 \begin_layout Section
@@ -1533,8 +1541,8 @@ key "cayenne"
 
  is a language with support for dependent types and first class types (i.e.
  types can be be used like values).
- Cayenne is a functional language inspired by Haskell, it's unlikely we
- can straight lift ideas from it to be used in the CLI, however it provides
+ As Cayenne is a functional language inspired by Haskell, it's unlikely
+ we can lift ideas straight from it to be used in the CLI, however it provides
  an example of a very general dependent types system.
  Two core features of Cayenne are dependent functions and dependent records.
  Dependent functions allow a function return type to depend on the value
@@ -1673,9 +1681,9 @@ Generalized algebraic data types
 \end_layout
 
 \begin_layout Standard
-Generalized algebraic data types (GADTs) are predominatly a feature of functiona
-l languages.
- The use of GADTs in object orientated langauges is less common but 
+Generalized algebraic data types (GADTs) are predominately a feature of
+ functional languages.
+ The use of GADTs in object orientated languages is less common but 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "gadts"
@@ -1683,7 +1691,156 @@ key "gadts"
 \end_inset
 
  shows how all GADT programs can be expressed in C# and that with some small
- modifcations to the langauge be easily supported.
+ modifications to the language be easily supported.
+ The two modifications proposed by 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "gadts"
+
+\end_inset
+
+ are an extension of the switch statement and an extension of generic constratin
+ts.
+ 
+\end_layout
+
+\begin_layout Standard
+The extension to generic constraints would allow equality constraints on
+ generic types, section 3.1 (Equational constraints for C#) of 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "gadts"
+
+\end_inset
+
+ describes this extension.
+ This would allow a generic type to be declared equal to another type, this
+ would be checked staticly at compile time.
+ For example a list flatten method could check that the list was a list
+ of lists.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language={C++}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+public abstract classt List<T> {
+\end_layout
+
+\begin_layout Plain Layout
+
+	...
+\end_layout
+
+\begin_layout Plain Layout
+
+	public abstract List<U> Flatten<U>() where T=List<U>
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+public class Nil<T> : List<T> {
+\end_layout
+
+\begin_layout Plain Layout
+
+	public override List<U> Flatten<U>() {
+\end_layout
+
+\begin_layout Plain Layout
+
+		return new Nil<U>;
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+public class Cons<T> : List<T> {	
+\end_layout
+
+\begin_layout Plain Layout
+
+	T head; List<T> tail;
+\end_layout
+
+\begin_layout Plain Layout
+
+	public override List<U> Flatten<U>() {
+\end_layout
+
+\begin_layout Plain Layout
+
+		return this.head.Append(this.tail.Flatten());
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Calling 
+\begin_inset Formula $Flatten$
+\end_inset
+
+ on a 
+\begin_inset Formula $List\left\langle T\right\rangle $
+\end_inset
+
+ would staticly check that 
+\begin_inset Formula $T=List\left\langle U\right\rangle $
+\end_inset
+
+ where 
+\begin_inset Formula $U$
+\end_inset
+
+ is any type.
+ Thus in the method body of flatten we can assume that the type of 
+\begin_inset Formula $head$
+\end_inset
+
+ is 
+\begin_inset Formula $List\left\langle U\right\rangle $
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Part
@@ -1691,7 +1848,7 @@ Project plan
 \end_layout
 
 \begin_layout Standard
-As already breifly mentioned in the introduction this project can be split
+As already briefly mentioned in the introduction this project can be split
  into three major parts.
  
 \end_layout
@@ -1704,8 +1861,8 @@ Investigation
 The first part of the project is an investigation into value dependent types
  and similar systems.
  This has already been covered somewhat in our background research.
- An understanding of how these systems are usefull and how they can be designed
- and implemeneted will be used to guide us on the design of the CLI extension.
+ An understanding of how these systems are useful and how they can be designed
+ and implemented will be used to guide us on the design of the CLI extension.
 \end_layout
 
 \begin_layout Section
@@ -1727,8 +1884,8 @@ Implementation
 \begin_layout Standard
 The last part of the project is to implement the extension.
  We will be using the open source Mono project for this.
- This will require us to change both the runtime and the assembler, to support
- the new syntax.
+ This will require us to change both the run time and the assembler, to
+ support the new syntax.
 \end_layout
 
 \begin_layout Part
