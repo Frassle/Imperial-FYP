@@ -118,7 +118,7 @@ Introduction
 \end_layout
 
 \begin_layout Section
-Numerics generator
+Motivation
 \end_layout
 
 \begin_layout Standard
@@ -132,8 +132,162 @@ One of the main motivations for looking into value dependence is for numeric
  separate program that outputs the source code for a pre defined set of
  configurations (currently Vector2 to Vector8 and Matrix2x2 up to Matrix4x4).
  While the use of these types is mostly acceptable extending them is difficult.
- The following is an example showing how these types are used currently
- and how I imagine that would change with dependent types.
+ The following shows the code used to generate all the required dot product
+ functions currently, and how I imagine it might look with value dependence.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+WriteLine("/// <summary>");             
+\end_layout
+
+\begin_layout Plain Layout
+
+WriteLine("/// Calculates the dot product (inner product) of two vectors.");
+             WriteLine("/// </summary>");             
+\end_layout
+
+\begin_layout Plain Layout
+
+WriteLine("/// <param name=
+\backslash
+"left
+\backslash
+">First source vector.</param>");             
+\end_layout
+
+\begin_layout Plain Layout
+
+WriteLine("/// <param name=
+\backslash
+"right
+\backslash
+">Second source vector.</param>");             
+\end_layout
+
+\begin_layout Plain Layout
+
+WriteLine("/// <returns>The dot product of the two vectors.</returns>");
+             
+\end_layout
+
+\begin_layout Plain Layout
+
+if (!Type.IsCLSCompliant) { WriteLine("[CLSCompliant(false)]"); }       
+      
+\end_layout
+
+\begin_layout Plain Layout
+
+WriteLine("public static float Dot({0} left, {0} right)", Name);       
+      
+\end_layout
+
+\begin_layout Plain Layout
+
+WriteLine("{");             
+\end_layout
+
+\begin_layout Plain Layout
+
+Indent();
+\end_layout
+
+\begin_layout Plain Layout
+
+var dotproduct = 	string.Join("+",
+\end_layout
+
+\begin_layout Plain Layout
+
+	Components.Select(component => string.Format("left[{0}]*right[{0}]", component)))
+;
+\end_layout
+
+\begin_layout Plain Layout
+
+WriteLine("return {0};", dotproduct);             
+\end_layout
+
+\begin_layout Plain Layout
+
+Dedent();
+\end_layout
+
+\begin_layout Plain Layout
+
+WriteLine("}");
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+public static float Dot<int n>(Vector<n> a, Vector<n> b)
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	float dot = 0;
+\end_layout
+
+\begin_layout Plain Layout
+
+	for(int i=0; i<n; ++i)
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		dot += a[i]*b[i];
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+	return dot;
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+The usage of these types would remain nearly the same, the following shows
+ how they look at the moment compared to what they might look like with
+ value dependence.
 \end_layout
 
 \begin_layout Standard
@@ -166,10 +320,15 @@ var ab = b - a;
 var dot = Vector.Dot(ab, a);
 \end_layout
 
-\begin_layout Plain Layout
+\end_inset
 
--------------------------------
+
 \end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
 
 \begin_layout Plain Layout
 
@@ -200,70 +359,19 @@ var dot = Vector.Dot(ab, a);
 
 \end_layout
 
-\begin_layout Standard
-As can be seen in this example the usage of these types remains fairly similar.
- The usefulness of dependent types is in the implementation of these types,
- for example a dot product function currently has to be rewritten for each
- type.
+\begin_layout Section
+Performance
 \end_layout
 
 \begin_layout Standard
-\begin_inset listings
-lstparams "language={C++}"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-public static float Dot(Vector3 a, Vector3 b)
-\end_layout
-
-\begin_layout Plain Layout
-
-{
-\end_layout
-
-\begin_layout Plain Layout
-
-	return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
-\end_layout
-
-\begin_layout Plain Layout
-
-}
-\end_layout
-
-\begin_layout Plain Layout
-
-public static float Dot(Vector2 a, Vector2 b)
-\end_layout
-
-\begin_layout Plain Layout
-
-{
-\end_layout
-
-\begin_layout Plain Layout
-
-	return a[0]*b[0] + a[1]*b[1];
-\end_layout
-
-\begin_layout Plain Layout
-
-}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-Alternatively we can define an interface 
+Currently we can we can define an interface 
 \family typewriter
 Vector
 \family default
- that defines the indexing operator and length property.
+ that defines the indexing operator and length property, and then write
+ functions useing this interface.
+ This saves us the effort of creating and maintaining the generator but
+ at the cost of runtime performance.
 \end_layout
 
 \begin_layout Standard
@@ -359,93 +467,8 @@ The issue with this (and this give some suggestions as to how we would want
  to each vector and means that the loop cannot be unrolled.
  For high performance code that theses small vector types are supposed to
  be used for that's an unacceptable trade off.
-\end_layout
-
-\begin_layout Standard
-With dependent types Dot could be written in a similar way but with better
+ With dependent types we could write code in a similar way but with better
  performance characteristics.
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "language={C++}"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-struct Vector<int n>
-\end_layout
-
-\begin_layout Plain Layout
-
-{
-\end_layout
-
-\begin_layout Plain Layout
-
-	float this[int index] { get { ...
- } }
-\end_layout
-
-\begin_layout Plain Layout
-
-	...
-\end_layout
-
-\begin_layout Plain Layout
-
-}
-\end_layout
-
-\begin_layout Plain Layout
-
-public static float Dot<int n>(Vector<n> a, Vector<n> b)
-\end_layout
-
-\begin_layout Plain Layout
-
-{
-\end_layout
-
-\begin_layout Plain Layout
-
-	float dot = 0;
-\end_layout
-
-\begin_layout Plain Layout
-
-	for(int i=0; i<n; ++i)
-\end_layout
-
-\begin_layout Plain Layout
-
-	{
-\end_layout
-
-\begin_layout Plain Layout
-
-		dot += a[i]*b[i];
-\end_layout
-
-\begin_layout Plain Layout
-
-	}
-\end_layout
-
-\begin_layout Plain Layout
-
-	return dot;	
-\end_layout
-
-\begin_layout Plain Layout
-
-}
-\end_layout
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -555,39 +578,89 @@ If part 2 is unsuccessful then an through explanation of why it can't be
  done should be written.
 \end_layout
 
-\begin_layout Quotation
-
-\emph on
-It’s a good idea to try to write the introduction to your final report early
- on in the project.
- However, you will find it hard, as you won’t yet have a complete story
- and you won’t know what your main contributions are going to be.
- However, the exercise is useful as it will tell you what you don’t yet
- know and thus what questions your project should aim to answer.
- For the interim report this section should be a short, succinct, summary
- of the project’s main objectives.
- Some of this material may be re-usable in your final report, but the chances
- are that your final introduction will be quite different.
- You are therefore advised to keep this part of the interim report short,
- focusing on the following questions: What is the problem, why is it interesting
- and what’s your main idea for solving it? (DON'T use those three questions
- as subheadings however! The answers should emerge from what you write.)
-\end_layout
-
-\begin_layout Quotation
-
-\emph on
-Also to add: some explanation of what value dependent type are, some mention
- of other related types (eg GADTs), what I did in the end (too early to
- say atm)
-\end_layout
-
 \begin_layout Part
 Background
 \end_layout
 
 \begin_layout Section
 The CLI
+\end_layout
+
+\begin_layout Subsection
+Common intermediate language
+\end_layout
+
+\begin_layout Standard
+The CLI runs Common Intermediate Lanugage (CIL) bytecode.
+ CIL is a type rich, stack based assembly language.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+.assembly Hello {} 
+\end_layout
+
+\begin_layout Plain Layout
+
+.assembly extern mscorlib {} 
+\end_layout
+
+\begin_layout Plain Layout
+
+.method static void Main() 
+\end_layout
+
+\begin_layout Plain Layout
+
+{     
+\end_layout
+
+\begin_layout Plain Layout
+
+	.entrypoint     
+\end_layout
+
+\begin_layout Plain Layout
+
+	.maxstack 1     
+\end_layout
+
+\begin_layout Plain Layout
+
+	ldstr "Hello, world!"     
+\end_layout
+
+\begin_layout Plain Layout
+
+	call void [mscorlib]System.Console::WriteLine(string)     
+\end_layout
+
+\begin_layout Plain Layout
+
+	ret 
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+CIL supports many features not common the low level assembly code.
+ As well as basic operations such as add, jump, load, store, operations
+ such as field access, method call, object creation, casting etc all have
+ CIL instructions.
 \end_layout
 
 \begin_layout Subsection
@@ -1595,86 +1668,22 @@ depends on the value of the parameter fmt.
  
 \end_layout
 
-\begin_layout Quotation
-
-\emph on
-This should form the bulk of the interim report.
- You should consider that your objective here is to produce a near final
- version of the background section, as it will appear in your final report.
- All of this material should be re-usable, so it is worth getting it right
- at this stage of the project.
- The details of what to include can be found in the Project Report guidelines.
+\begin_layout Section
+Generalized algebraic data types
 \end_layout
 
-\begin_layout Quotation
+\begin_layout Standard
+Generalized algebraic data types (GADTs) are predominatly a feature of functiona
+l languages.
+ The use of GADTs in object orientated langauges is less common but 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "gadts"
 
-\emph on
-The background section of the report should set the project into context
- by relating it to existing published work which you read at the start of
- the project when your approach and methods were being considered.
- There are usually many ways of solving a given problem, and you shouldn't
- just pick one at random.
- Describe and evaluate as many alternative approaches as possible.
- The published work may be in the form of research papers, articles, text
- books, technical manuals, or even existing software or hardware of which
- you have had hands-on experience.
- Your must acknowledge the sources of your inspiration.
- You are expected to have seen and thought about other people's ideas; your
- contribution will be putting them into practice in some other context.
- However, avoid plagiarism: if you take another person's work as your own
- and do not cite your sources of information/inspiration you are being dishonest
-; in other words you are cheating.
- When referring to other pieces of work, cite the sources where they are
- referred to or used, rather than just listing them at the end.
- Make sure you read and digest the Department's plagiarism document .
-\end_layout
+\end_inset
 
-\begin_layout Quotation
-
-\emph on
-In writing the Background chapter you must demonstrate your capability of
- analysis, synthesis and critical judgment.
- Analysis is shown by explaining how the proposed solution operates in your
- own words as well as its benefits and consequences.
- Synthesis is shown through the organization of your Related Work section
- and through identifying and generalizing common aspects across different
- solutions.
- Critical judgment is shown by discussing the limitations of the solutions
- proposed both in terms of their disadvantages and limits of applicability.
-\end_layout
-
-\begin_layout Quotation
-
-\emph on
-Typically you can look for Background work using different search engines
- including:
-\end_layout
-
-\begin_layout Quotation
-
-\emph on
-Google Scholar IEEExplore ACM Digital Library Citeseer Science Direct
-\end_layout
-
-\begin_layout Quotation
-
-\emph on
-Note 1: Often the terms Background, Related Work or State of the Art are
- used interchangeably.
-\end_layout
-
-\begin_layout Quotation
-
-\emph on
-Note 2: Keyword search is wonderful, but you need the right Keywords.
-\end_layout
-
-\begin_layout Quotation
-
-\emph on
-Note 2: IEEExplore, ACM Digital Library and Science Direct require you to
- be on the College network to download the PDF of papers.
- If at home, use VPN.
+ shows how all GADT programs can be expressed in C# and that with some small
+ modifcations to the langauge be easily supported.
 \end_layout
 
 \begin_layout Part
@@ -1722,22 +1731,6 @@ The last part of the project is to implement the extension.
  the new syntax.
 \end_layout
 
-\begin_layout Quotation
-
-\emph on
-You should explain what needs to be done in order to complete the project
- and roughly what you expect the timetable to be.
- Don’t forget to include the project write-up, as this is a major part of
- the exercise.
- It’s important to identify key milestones and also fall-back positions,
- in case you run out of time.
- You should also identify what extensions could be added if time permits.
- The plan should be complete and should include those parts that you have
- already addressed (make it clear how far you have progressed at the time
- of writing).
- This material will not appear in the final report.
-\end_layout
-
 \begin_layout Part
 Evaluation plan
 \end_layout
@@ -1776,19 +1769,6 @@ reference "Vector-performance"
 \end_inset
 
  we want certain performance characteristics out of the system.
-\end_layout
-
-\begin_layout Quotation
-
-\emph on
-Project evaluation is very important, so it's important to think now about
- how you plan to measure success.
- For example, what functionality do you need to demonstrate? What experiments
- to you need to undertake and what outcome(s) would constitute success?
- What benchmarks should you use? How has your project extended the state
- of the art? How do you measure qualitative aspects, such as ease of use?
- These are the sort of questions that your project evaluation should address;
- this section should outline your plan.
 \end_layout
 
 \begin_layout Standard
