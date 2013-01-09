@@ -1850,6 +1850,81 @@ Calling
 \end_inset
 
  method.
+ While the paper suggests this as a C# extension generic constraints are
+ currently encoded at the CLI level and so we could add this as a CLI extension,
+ thus allowing this to be added to C# and other langauges easily.
+ 
+\end_layout
+
+\begin_layout Standard
+The second proposal is an extesnion to the switch statement to allow switching
+ on types, binding type variables in switch case clauses and matching multiple
+ expressions.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language={C++}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+switch (e1, e2)
+\end_layout
+
+\begin_layout Plain Layout
+
+	case (Lit x, Lit y):
+\end_layout
+
+\begin_layout Plain Layout
+
+		return x.value == y.value;
+\end_layout
+
+\begin_layout Plain Layout
+
+	case (Tuple<A,B> x, Tuple<C,D> y):
+\end_layout
+
+\begin_layout Plain Layout
+
+		return Eq(x.fst, y.fst) && Eq(x.snd, y.snd);
+\end_layout
+
+\begin_layout Plain Layout
+
+	default:
+\end_layout
+
+\begin_layout Plain Layout
+
+		returna false;
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+While switch statements are a language feature (at the CLI level they are
+ encoded the same as multiple if statements) the authors point out that
+ support at the CLI level for a match-and-bind primative would be useful
+ (see the end of section 3.4 in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "gadts"
+
+\end_inset
+
+).
 \end_layout
 
 \begin_layout Part
