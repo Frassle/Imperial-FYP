@@ -369,7 +369,7 @@ Currently we can we can define an interface
 Vector
 \family default
  that defines the indexing operator and length property, and then write
- functions useing this interface.
+ functions using this interface.
  This saves us the effort of creating and maintaining the generator but
  at the cost of run time performance.
 \end_layout
@@ -462,13 +462,19 @@ name "Vector-performance"
 
 \end_inset
 
-The issue with this (and this give some suggestions as to how we would want
- to implement dependent types) is that it adds an extra instance variable
- to each vector and means that the loop cannot be unrolled.
+The issue with this interface approach (and this give some suggestions as
+ to how we would want to implement dependent types) is that it adds an extra
+ instance variable (length) to each vector and means that the loop cannot
+ be unrolled.
  For high performance code that theses small vector types are supposed to
- be used for that's an unacceptable trade off.
+ be used for that's an unacceptable trade off, it also makes interoperating
+ with native APIs such as OpenGL harder has the Vectors will have to be
+ marshedlled to avoid copying the length variable to the native API, without
+ the length variable the vector can just be block copied to the native API.
  With dependent types we could write code in a similar way but with better
- performance characteristics.
+ performance characteristics and with the prefered data layout, as the length
+ variable would now be a member of the type but not the instance allowing
+ us to store it like a static variable.
 \end_layout
 
 \begin_layout Standard
@@ -659,24 +665,24 @@ CIL supports many features not common the low level assembly code.
 \end_layout
 
 \begin_layout Standard
-While CIL is targeted by a variaty of languages Visual Basic and C# match
+While CIL is targeted by a variety of languages Visual Basic and C# match
  it's semantics most closely.
  We will use C# code instead of raw CIL when possible in examples.
- Some C# features are uncommon in other langauges so we we'll briefly go
+ Some C# features are uncommon in other languages so we we'll briefly go
  over them.
 \end_layout
 
 \begin_layout Subsection
-Value and Referance types
+Value and Reference types
 \end_layout
 
 \begin_layout Standard
-The CLI differantates between value types (structs) and referance types
+The CLI differentiates between value types (structs) and reference types
  (classes).
  Value types are allocated inline, either on the stack or as part of a containin
 g types allocation.
- Referance types are allocated on the heap and refered to by a pointer (called
- a referance).
+ Reference types are allocated on the heap and referred to by a pointer
+ (called a reference).
 \end_layout
 
 \begin_layout Subsection
@@ -685,7 +691,7 @@ Properties
 
 \begin_layout Standard
 As pointed out above the CIL has instructions for field access but it also
- supports properites.
+ supports properties.
  In the CIL code these look similar to method calls but in C# they look
  like field access.
 \end_layout
@@ -753,7 +759,7 @@ void Main() {
 Properties support get and set methods (both optional), which do not have
  to have the same visibility (it's valid to have a public get and private
  set).
- Propeties can also have parameters which turns them into indexers.
+ Properties can also have parameters which turns them into indexers.
 \end_layout
 
 \begin_layout Standard
@@ -1069,6 +1075,36 @@ key "cmldev"
  on the value of how many elements they store.
  When using these statically sized storage types you get extra static type
  safety that you're not mixing vector sizes in operations.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language={C++}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+cml::vector<float, fixed<3>> a(1,0,0);
+\end_layout
+
+\begin_layout Plain Layout
+
+cml::vector<float, fixed<2>> b = a;
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+typedef cml::vector<float, fixed<3>> vector3;
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -1593,8 +1629,8 @@ Allowing the value parameter to be any type is much more general than path
 \end_inset
 
 .
- However  this is a very ambitious addition and if it's even possible would
- require more investigation.
+ However  this is a very ambitious addition and if it's even possible is
+ uncertain.
 \end_layout
 
 \begin_layout Section
@@ -2154,13 +2190,24 @@ Semantics
 
 \begin_layout Standard
 Defining semantics for what value dependence means can be done in two ways.
- Firstly we could extend the ECMA specification, which is written in formal
- specification speak.
+ Firstly we could extend the ECMA specification (
+\begin_inset CommandInset citation
+LatexCommand cite
+key "ecma-335"
+
+\end_inset
+
+).
  Secondly we could take a formal specification of the CLI and extend that.
+ While work has been done on formalization of CLI languages such as C#,
+ work on formalizing the CLI does not seem to have been done.
  If we can work out how value dependence should work in the CLI then extending
- the ECMA specification is a required aim.
+ the ECMA specification is a required aim, as it is the basis for compiler
+ writers targeting the CLI.
  Extending a formal specification would be a stretch goal to complete once
- other goals are achieved.
+ other goals are achieved, both because it may require translating our extension
+ to C# to use a lightweight C# formalization based on featherweight GJ and
+ secondly as a formalization is not required for the implementation work.
 \end_layout
 
 \begin_layout Section
