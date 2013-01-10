@@ -101,7 +101,7 @@ fraser.waters08@imperial.ac.uk
 \end_layout
 
 \begin_layout Date
-11/05/12
+10/01/13
 \end_layout
 
 \begin_layout Standard
@@ -2174,7 +2174,7 @@ Given an extension to the CLI specification we want to show that the extension
  dependent types.
  The most important aspect is correctness but performance should be kept
  in mind.
- As pointed out in 
+ As pointed out in section 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "Vector-performance"
@@ -2187,8 +2187,9 @@ reference "Vector-performance"
 \begin_layout Standard
 \begin_inset CommandInset bibtex
 LatexCommand bibtex
+btprint "btPrintCited"
 bibfiles "report"
-options "bibtotoc,plain"
+options "plain"
 
 \end_inset
 
