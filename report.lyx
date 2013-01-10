@@ -930,7 +930,7 @@ status open
 
 \begin_layout Plain Layout
 
-.class public auto ansi serializable beforefieldinit List`1
+.class public auto ansi serializable beforefieldinit List`1<T>
 \end_layout
 
 \begin_layout Plain Layout
@@ -980,10 +980,14 @@ implements System.Collections.Generic.IList`1<!0>,
 
 \begin_layout Standard
 The declaration 
-\begin_inset Formula $.class...List`1$
+\begin_inset Formula $.class...List`1\left\langle T\right\rangle $
 \end_inset
 
- declares a new class type with one generic parameter, which has no constraints.
+ declares a new class type with one generic parameter 
+\begin_inset Formula $T$
+\end_inset
+
+, which has no constraints.
  The implements clause lists a number of interfaces which 
 \begin_inset Formula $List$
 \end_inset
@@ -1001,16 +1005,88 @@ The declaration
 \begin_inset Formula $`1$
 \end_inset
 
-, 
+, while 
 \begin_inset Formula $\left\langle !0\right\rangle $
 \end_inset
 
- refers to the first generic class parameter, and passes that as the type
- argument to 
+ refers to the first generic class parameter 
+\begin_inset Formula $T$
+\end_inset
+
+, and passes that as the type argument to 
 \begin_inset Formula $IList$
 \end_inset
 
 .
+\end_layout
+
+\begin_layout Standard
+Generic parameters can also be constrained, a run length compressed list
+ for example would require that the type it stored had an equality operator.
+ The 
+\begin_inset Formula $IEquatable\left\langle T\right\rangle $
+\end_inset
+
+ interface defines a method 
+\begin_inset Formula $bool\; Equal\left(T\; value\right)$
+\end_inset
+
+, so if a type 
+\begin_inset Formula $T$
+\end_inset
+
+ inherits from 
+\begin_inset Formula $IEquatable\left\langle T\right\rangle $
+\end_inset
+
+ then it can be compared equal to other values of its type.
+ Adding the constraint that the first generic parameters has this property
+ is shown here.
+ Note the 
+\begin_inset Formula $(IEquatable`1\left\langle !0\right\rangle )$
+\end_inset
+
+ before the 
+\begin_inset Formula $T$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+.class public auto ansi sealed beforefieldinit CompressedList`1<(IEquatable`1<!0>
+) T>
+\end_layout
+
+\begin_layout Plain Layout
+
+extends System.Object
+\end_layout
+
+\begin_layout Plain Layout
+
+implements System.Collections.Generic.IEnumerable`1<!0>, 
+\end_layout
+
+\begin_layout Plain Layout
+
+	System.Collections.IEnumerable
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -1090,16 +1166,7 @@ cml::vector<float, fixed<3>> a(1,0,0);
 
 \begin_layout Plain Layout
 
-cml::vector<float, fixed<2>> b = a;
-\end_layout
-
-\begin_layout Plain Layout
-
-\end_layout
-
-\begin_layout Plain Layout
-
-typedef cml::vector<float, fixed<3>> vector3;
+cml::vector<float, fixed<2>> b = a; // compile error
 \end_layout
 
 \end_inset
