@@ -1315,6 +1315,12 @@ Unit formulas that mean the same thing can be written in various equivalent
 \begin_layout Standard
 Units of measure are a common praise of F# and provided a valuable case
  study for us to use in our type system extension.
+ While units of measure is implemented in F# as a sort seperate from the
+ standard types they behave somewhat like values of a standard type (with
+ operations for multiplication and division).
+ A system that allowed them to be values of a Measure type (rather than
+ a seperate sort) while retaining the current features (including inferance)
+ would be impressive.
 \end_layout
 
 \begin_layout Section
@@ -2301,7 +2307,7 @@ reference "Vector-performance"
 \begin_layout Standard
 \begin_inset CommandInset bibtex
 LatexCommand bibtex
-btprint "btPrintCited"
+btprint "btPrintAll"
 bibfiles "report"
 options "plain"
 
