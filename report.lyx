@@ -967,7 +967,9 @@ Common intermediate language
 \end_layout
 
 \begin_layout Standard
-The CLI runs Common Intermediate Language (CIL) byte code.
+To allow the reader to more easily follow later discussions we will first
+ briefly go over the CLI and CIL.
+ The CLI runs Common Intermediate Language (CIL) byte code.
  CIL is a type rich, stack based assembly language.
  
 \end_layout
@@ -1033,16 +1035,16 @@ status open
 \end_layout
 
 \begin_layout Standard
-CIL supports many features not common the low level assembly code.
- As well as basic operations such as add, jump, load, store, operations
- such as field access, method call, object creation, casting etc all have
- CIL instructions.
+CIL supports many features not common for low level assembly code, as well
+ as basic operations such as add, jump, load, store.
+ Operations such as field access, method call, object creation, casting
+ etc all have dedicated CIL instructions.
 \end_layout
 
 \begin_layout Standard
 While CIL is targeted by a variety of languages Visual Basic and C# match
- it's semantics most closely.
- We will use C# code instead of raw CIL when possible in examples.
+ it's semantics most closely so we will use C# code instead of raw CIL when
+ possible in examples.
  Some C# features are uncommon in other languages so we we'll briefly go
  over them.
 \end_layout
@@ -1052,12 +1054,21 @@ Value and Reference types
 \end_layout
 
 \begin_layout Standard
-The CLI differentiates between value types (structs) and reference types
- (classes).
+The CLI (and C#) differentiates between value types (structs) and reference
+ types (classes).
  Value types are allocated inline, either on the stack or as part of a containin
 g types allocation.
  Reference types are allocated on the heap and referred to by a pointer
- (called a reference).
+ (called a reference), these are tracked by the garbage collector.
+ To compare this to C++, 
+\family typewriter
+Foo
+\family default
+ would be a value type while 
+\family typewriter
+Foo*
+\family default
+ would be a referance type, the semantics are similar.
 \end_layout
 
 \begin_layout Subsection
@@ -1066,7 +1077,7 @@ Properties
 
 \begin_layout Standard
 As pointed out above the CIL has instructions for field access but it also
- supports properties.
+ has first class support for properties.
  In the CIL code these look similar to method calls but in C# they look
  like field access.
 \end_layout
@@ -1093,31 +1104,287 @@ class Square {
 
 \begin_layout Plain Layout
 
+\end_layout
+
+\begin_layout Plain Layout
+
+	static void Main() {
+\end_layout
+
+\begin_layout Plain Layout
+
+		Square sq = new Square();
+\end_layout
+
+\begin_layout Plain Layout
+
+		sq.Length = 4;
+\end_layout
+
+\begin_layout Plain Layout
+
+		Console.WriteLine(sq.Area); // outputs 16
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
 }
 \end_layout
 
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The corresponding CIL follows, note the method call for 
+\family typewriter
+get_Area
+\family default
+ at 
+\family typewriter
+L_000f
+\family default
+ in 
+\family typewriter
+Main
+\family default
+.
+ While the property getter is just a method it is marked up specially in
+ the 
+\family typewriter
+.property
+\family default
+ clause so that other tools can treat it as such.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+.class private auto ansi beforefieldinit Square     extends [mscorlib]System.Objec
+t 
+\end_layout
+
+\begin_layout Plain Layout
+
+{ 
+\end_layout
+
+\begin_layout Plain Layout
+
+	.method private hidebysig static void Main() cil managed     
+\end_layout
+
+\begin_layout Plain Layout
+
+	{         
+\end_layout
+
+\begin_layout Plain Layout
+
+		.entrypoint
+\end_layout
+
+\begin_layout Plain Layout
+
+		.maxstack 2
+\end_layout
+
+\begin_layout Plain Layout
+
+		.locals init ([0] class Test.Square sq)         
+\end_layout
+
 \begin_layout Plain Layout
 
 \end_layout
 
 \begin_layout Plain Layout
 
-void Main() {
+		L_0000: nop          
 \end_layout
 
 \begin_layout Plain Layout
 
-	Square sq = new Square();
+		L_0001: newobj instance void Test.Square::.ctor()         
 \end_layout
 
 \begin_layout Plain Layout
 
-	sq.Length = 4;
+		L_0006: stloc.0          
 \end_layout
 
 \begin_layout Plain Layout
 
-	Console.WriteLine(sq.Area); // outputs 16
+		L_0007: ldloc.0          
+\end_layout
+
+\begin_layout Plain Layout
+
+		L_0008: ldc.i4.4          
+\end_layout
+
+\begin_layout Plain Layout
+
+		L_0009: stfld int32 Test.Square::Length         
+\end_layout
+
+\begin_layout Plain Layout
+
+		L_000e: ldloc.0          
+\end_layout
+
+\begin_layout Plain Layout
+
+		L_000f: callvirt instance int32 Test.Square::get_Area()         
+\end_layout
+
+\begin_layout Plain Layout
+
+		L_0014: call void [mscorlib]System.Console::WriteLine(int32)         
+\end_layout
+
+\begin_layout Plain Layout
+
+		L_0019: nop          
+\end_layout
+
+\begin_layout Plain Layout
+
+		L_001a: ret      
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	.property instance int32 Area     
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		.get instance int32 Test.Square::get_Area()
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	.field public int32 Length 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	.method public hidebysig specialname instance int32 get_Area() cil managed
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		.maxstack 2
+\end_layout
+
+\begin_layout Plain Layout
+
+		.locals init ([0] int32 CS$1$0000)
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+		L_0000: nop
+\end_layout
+
+\begin_layout Plain Layout
+
+		L_0001: ldarg.0
+\end_layout
+
+\begin_layout Plain Layout
+
+		L_0002: ldfld int32 Test.Square::Length
+\end_layout
+
+\begin_layout Plain Layout
+
+		L_0007: ldarg.0 
+\end_layout
+
+\begin_layout Plain Layout
+
+		L_0008: ldfld int32 Test.Square::Length
+\end_layout
+
+\begin_layout Plain Layout
+
+		L_000d: mul
+\end_layout
+
+\begin_layout Plain Layout
+
+		L_000e: stloc.0 
+\end_layout
+
+\begin_layout Plain Layout
+
+		L_000f: br.s L_0011 
+\end_layout
+
+\begin_layout Plain Layout
+
+		L_0011: ldloc.0
+\end_layout
+
+\begin_layout Plain Layout
+
+		L_0012: ret  
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
 \end_layout
 
 \begin_layout Plain Layout
@@ -1264,39 +1531,39 @@ key "ext-vox"
 
 \begin_layout Standard
 Generics allow the CLI to represent types such as 
-\begin_inset Formula $List\left\langle T\right\rangle $
-\end_inset
-
+\family typewriter
+List<T>
+\family default
  while retaining run time information such that the run time type of 
-\begin_inset Formula $List\left\langle object\right\rangle $
-\end_inset
-
+\family typewriter
+List<object>
+\family default
  is different to 
-\begin_inset Formula $List\left\langle int\right\rangle $
-\end_inset
-
+\family typewriter
+List<int>
+\family default
 .
  
-\begin_inset Formula $List\left\langle int\right\rangle $
-\end_inset
-
+\family typewriter
+List<int>
+\family default
  is also special in that 
-\begin_inset Formula $int$
-\end_inset
-
+\family typewriter
+int
+\family default
  is a value type and yet the run time can use a 
-\begin_inset Formula $List\left\langle int\right\rangle $
-\end_inset
-
+\family typewriter
+List<int>
+\family default
 without causing excessive boxing of values.
 \end_layout
 
 \begin_layout Standard
-If we look at the definition of
-\begin_inset Formula $List\left\langle T\right\rangle $
-\end_inset
-
-in Microsoft’s distribution of .NET 4.0 we can see how the generic parameter
+If we look at the definition of 
+\family typewriter
+List<T>
+\family default
+ in Microsoft’s distribution of .NET 4.0 we can see how the generic parameter
  is declared and used.
 \begin_inset listings
 lstparams "numbers=left"
@@ -1355,43 +1622,39 @@ implements System.Collections.Generic.IList`1<!0>,
 
 \begin_layout Standard
 The declaration 
-\begin_inset Formula $.class...List`1\left\langle T\right\rangle $
-\end_inset
-
+\family typewriter
+.class...List`1<T>
+\family default
  declares a new class type with one generic parameter 
-\begin_inset Formula $T$
-\end_inset
-
+\family typewriter
+T
+\family default
 , which has no constraints.
  The implements clause lists a number of interfaces which 
-\begin_inset Formula $List$
-\end_inset
-
+\family typewriter
+List
+\family default
  implements, the first three of these interfaces are themselves generic.
  On line 3 the 
-\begin_inset Formula $System.Collections.Generic.IList`1$
-\end_inset
-
+\family typewriter
+System.Collections.Generic.IList`1
+\family default
  syntax indicates that we mean the generic 
-\begin_inset Formula $IList$
-\end_inset
-
+\family typewriter
+IList
+\family default
  with one parameter 
-\begin_inset Formula $`1$
-\end_inset
-
-, while 
-\begin_inset Formula $\left\langle !0\right\rangle $
-\end_inset
-
- refers to the first generic class parameter 
-\begin_inset Formula $T$
-\end_inset
-
+\family typewriter
+`1
+\family default
+, while <!0> refers to the first generic class parameter 
+\family typewriter
+T
+\family default
 , and passes that as the type argument to 
-\begin_inset Formula $IList$
-\end_inset
-
+\family typewriter
+IList
+\family default
 .
 \end_layout
 
@@ -1399,32 +1662,32 @@ The declaration
 Generic parameters can also be constrained, a run length compressed list
  for example would require that the type it stored had an equality operator.
  The 
-\begin_inset Formula $IEquatable\left\langle T\right\rangle $
-\end_inset
-
+\family typewriter
+IEquatable<T>
+\family default
  interface defines a method 
-\begin_inset Formula $bool\; Equal\left(T\; value\right)$
-\end_inset
-
+\family typewriter
+bool Equal(T value)
+\family default
 , so if a type 
-\begin_inset Formula $T$
-\end_inset
-
+\family typewriter
+T
+\family default
  inherits from 
-\begin_inset Formula $IEquatable\left\langle T\right\rangle $
-\end_inset
-
+\family typewriter
+IEquatable<T>
+\family default
  then it can be compared equal to other values of its type.
  Adding the constraint that the first generic parameters has this property
  is shown here.
  Note the 
-\begin_inset Formula $(IEquatable`1\left\langle !0\right\rangle )$
-\end_inset
-
+\family typewriter
+(IEquatable`1<!0>)
+\family default
  before the 
-\begin_inset Formula $T$
-\end_inset
-
+\family typewriter
+T
+\family default
 .
 \end_layout
 
@@ -1480,13 +1743,13 @@ Uses of value templates in C++ looking at the standard library, Boost and
  CML (the Configurable Math Library).
  The standard C++ library uses value templates in a few places including
  
-\begin_inset Formula $std::ratio$
-\end_inset
-
+\family typewriter
+std::ratio
+\family default
 , the random number generation library and 
-\begin_inset Formula $type\_traits$
-\end_inset
-
+\family typewriter
+type_traits
+\family default
 .
  The open source Boost
 \begin_inset CommandInset citation
@@ -1498,18 +1761,18 @@ key "boost"
  libraries make use of value templates much more, using them in obvious
  ways in the Array library, which is for safer arrays using a new class
  
-\begin_inset Formula $Array\left\langle T,N\right\rangle $
-\end_inset
-
+\family typewriter
+Array<T,N>
+\family default
 , but also scattered throughout the other libraries.
  For example in 
-\begin_inset Formula $Spirit::Qi$
-\end_inset
-
+\family typewriter
+Spirit::Qi
+\family default
 , a parser combinator library, the type 
-\begin_inset Formula $uint\_parser$
-\end_inset
-
+\family typewriter
+unit_parser
+\family default
  is templated on the type name of the integer type to return but also on
  the values of the radix and minimum and maximum digits to parse.
  Finally CML
@@ -1521,13 +1784,13 @@ key "cmldev"
 
  uses value templates to define the sizes of vectors and matrices, vector
  is templated on a type name 
-\begin_inset Formula $ElementT$
-\end_inset
-
+\family typewriter
+ElementT
+\family default
  and 
-\begin_inset Formula $StorageT$
-\end_inset
-
+\family typewriter
+StorageT
+\family default
 .
  Moreover two of the built in storage types (fixed and external) are templated
  on the value of how many elements they store.
@@ -1576,9 +1839,9 @@ F# has the ability to markup number values with units of measure that allow
  craft cost $125 million.
  Units of measure are done at compile time and all units information is
  erased from the run time, this means that values cast to 
-\begin_inset Formula $Object$
-\end_inset
-
+\family typewriter
+Object
+\family default
  cannot be recast to a measured type safely at run time, but also that these
  units cannot be exposed as part of a public interface to be consumed by
  other CLI languages such as C# or VB.
@@ -1587,11 +1850,7 @@ F# has the ability to markup number values with units of measure that allow
 \begin_layout Standard
 Units of measure are declared as opaque types marked up with the 
 \family typewriter
-
-\begin_inset Formula $Measure$
-\end_inset
-
-
+Measure
 \family default
  attribute.
 \begin_inset listings
@@ -1623,16 +1882,12 @@ The normal unit operators such as multiplication, division and powers are
  For example in the following, code type inference correctly identifies
  
 \family typewriter
-
-\begin_inset Formula $distance$
-\end_inset
-
-
+distance
 \family default
  as type 
-\begin_inset Formula $float\left\langle meter\right\rangle $
-\end_inset
-
+\family typewriter
+float<meter>
+\family default
 .
 \begin_inset listings
 inline false
@@ -1887,21 +2142,21 @@ end{lstlisting}
 \end_inset
 
 Here the type of 
-\begin_inset Formula $c1$
-\end_inset
-
+\family typewriter
+c1
+\family default
  and 
-\begin_inset Formula $c2$
-\end_inset
-
+\family typewriter
+c2
+\family default
  depend on the values 
-\begin_inset Formula $b1$
-\end_inset
-
+\family typewriter
+b1
+\family default
  and 
-\begin_inset Formula $b2$
-\end_inset
-
+\family typewriter
+b2
+\family default
 .
  Not that it is in fact the values not these specific identifiers that are
  the dependence, as shown on line 17.
@@ -2090,13 +2345,13 @@ end{lstlisting}
 \begin_layout Standard
 Allowing the value parameter to be any type is much more general than path
  dependence, In this case 
-\begin_inset Formula $Coordianate$
-\end_inset
-
+\family typewriter
+Coordianate
+\family default
  would not even need to be an inner class of 
-\begin_inset Formula $Board$
-\end_inset
-
+\family typewriter
+Board
+\family default
 .
  However  this is a very ambitious addition and if it's even possible is
  uncertain.
@@ -2116,8 +2371,19 @@ name "sec:Virtual-types"
 \begin_layout Standard
 Virtual types are also found in Scala, they allow a subclass to override
  a type variable in the super class.
- In the following example the type T declared in class A is made more specific
- in the subclass B.
+ In the following example the type 
+\family typewriter
+T
+\family default
+ declared in class 
+\family typewriter
+A
+\family default
+ is made more specific in the subclass 
+\family typewriter
+B
+\family default
+.
 \end_layout
 
 \begin_layout Standard
@@ -2327,27 +2593,27 @@ pr (c:cs) res       = pr css (res ++ [c])
 
 \begin_layout Standard
 In this example the type of 
-\begin_inset Formula $printf$
-\end_inset
-
-depends on the value of the parameter fmt.
+\family typewriter
+printf
+\family default
+ depends on the value of the parameter fmt.
  This also shows how types and values are treated equally in Cayenne.
  The type 
-\begin_inset Formula $\#$
-\end_inset
-
+\family typewriter
+#
+\family default
  is the type of all types (normal notation is 
-\begin_inset Formula $*$
-\end_inset
-
+\family typewriter
+*
+\family default
  but 
-\begin_inset Formula $\#$
-\end_inset
-
+\family typewriter
+#
+\family default
  was chosen to avoid clashes with the infix operator 
-\begin_inset Formula $*$
-\end_inset
-
+\family typewriter
+*
+\family default
 ).
  
 \end_layout
@@ -2497,34 +2763,34 @@ public class Cons<T> : List<T> {
 
 \begin_layout Standard
 Calling 
-\begin_inset Formula $Flatten$
-\end_inset
-
+\family typewriter
+Flatten
+\family default
  on a 
-\begin_inset Formula $List\left\langle T\right\rangle $
-\end_inset
-
+\family typewriter
+List<T>
+\family default
  would statically check that 
-\begin_inset Formula $T=List\left\langle U\right\rangle $
-\end_inset
-
+\family typewriter
+T=List<U>
+\family default
  where 
-\begin_inset Formula $U$
-\end_inset
-
+\family typewriter
+U
+\family default
  is any type.
  Thus in the method body of flatten we can assume that the type of 
-\begin_inset Formula $head$
-\end_inset
-
+\family typewriter
+head
+\family default
  is 
-\begin_inset Formula $List\left\langle U\right\rangle $
-\end_inset
-
+\family typewriter
+List<U>
+\family default
  which has an 
-\begin_inset Formula $Append$
-\end_inset
-
+\family typewriter
+Append
+\family default
  method.
  While the paper suggests this as a C# extension generic constraints are
  currently encoded at the CLI level and so we could add this as a CLI extension,
@@ -2534,8 +2800,11 @@ Calling
 
 \begin_layout Standard
 The second proposal is an extension to the switch statement to allow switching
- on types, binding type variables in switch case clauses and matching multiple
- expressions.
+ on types, binding type 
+\family typewriter
+variables
+\family default
+ in switch case clauses and matching multiple expressions.
 \end_layout
 
 \begin_layout Standard
