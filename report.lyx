@@ -2,8 +2,19 @@
 \lyxformat 413
 \begin_document
 \begin_header
-\textclass article
+\textclass report
 \begin_preamble
+\usepackage{amsmath,amssymb,dot2texi,tikz,hyperref,enumitem}
+\usetikzlibrary{shapes,arrows}
+
+\usepackage[T1]{fontenc}
+\usepackage[sc]{mathpazo}
+\usepackage{fullpage}
+
+\usepackage{float}
+\floatstyle{boxed}
+\restylefloat{figure}
+
 \usepackage{url}
 \usepackage{listings}
 
@@ -24,6 +35,8 @@
   morestring=[b]',
   morestring=[b]"""
 }
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 \end_preamble
 \use_default_options true
 \maintain_unincluded_children false
@@ -82,26 +95,269 @@
 
 \begin_body
 
-\begin_layout Title
-Value dependent types for the CLI
-\end_layout
-
-\begin_layout Author
-Fraser Waters
-\begin_inset Foot
+\begin_layout Standard
+\begin_inset ERT
 status open
 
 \begin_layout Plain Layout
-fraser.waters08@imperial.ac.uk
+
+
+\backslash
+begin{titlepage}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{center}
+\end_layout
+
+\begin_layout Plain Layout
+
+%Upper part of the page 
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+includegraphics[width=0.50
+\backslash
+textwidth]{imperial_crest_colour.jpg}
+\backslash
+
+\backslash
+[1cm]
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+textsc{
+\backslash
+LARGE Imperial College London}
+\backslash
+
+\backslash
+[1.5cm]
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+textsc{
+\backslash
+Large Interim Report}
+\backslash
+
+\backslash
+[0.5cm]
+\end_layout
+
+\begin_layout Plain Layout
+
+% Title 
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+HRule 
+\backslash
+
+\backslash
+[0.4cm] 
+\end_layout
+
+\begin_layout Plain Layout
+
+{ 
+\backslash
+huge 
+\backslash
+bfseries Value dependent types for the CLI}
+\backslash
+
+\backslash
+[0.4cm]
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+HRule 
+\backslash
+
+\backslash
+[1.5cm]
+\end_layout
+
+\begin_layout Plain Layout
+
+% Author and supervisor 
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{minipage}{0.4
+\backslash
+textwidth} 
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{flushleft} 
+\backslash
+large 
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+emph{Author:}
+\backslash
+
+\backslash
+ 
+\end_layout
+
+\begin_layout Plain Layout
+
+Fraser 
+\backslash
+textsc{Waters}
+\backslash
+
+\backslash
+
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+href{mailto:fraser.waters08@imperial.ac.uk}{fraser.waters08@imperial.ac.uk} 
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{flushleft} 
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{minipage} 
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{minipage}{0.4
+\backslash
+textwidth} 
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{flushright} 
+\backslash
+large 
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+emph{Supervisor:} 
+\backslash
+
+\backslash
+ Professor Sophia 
+\backslash
+textsc{Drossopoulou} 
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{flushright} 
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{minipage}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+vfill
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+% Bottom of the page 
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\backslash
+large 
+\backslash
+today}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{center}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{titlepage}
 \end_layout
 
 \end_inset
 
 
-\end_layout
-
-\begin_layout Date
-10/01/13
 \end_layout
 
 \begin_layout Standard
@@ -113,7 +369,7 @@ LatexCommand tableofcontents
 
 \end_layout
 
-\begin_layout Part
+\begin_layout Chapter
 Introduction
 \end_layout
 
@@ -207,10 +463,12 @@ Motivation
 \end_layout
 
 \begin_layout Standard
-One of the main motivations for looking into value dependence is for numeric
- types such as Vector3, Vector4, Matrix3x4.
- These are used for graphics and physics applications where most vectors
- and matrices in the problem domain are small (3 or 4 elements).
+One of the main motivations for looking into value dependence is for work
+ in graphics and physics applications where most vectors and matrices in
+ the problem domain are small (3 or 4 elements).
+ Using types such as Vector3, Vector4, Matrix3x4 which are 3 and 4 element
+ float vectors and a 3 by 4 float matrix respectively, make writing code
+ much easier than working with multiple float variables.
  Currently there is no nice way to represent all the different sizes for
  types like this in C# (or any other CLI language).
  Consequently it lead me to the creation of a numeric type generator, a
@@ -646,7 +904,7 @@ If part 2 is unsuccessful then an through explanation of why it can't be
  done should be written.
 \end_layout
 
-\begin_layout Part
+\begin_layout Chapter
 Background
 \end_layout
 
@@ -2295,7 +2553,7 @@ key "gadts"
 ).
 \end_layout
 
-\begin_layout Part
+\begin_layout Chapter
 Project plan
 \end_layout
 
@@ -2348,7 +2606,7 @@ The last part of the project is to implement the extension.
  This will be completed by the project deadline of June 18th.
 \end_layout
 
-\begin_layout Part
+\begin_layout Chapter
 Evaluation plan
 \end_layout
 
