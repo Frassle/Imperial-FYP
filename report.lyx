@@ -873,9 +873,18 @@ Common Language Runtime
 
  (often confused with the .NET branding) and the open source Mono project.
  It is targeted by VB, C#, F#, IronPython and other languages.
- It retains a high level of type information, more so than the Java Virtual
- Machine (which for example has no concept of generic types despite Java
- supporting them
+ It retains a high level of type information, more so than the JVM
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Java Virtual Machine
+\end_layout
+
+\end_inset
+
+ (which for example has no concept of generic types despite Java supporting
+ them
 \begin_inset CommandInset citation
 LatexCommand cite
 key "jvm-erasure"
@@ -1468,9 +1477,9 @@ Generics
 \end_layout
 
 \begin_layout Standard
-The CLI supports parametric polymorphic types via generics types that are
- parametrized on other types (value dependence would allow types to also
- be parametrized on values).
+The CLI supports parametric polymorphic types via generics types.
+ Generic types are parametrized on other types (value dependence would allow
+ types to also be parametrized on values).
  The MSR White paper 
 \begin_inset CommandInset citation
 LatexCommand cite
@@ -1491,7 +1500,7 @@ key "ext-vox"
 , the paper does give an insight into what we need to be thinking about
  while designing value parametrics.
  It's worth taking some time to look at how generics ended up being specified
- in 
+ in ECMA-335
 \begin_inset CommandInset citation
 LatexCommand cite
 key "ecma-335"
@@ -1500,6 +1509,7 @@ key "ecma-335"
 
  and implemented in Mono (due to copyright reasons we can't look at Microsoft’s
  open source CLR code).
+ 
 \end_layout
 
 \begin_layout Standard
@@ -1517,7 +1527,7 @@ key "ecma-335"
  Each type parameter may be constrained by a number of properties, including
  constraints on being a value or reference type, having a defined base class
  or interface or being default constructable.
- Type parameters can be value or reference types, this is a marked difference
+ Type parameters can be value or reference types; this is a marked difference
  from the suggestion in 
 \begin_inset CommandInset citation
 LatexCommand cite
@@ -1542,6 +1552,16 @@ List<object>
 \family typewriter
 List<int>
 \family default
+
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+In contrast theses types would be equivilant in the JVM.
+\end_layout
+
+\end_inset
+
 .
  
 \family typewriter
@@ -1612,7 +1632,8 @@ implements System.Collections.Generic.IList`1<!0>,
 
 \begin_layout Plain Layout
 
-{
+{ ...
+ }
 \end_layout
 
 \end_inset
@@ -1623,18 +1644,22 @@ implements System.Collections.Generic.IList`1<!0>,
 \begin_layout Standard
 The declaration 
 \family typewriter
-.class...List`1<T>
+.class public auto ansi serializable beforefieldinit List`1<T>
 \family default
  declares a new class type with one generic parameter 
 \family typewriter
 T
 \family default
 , which has no constraints.
- The implements clause lists a number of interfaces which 
+ The 
 \family typewriter
-List
+implements
 \family default
- implements, the first three of these interfaces are themselves generic.
+ clause lists interfaces implemented by 
+\family typewriter
+List`1<T>
+\family default
+, the first three of these interfaces are themselves generic.
  On line 3 the 
 \family typewriter
 System.Collections.Generic.IList`1
@@ -1719,7 +1744,8 @@ implements System.Collections.Generic.IEnumerable`1<!0>,
 
 \begin_layout Plain Layout
 
-{
+{ ...
+ }
 \end_layout
 
 \end_inset
@@ -1739,19 +1765,114 @@ name "sec:Cpp-templates"
 \end_layout
 
 \begin_layout Standard
-Uses of value templates in C++ looking at the standard library, Boost and
- CML (the Configurable Math Library).
- The standard C++ library uses value templates in a few places including
+C++ templates allow functions and types to be parametrized by types or values.
+ Templates are a turning complete language by themselves making them very
+ general, however most implementations of templates simply perform substitution
+ at compile time leading to a large amount of generated code that then has
+ to be reduced by looking for simalarties (in contrast to CLR and Mono generics
+ that duplicate very little code), and with large use cases substantial
+ slowdowns to compilation time.
+\end_layout
+
+\begin_layout Standard
+Many libraries including the standard library make use of templates, particulari
+ty the parametrization on types.
+ Parametrization on values is less used but it's similarities to value dependenc
+e make it worth looking at, to this end we will look at a few examples from
+ the standard library, Boost
+\begin_inset CommandInset citation
+LatexCommand cite
+key "boost"
+
+\end_inset
+
+ and CML
+\begin_inset CommandInset citation
+LatexCommand cite
+key "cmldev"
+
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+The standard C++ library uses value templates in a few places including
  
 \family typewriter
 std::ratio
 \family default
-, the random number generation library and 
+ and the random number generation library.
+ 
 \family typewriter
-type_traits
+std::ratio
+\family default
+ is a compile time rational number added in C++11, it reduces the numerator
+ and denominator to lowest terms at compile time.
+ The random number generator uses template values to set generator parameters
+ such as the constants 
+\family typewriter
+a
+\family default
+, 
+\family typewriter
+c
+\family default
+ and 
+\family typewriter
+m
+\family default
+ to be used in 
+\family typewriter
+std::linear_congruential_engine
 \family default
 .
- The open source Boost
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language={C++}"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+template<
+\end_layout
+
+\begin_layout Plain Layout
+
+	class UIntType, 
+\end_layout
+
+\begin_layout Plain Layout
+
+	UIntType a, 
+\end_layout
+
+\begin_layout Plain Layout
+
+	UIntType c, 
+\end_layout
+
+\begin_layout Plain Layout
+
+	UIntType m 
+\end_layout
+
+\begin_layout Plain Layout
+
+> class linear_congruential_engine;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The open source Boost
 \begin_inset CommandInset citation
 LatexCommand cite
 key "boost"
@@ -1762,7 +1883,7 @@ key "boost"
  ways in the Array library, which is for safer arrays using a new class
  
 \family typewriter
-Array<T,N>
+Array<typename T, int N>
 \family default
 , but also scattered throughout the other libraries.
  For example in 
@@ -1775,15 +1896,20 @@ unit_parser
 \family default
  is templated on the type name of the integer type to return but also on
  the values of the radix and minimum and maximum digits to parse.
- Finally CML
+ 
+\end_layout
+
+\begin_layout Standard
+Finally CML
 \begin_inset CommandInset citation
 LatexCommand cite
 key "cmldev"
 
 \end_inset
 
- uses value templates to define the sizes of vectors and matrices, vector
- is templated on a type name 
+ uses value templates to define the sizes of vectors and matrices, this
+ is similar to our motivating example in C#.
+ Vector is templated on a type name 
 \family typewriter
 ElementT
 \family default
