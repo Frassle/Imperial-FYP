@@ -369,6 +369,15 @@ LatexCommand tableofcontents
 
 \end_layout
 
+\begin_layout Abstract
+Value dependent types are a powerful extension to type systems allowing
+ types to be parametrized by terms.
+ This project looks into how value dependent types could be introduced to
+ the CLI, the underlying virtual machine specification for C#, Visual Basic,
+ F# and many other languages, to allow more solutions to be succinctly expressed
+ at the CLI level and exposed to these languages.
+\end_layout
+
 \begin_layout Chapter
 Introduction
 \end_layout
@@ -465,7 +474,8 @@ Motivation
 \begin_layout Standard
 One of the main motivations for looking into value dependence is for work
  in graphics and physics applications where most vectors and matrices in
- the problem domain are small (3 or 4 elements).
+ the problem domain are small (3 or 4 elements, but no reason this couldn't
+ scale to many more for other applications).
  Using types such as Vector3, Vector4, Matrix3x4 which are 3 and 4 element
  float vectors and a 3 by 4 float matrix respectively, make writing code
  much easier than working with multiple float variables.
@@ -475,49 +485,23 @@ One of the main motivations for looking into value dependence is for work
  separate program that outputs the source code for a pre defined set of
  configurations (currently Vector2 to Vector8 and Matrix2x2 up to Matrix4x4).
  While the use of these types is mostly acceptable extending them is difficult.
- The following shows the code used to generate all the required dot product
- functions currently, and how I imagine it might look with value dependence.
+ As shown below using the generator requires writing the code in literal
+ strings, these literals can not be checked at compile time for obvious
+ mistakes and the IDE does not offer auto completion when writing them,
+ the generator has to be run then the emitted code must be compiled to see
+ any problems.
+ The following shows a section of code used to generate all the required
+ dot product functions currently, 
+\family typewriter
+Components
+\family default
+ is a list of component indices 0, 1, 2 etc.
 \end_layout
 
 \begin_layout Standard
 \begin_inset listings
 inline false
 status open
-
-\begin_layout Plain Layout
-
-WriteLine("/// <summary>");             
-\end_layout
-
-\begin_layout Plain Layout
-
-WriteLine("/// Calculates the dot product (inner product) of two vectors.");
-             WriteLine("/// </summary>");             
-\end_layout
-
-\begin_layout Plain Layout
-
-WriteLine("/// <param name=
-\backslash
-"left
-\backslash
-">First source vector.</param>");             
-\end_layout
-
-\begin_layout Plain Layout
-
-WriteLine("/// <param name=
-\backslash
-"right
-\backslash
-">Second source vector.</param>");             
-\end_layout
-
-\begin_layout Plain Layout
-
-WriteLine("/// <returns>The dot product of the two vectors.</returns>");
-             
-\end_layout
 
 \begin_layout Plain Layout
 
@@ -543,7 +527,7 @@ Indent();
 
 \begin_layout Plain Layout
 
-var dotproduct = 	string.Join("+",
+var dotproduct = string.Join("+",
 \end_layout
 
 \begin_layout Plain Layout
@@ -554,7 +538,7 @@ var dotproduct = 	string.Join("+",
 
 \begin_layout Plain Layout
 
-WriteLine("return {0};", dotproduct);             
+WriteLine("return {0};", dotproduct);
 \end_layout
 
 \begin_layout Plain Layout
@@ -567,13 +551,15 @@ Dedent();
 WriteLine("}");
 \end_layout
 
-\begin_layout Plain Layout
-
-\end_layout
-
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+With value dependence we could write the code directly to be compiled, skipping
+ the generator step, and allowing the use of auto complete and faster iteration
+ times.
 \end_layout
 
 \begin_layout Standard
@@ -583,7 +569,7 @@ status open
 
 \begin_layout Plain Layout
 
-public static float Dot<int n>(Vector<n> a, Vector<n> b)
+public static float Dot<int n>(Vector<n> left, Vector<n> right)
 \end_layout
 
 \begin_layout Plain Layout
@@ -608,7 +594,7 @@ public static float Dot<int n>(Vector<n> a, Vector<n> b)
 
 \begin_layout Plain Layout
 
-		dot += a[i]*b[i];
+		dot += left[i]*right[i];
 \end_layout
 
 \begin_layout Plain Layout
@@ -631,6 +617,10 @@ public static float Dot<int n>(Vector<n> a, Vector<n> b)
 The usage of these types would remain nearly the same, the following shows
  how they look at the moment compared to what they might look like with
  value dependence.
+\end_layout
+
+\begin_layout Standard
+Current method:
 \end_layout
 
 \begin_layout Standard
@@ -669,6 +659,10 @@ var dot = Vector.Dot(ab, a);
 \end_layout
 
 \begin_layout Standard
+Proposal:
+\end_layout
+
+\begin_layout Standard
 \begin_inset listings
 inline false
 status open
@@ -702,19 +696,54 @@ var dot = Vector.Dot(ab, a);
 
 \end_layout
 
-\begin_layout Section
+\begin_layout Standard
+As you can see there isn't a big difference.
+ Users get more benefit with the latter as they can write dependent functions
+ that work for any vector size, as opposed to having to use multiple functions
+ for different sizes.
+\end_layout
+
+\begin_layout Subsection
 Performance
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Performance"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
-Currently we can we can define an interface 
+There are ways to avoid the generator step now, however they do not have
+ acceptable performance and layout properties to be used.
+ 
+\end_layout
+
+\begin_layout Standard
+The simlest way is to define Vector as dynamicly sized (like arrays) this
+ loses all static type safety but does mean functions would only have to
+ be written once, saving us the effort of creating and maintaining the generator
+ but a cost.
+ Vector is no longer purely a value type as it will have a referance field
+ in it, this changes the semantics from the current vector types (due to
+ no user defined copy constructors or assingment operators in the CLI) and
+ also makes them more expensive as they are now tracked by the garbage collector.
+ It also makes inter operating with native APIs such as OpenGL harder as
+ the Vectors will have to be marshaled to correctly copy the ellements of
+ their internal array to the native API, the current vector types can just
+ be pinned and pointer copied.
+\end_layout
+
+\begin_layout Standard
+Another way is to define an interface 
 \family typewriter
 Vector
 \family default
  that defines the indexing operator and length property, and then write
  functions using this interface.
- This saves us the effort of creating and maintaining the generator but
- at the cost of run time performance.
+ However we still need to create concrete types for each vector size which
+ requires the generator.
 \end_layout
 
 \begin_layout Standard
@@ -799,25 +828,15 @@ public static float Dot<T>(T a, T b) where T : Vector
 \end_layout
 
 \begin_layout Standard
-\begin_inset CommandInset label
-LatexCommand label
-name "Vector-performance"
-
-\end_inset
-
-The issue with this interface approach (and this give some suggestions as
- to how we would want to implement dependent types) is that it adds an extra
- instance variable (length) to each vector and means that the loop cannot
+The issue with this interface approach (and this give some suggestion as
+ to how we would want to implement dependent types) is that the loop cannot
  be unrolled.
  For high performance code that theses small vector types are supposed to
- be used for that's an unacceptable trade off, it also makes inter operating
- with native APIs such as OpenGL harder has the Vectors will have to be
- marshaled to avoid copying the length variable to the native API, without
- the length variable the vector can just be block copied to the native API.
- With dependent types we could write code in a similar way but with better
- performance characteristics and with the preferred data layout, as the
- length variable would now be a member of the type but not the instance
- allowing us to store it like a static variable.
+ be used for that's an unacceptable trade off, especially as we still have
+ to maintain the generator anyway.
+ With dependent types we could have better performance characteristics and
+ with the preferred flat data layout.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -842,34 +861,58 @@ Common Language Infrastructure
 
 \begin_layout Standard
 The CLI is a specification for a virtual execution environment, that is
- implemented by Microsoft’s CLR (often confused with the .NET branding) and
- the open source Mono project.
+ implemented by Microsoft’s CLR
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Common Language Runtime
+\end_layout
+
+\end_inset
+
+ (often confused with the .NET branding) and the open source Mono project.
  It is targeted by VB, C#, F#, IronPython and other languages.
  It retains a high level of type information, more so than the Java Virtual
  Machine (which for example has no concept of generic types despite Java
- supporting them).
+ supporting them
+\begin_inset CommandInset citation
+LatexCommand cite
+key "jvm-erasure"
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+As a C# and F# programmer the CLI is a more attractive specification to
+ work with.
+ The ability to retain high level type information allows easy interoperability
+ between separate CLI modules, even with modules compiled using different
+ languages.
+\end_layout
+
+\begin_layout Standard
+However this interoperability starts to fall apart when languages add typing
+ extensions that aren't supported by the CLI.
+ Units of measure in F#, for example, are erased at compile time; therefore
+ other modules which consume an F# module where units of measure were used
+ cannot see, and be type-checked according to, the units.
+ This loss of typing information is not ideal, as it reduces interoperability,
+ and so prompts us to consider adding value dependence as a CLI feature
+ and not just an extension to a current CLI language such as C# or F#.
+ If units could be written in terms of dependent types then we can 
+\emph on
+fix
+\emph default
+ them, else at least our extension will not suffer the same problem of interoper
+ability.
  
 \end_layout
 
 \begin_layout Standard
-The ability to retain high level type information allows easy interoperability
- between separate CLI modules, even with modules compiled using different
- languages.
- This feature starts to fall apart when languages add typing extensions
- that aren't supported by the CLI.
- Units of measure in F#, for example, are erased at compile time meaning
- that other modules which consume an F# module where units of measure were
- used cannot see the units.
- This loss of typing information is not ideal, as it reduces interoperability,
- and so prompts us to consider adding value dependence as a CLI feature
- and not just an extension to a current CLI language such as C# or F#.
- If units can be written in terms of dependent types then we can 
-\emph on
-fix
-\emph default
- them, else at least our extension does not suffer the same problem of interoper
-ability.
- Of course any new features added to the CLI should be backwards compatible
+Moreover any new features added to the CLI should be backwards compatible
  and efficient, we need to keep in mind the size of the new types and their
  instances, the size of the byte code and the speed to process it and the
  speed and size of the JITed code.
@@ -902,6 +945,13 @@ If part 2 is successful to implement value dependent typing in Mono.
 \begin_layout Enumerate
 If part 2 is unsuccessful then an through explanation of why it can't be
  done should be written.
+\end_layout
+
+\begin_layout Standard
+The rest of this report looks more in depth at the CLI and then covers various
+ type system enhancements related to value dependence and value dependence
+ itself.
+ It finishes with an plan for the rest of the project and it's evaluation.
 \end_layout
 
 \begin_layout Chapter
@@ -2650,7 +2700,7 @@ Given an extension to the CLI specification we want to show that the extension
  As pointed out in section 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "Vector-performance"
+reference "sub:Performance"
 
 \end_inset
 
