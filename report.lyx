@@ -124,15 +124,82 @@ Value dependent types
 \begin_layout Standard
 Dependent types allow static typing of expression based on values rather
  than just other types.
- There are some functional languages such as Agda, Coq and Idris that support
- dependent types, but in object oriented languages dependent types are not
- so common.
+ There are some functional languages such as Agda
+\begin_inset CommandInset citation
+LatexCommand cite
+key "agda"
+
+\end_inset
+
+, Coq
+\begin_inset CommandInset citation
+LatexCommand cite
+key "coq"
+
+\end_inset
+
+, Idris
+\begin_inset CommandInset citation
+LatexCommand cite
+key "idris"
+
+\end_inset
+
+ and Cayanne
+\begin_inset CommandInset citation
+LatexCommand cite
+key "cayenne"
+
+\end_inset
+
+ that support dependent types, but in object oriented languages dependent
+ types are not so common.
  While fully general value dependent types are rare, some weaker versions,
- including path dependent types and virtual types, are used in some mainstream
- languages.
- Notably Scala supports both path dependence and virtual types, F# supports
- units of measure allowing numbers to be typed based on a unit value, and
- C++ has templates that can be parametrized on values.
+ including path dependent types (section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Path-dependent-types"
+
+\end_inset
+
+) and virtual types (section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Virtual-types"
+
+\end_inset
+
+), are used in some mainstream languages.
+ Notably Scala
+\begin_inset CommandInset citation
+LatexCommand cite
+key "scala"
+
+\end_inset
+
+ supports both path dependence and virtual types, F#
+\begin_inset CommandInset citation
+LatexCommand cite
+key "fsharp"
+
+\end_inset
+
+ supports units of measure (section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Fsharp-units"
+
+\end_inset
+
+) allowing numbers to be typed based on a unit value, and C++ has templates
+ (section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Cpp-templates"
+
+\end_inset
+
+) that can be parametrized on values.
 \end_layout
 
 \begin_layout Section
@@ -1090,7 +1157,14 @@ implements System.Collections.Generic.IEnumerable`1<!0>,
 \end_layout
 
 \begin_layout Section
-C++
+C++ templates
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Cpp-templates"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -1175,7 +1249,14 @@ cml::vector<float, fixed<2>> b = a; // compile error
 \end_layout
 
 \begin_layout Section
-F#
+F# units of measure
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Fsharp-units"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -1325,6 +1406,13 @@ Units of measure are a common praise of F# and provided a valuable case
 
 \begin_layout Section
 Path dependent types
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Path-dependent-types"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -1708,6 +1796,13 @@ Allowing the value parameter to be any type is much more general than path
 
 \begin_layout Section
 Virtual types
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Virtual-types"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
