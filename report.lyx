@@ -18,6 +18,8 @@
 \usepackage{url}
 \usepackage{listings}
 
+\lstdefinelanguage{sharpc}{language=[Sharp]C}
+
 % "define" Scala
 \lstdefinelanguage{scala}{
   morekeywords={abstract,case,catch,class,def,%
@@ -37,6 +39,13 @@
 }
 
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\usepackage{caption}
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{%
+  \parbox{\textwidth}{\colorbox{black}{\parbox{\textwidth}{#1#2#3}}\vskip4pt}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white}
+\lstset{frame=lrbt,xleftmargin=\fboxsep,xrightmargin=-\fboxsep}
 \end_preamble
 \use_default_options true
 \maintain_unincluded_children false
@@ -500,6 +509,7 @@ Components
 
 \begin_layout Standard
 \begin_inset listings
+lstparams "keywordstyle={\color{blue}},language=sharpc,showstringspaces=false,tabsize=4"
 inline false
 status open
 
@@ -564,6 +574,7 @@ With value dependence we could write the code directly to be compiled, skipping
 
 \begin_layout Standard
 \begin_inset listings
+lstparams "keywordstyle={\color{blue}},language=sharpc,tabsize=4"
 inline false
 status open
 
@@ -620,16 +631,20 @@ The usage of these types would remain nearly the same, the following shows
 \end_layout
 
 \begin_layout Standard
-Current method:
-\end_layout
-
-\begin_layout Standard
 \begin_inset listings
-lstparams "language={C++}"
+lstparams "keywordstyle={\color{blue}},language=sharpc,tabsize=4"
 inline false
 status open
 
 \begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Current method
+\end_layout
+
+\end_inset
 
 var a = new Vector3(1, 1, 1);
 \end_layout
@@ -659,15 +674,20 @@ var dot = Vector.Dot(ab, a);
 \end_layout
 
 \begin_layout Standard
-Proposal:
-\end_layout
-
-\begin_layout Standard
 \begin_inset listings
+lstparams "keywordstyle={\color{blue}},language=sharpc,tabsize=4"
 inline false
 status open
 
 \begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Proposal
+\end_layout
+
+\end_inset
 
 var a = new Vector<3>(1, 1, 1);
 \end_layout
@@ -721,7 +741,7 @@ There are ways to avoid the generator step now, however they do not have
 \end_layout
 
 \begin_layout Standard
-The simlest way is to define Vector as dynamicly sized (like arrays) this
+The simplest way is to define Vector as dynamicly sized (like arrays) this
  loses all static type safety but does mean functions would only have to
  be written once, saving us the effort of creating and maintaining the generator
  but a cost.
@@ -748,7 +768,7 @@ Vector
 
 \begin_layout Standard
 \begin_inset listings
-lstparams "language={C++}"
+lstparams "keywordstyle={\color{blue}},language=sharpc,tabsize=4"
 inline false
 status open
 
@@ -985,6 +1005,7 @@ To allow the reader to more easily follow later discussions we will first
 
 \begin_layout Standard
 \begin_inset listings
+lstparams "tabsize=4"
 inline false
 status open
 
@@ -1093,6 +1114,7 @@ As pointed out above the CIL has instructions for field access but it also
 
 \begin_layout Standard
 \begin_inset listings
+lstparams "keywordstyle={\color{blue}},language=sharpc,tabsize=4"
 inline false
 status open
 
@@ -1175,13 +1197,18 @@ Main
 
 \begin_layout Standard
 \begin_inset listings
+lstparams "tabsize=4"
 inline false
 status open
 
 \begin_layout Plain Layout
 
-.class private auto ansi beforefieldinit Square     extends [mscorlib]System.Objec
-t 
+.class private auto ansi beforefieldinit Square     
+\end_layout
+
+\begin_layout Plain Layout
+
+extends System.Object 
 \end_layout
 
 \begin_layout Plain Layout
@@ -1415,6 +1442,7 @@ Properties support get and set methods (both optional), which do not have
 
 \begin_layout Standard
 \begin_inset listings
+lstparams "keywordstyle={\color{blue}},language=sharpc,tabsize=4"
 inline false
 status open
 
@@ -1557,7 +1585,7 @@ List<int>
 status open
 
 \begin_layout Plain Layout
-In contrast theses types would be equivilant in the JVM.
+In contrast theses types would be equivalent in the JVM.
 \end_layout
 
 \end_inset
@@ -1586,7 +1614,7 @@ List<T>
  in Microsoft’s distribution of .NET 4.0 we can see how the generic parameter
  is declared and used.
 \begin_inset listings
-lstparams "numbers=left"
+lstparams "numbers=left,tabsize=4"
 inline false
 status open
 
@@ -1718,13 +1746,18 @@ T
 
 \begin_layout Standard
 \begin_inset listings
+lstparams "tabsize=4"
 inline false
 status open
 
 \begin_layout Plain Layout
 
-.class public auto ansi sealed beforefieldinit CompressedList`1<(IEquatable`1<!0>
-) T>
+.class public auto ansi sealed beforefieldinit
+\end_layout
+
+\begin_layout Plain Layout
+
+	CompressedList`1<(IEquatable`1<!0>) T> 
 \end_layout
 
 \begin_layout Plain Layout
@@ -1769,8 +1802,8 @@ C++ templates allow functions and types to be parametrized by types or values.
  Templates are a turning complete language by themselves making them very
  general, however most implementations of templates simply perform substitution
  at compile time leading to a large amount of generated code that then has
- to be reduced by looking for simalarties (in contrast to CLR and Mono generics
- that duplicate very little code), and with large use cases substantial
+ to be reduced by looking for similarities (in contrast to CLR and Mono
+ generics that duplicate very little code), and with large use cases substantial
  slowdowns to compilation time.
 \end_layout
 
@@ -1832,7 +1865,7 @@ std::linear_congruential_engine
 
 \begin_layout Standard
 \begin_inset listings
-lstparams "language={C++}"
+lstparams "keywordstyle={\color{blue}},language={C++},tabsize=4"
 inline false
 status open
 
@@ -1938,7 +1971,7 @@ StorageT
 
 \begin_layout Standard
 \begin_inset listings
-lstparams "language={C++}"
+lstparams "keywordstyle={\color{blue}},language={C++},tabsize=4"
 inline false
 status open
 
@@ -1972,7 +2005,7 @@ It's worth noting that although this example looks like the constructors
  match the value passed to fixed they are actually pre declared constructors
  for all normal sizes, using the wrong constructor will either leave some
  elements uninitialized or not use some of the values passed in.
- Real variadic paramters that matched the dimension of the vector/matrix
+ Real variadic parameters that matched the dimension of the vector/matrix
  would be better, and with the new features of C++11 might be possible.
 \end_layout
 
@@ -2012,6 +2045,7 @@ Measure
 \family default
  attribute.
 \begin_inset listings
+lstparams "keywordstyle={\color{blue}},language=ML"
 inline false
 status open
 
@@ -2025,6 +2059,7 @@ status open
 They can also be declared as equal to other units, for example milliliters
  as cubic centimeters.
 \begin_inset listings
+lstparams "keywordstyle={\color{blue}},language=ML"
 inline false
 status open
 
@@ -2048,6 +2083,7 @@ float<meter>
 \family default
 .
 \begin_inset listings
+lstparams "keywordstyle={\color{blue}},language=ML"
 inline false
 status open
 
@@ -2169,49 +2205,10 @@ key "stack-2693067"
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
+\begin_inset listings
+lstparams "keywordstyle={\color{blue}},language=scala,tabsize=4"
+inline false
 status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-lstset{
-\end_layout
-
-\begin_layout Plain Layout
-
-language=scala,
-\end_layout
-
-\begin_layout Plain Layout
-
-breaklines=true,
-\end_layout
-
-\begin_layout Plain Layout
-
-basicstyle=
-\backslash
-footnotesize,
-\end_layout
-
-\begin_layout Plain Layout
-
-numbers=left,
-\end_layout
-
-\begin_layout Plain Layout
-
-tabsize=2}
-\end_layout
-
-\begin_layout Plain Layout
-
-
-\backslash
-begin{lstlisting}
-\end_layout
 
 \begin_layout Plain Layout
 
@@ -2307,15 +2304,12 @@ b3.occupied += c1
 b1.occupied += c2
 \end_layout
 
-\begin_layout Plain Layout
-
-
-\backslash
-end{lstlisting}
-\end_layout
-
 \end_inset
 
+
+\end_layout
+
+\begin_layout Standard
 Here the type of 
 \family typewriter
 c1
@@ -2369,44 +2363,10 @@ Therefore if we are to investigate the addition of adding path dependent
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
+\begin_inset listings
+lstparams "keywordstyle={\color{blue}},language={C++},tabsize=4"
+inline false
 status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-lstset{
-\end_layout
-
-\begin_layout Plain Layout
-
-language=c++,
-\end_layout
-
-\begin_layout Plain Layout
-
-breaklines=true,
-\end_layout
-
-\begin_layout Plain Layout
-
-basicstyle=
-\backslash
-footnotesize,
-\end_layout
-
-\begin_layout Plain Layout
-
-tabsize=2}
-\end_layout
-
-\begin_layout Plain Layout
-
-
-\backslash
-begin{lstlisting}
-\end_layout
 
 \begin_layout Plain Layout
 
@@ -2505,13 +2465,6 @@ class Board
 }
 \end_layout
 
-\begin_layout Plain Layout
-
-
-\backslash
-end{lstlisting}
-\end_layout
-
 \end_inset
 
 
@@ -2521,7 +2474,7 @@ end{lstlisting}
 Allowing the value parameter to be any type is much more general than path
  dependence, In this case 
 \family typewriter
-Coordianate
+Coordinate
 \family default
  would not even need to be an inner class of 
 \family typewriter
@@ -2563,7 +2516,7 @@ B
 
 \begin_layout Standard
 \begin_inset listings
-lstparams "language=Java"
+lstparams "keywordstyle={\color{blue}},language=Java,tabsize=4"
 inline false
 status open
 
@@ -2675,7 +2628,7 @@ key "cayenne"
 
 \begin_layout Standard
 \begin_inset listings
-lstparams "language=Haskell"
+lstparams "keywordstyle={\color{blue}},language=Haskell"
 inline false
 status open
 
@@ -2800,14 +2753,140 @@ Generalized algebraic data types
 \begin_layout Standard
 Generalized algebraic data types (GADTs) are predominately a feature of
  functional languages.
- The use of GADTs in object orientated languages is less common but 
+ They are an extension to algebraic data types that reduce some constraints
+ on data type constructors, in particular they allow pattern matching and
+ recursion in a data constructor.
+ The common example is a type for terms in a small language, without GADTs
+ you cannot have the type checker check that the expression trees are correct.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "keywordstyle={\color{blue}},language=Haskell,tabsize=4"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+ADT
+\end_layout
+
+\end_inset
+
+data Exp 
+\end_layout
+
+\begin_layout Plain Layout
+
+	= Lit Int
+\end_layout
+
+\begin_layout Plain Layout
+
+	| Plus Exp Exp 
+\end_layout
+
+\begin_layout Plain Layout
+
+	| Equals Exp Exp
+\end_layout
+
+\begin_layout Plain Layout
+
+	| Cond Exp Exp Exp
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+It's clear that the first expression passed to 
+\family typewriter
+Cond
+\family default
+ must evaluate to a boolean result (from 
+\family typewriter
+Equals
+\family default
+), but the type system cannot express that.
+ If we add GADTs to our language we can rewrite 
+\family typewriter
+Exp
+\family default
+ to the following.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "keywordstyle={\color{blue}},tabsize=4"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+GADT
+\end_layout
+
+\end_inset
+
+data Exp t where
+\end_layout
+
+\begin_layout Plain Layout
+
+	Lit :: Int -> Exp Int
+\end_layout
+
+\begin_layout Plain Layout
+
+	Plus :: Exp Int -> Exp Int -> Exp Int
+\end_layout
+
+\begin_layout Plain Layout
+
+	Equals :: Exp Int -> Exp Int -> Exp Bool
+\end_layout
+
+\begin_layout Plain Layout
+
+	Cond :: Exp Bool -> Exp a -> Exp a -> Exp a
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This data type will only allow a boolean expression as the first argument
+ to 
+\family typewriter
+Cond
+\family default
+.
+ There are more examples that can be statically checked with GADTs such
+ as lists that have their size as part of their type and staticly typed
+ printf functions.
+\end_layout
+
+\begin_layout Standard
+The use of GADTs in object orientated languages is less common than in functiona
+l languages (Haskell has supported GADTs for over 10 years) but 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "gadts"
 
 \end_inset
 
- shows how all GADT programs can be expressed in C# and that with some small
+ shows how GADT programs can be expressed in C# and that with some small
  modifications to the language be easily supported.
  The two modifications proposed by 
 \begin_inset CommandInset citation
@@ -2834,18 +2913,22 @@ key "gadts"
  This would allow a generic type to be declared equal to another type, this
  would be checked statically at compile time.
  For example a list flatten method could check that the list was a list
- of lists.
+ of lists by the addition of the 
+\family typewriter
+where T=List<U>
+\family default
+ clause.
 \end_layout
 
 \begin_layout Standard
 \begin_inset listings
-lstparams "language={C++}"
+lstparams "keywordstyle={\color{blue}},language=sharpc,tabsize=4"
 inline false
 status open
 
 \begin_layout Plain Layout
 
-public abstract classt List<T> {
+public abstract class List<T> {
 \end_layout
 
 \begin_layout Plain Layout
@@ -2984,7 +3067,7 @@ variables
 
 \begin_layout Standard
 \begin_inset listings
-lstparams "language={C++}"
+lstparams "keywordstyle={\color{blue}},language=sharpc,tabsize=4"
 inline false
 status open
 
@@ -3035,7 +3118,7 @@ switch (e1, e2)
 
 \begin_layout Standard
 While switch statements are a language feature (at the CLI level they are
- encoded the same as multiple if statements) the authors point out that
+ encoded through a sequence of if statements) the authors point out that
  support at the CLI level for a match-and-bind primitive would be useful
  (see the end of section 3.4 in 
 \begin_inset CommandInset citation
@@ -3048,16 +3131,18 @@ key "gadts"
 \end_layout
 
 \begin_layout Section
-Overview
+Conclusion
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
-\begin{eqnarray*}
+\[
+\begin{array}{c}
 Value\; dependence\\
-GADTs & \sim & Generics+Type\; equality\; constraints\\
-Virtual\; types & \sim & Generics
-\end{eqnarray*}
+GADTs\sim Generics+Type\; equality\; constraints\\
+Virtual\; types\sim Generics
+\end{array}
+\]
 
 \end_inset
 
@@ -3166,6 +3251,10 @@ reference "sub:Performance"
 \end_inset
 
  we want certain performance characteristics out of the system.
+\end_layout
+
+\begin_layout Chapter
+References
 \end_layout
 
 \begin_layout Standard
