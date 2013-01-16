@@ -1103,6 +1103,13 @@ Foo*
 
 \begin_layout Subsection
 Literal and initonly
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Literal-and-initonly"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -3081,7 +3088,7 @@ Cond
 \family default
 .
  There are more examples that can be statically checked with GADTs such
- as lists that have their size as part of their type and staticly typed
+ as lists that have their size as part of their type and statically typed
  printf functions.
 \end_layout
 
@@ -3417,7 +3424,7 @@ GADTs
 \end_layout
 
 \begin_layout Standard
-And we've seen how 
+We've seen how 
 \series bold
 virtual types
 \series default
@@ -3427,10 +3434,10 @@ virtual types
 \end_layout
 
 \begin_layout Standard
-Path dependence is a simpler case of value dependence as are F# units of
- measure.
+Finally path dependence is a simpler case of value dependence as are F#
+ units of measure.
  So while full value dependence may be too much, GADTs aren't enough leading
- us to think about an extension somewhere inbetween the two.
+ us to think about an extension somewhere in between the two.
 \end_layout
 
 \begin_layout Standard
@@ -3444,6 +3451,378 @@ GADTs\sim Generics+Type\; equality\; constraints\\
 Virtual\; types\sim Generics
 \end{array}
 \]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="5" columns="7">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="12line%">
+<column alignment="center" valignment="top" width="12line%">
+<column alignment="center" valignment="top" width="12line%">
+<column alignment="center" valignment="top" width="12line%">
+<column alignment="center" valignment="top" width="12line%">
+<column alignment="center" valignment="top" width="12line%">
+<column alignment="center" valignment="top" width="12line%">
+<row>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Turing complete
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Type safe printf
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Type sized lists
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Decidable
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Units of measure
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Path dependence
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Templates
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Yes
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Yes
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Yes
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+No
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Yes
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+?
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Being Turing complete it feels this should be yes, however we can't find
+ any material to suggest eitehr way
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Value dependence
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+No
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Yes
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Yes
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+No
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Yes
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Yes
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+GADT
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+No
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Yes
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Yes
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Yes
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+No
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Yes if we allow new Kinds
+\begin_inset CommandInset citation
+LatexCommand cite
+key "gadtsext"
+
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+No
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Generics
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+No
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+No
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+No
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Yes
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+No
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+No
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
 
 \end_inset
 
@@ -3491,11 +3870,47 @@ Equal
 \family default
  could return nonsense, or never return at all.
  Instead we propose using structural and reference equality.
- That is two values of any referance type are equal if and only if they
- are the same referance, and two values of a value type are equal if and
+ That is two values of any reference type are equal if and only if they
+ are the same reference, and two values of a value type are equal if and
  only if all their fields are equal in this manner as well.
  In practice this amounts to checking that the values have the same bytes
  in memory.
+\end_layout
+
+\begin_layout Subsection
+Immutability
+\end_layout
+
+\begin_layout Standard
+Type preservation means that an expressions type should not change under
+ evaluation, so value type parameter should be immutable.
+ As shown in subsection 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sub:Literal-and-initonly"
+
+\end_inset
+
+ the CLI does not have strong support for immutability.
+ As such our initial work will concentrate on using the primitive types
+ as there immutability can be easily guaranteed.
+\end_layout
+
+\begin_layout Subsection
+Operations
+\end_layout
+
+\begin_layout Standard
+Once we have the ability to mark up types with values we will want to use
+ the value for operations.
+ Support for using the value in normal methods seems trivial, just expose
+ it similar to a static readonly field.
+ However supporting the ability to do operations on value parameters before
+ passing them to another type constructor is more challenging.
+ Firstly it will require some effort to fit into the CIL bytecode, currently
+ opcodes are only allowed in method bodies, we would have to either point
+ to a method to calculate the operations on value parameters or find some
+ other way to fit opcodes at the declaration level.
 \end_layout
 
 \begin_layout Chapter
@@ -3504,8 +3919,7 @@ Project plan
 
 \begin_layout Standard
 As already briefly mentioned in the introduction this project can be split
- into three major parts.
- 
+ into three major parts, investigation, design and implementation.
 \end_layout
 
 \begin_layout Section
@@ -3515,16 +3929,16 @@ Investigation
 \begin_layout Standard
 The first part of the project is an investigation into value dependent types
  and similar systems.
- This has already been covered somewhat in our background research.
- An understanding of how these systems are useful and how they can be designed
- and implemented will be used to guide us on the design of the CLI extension.
- This investigation will form the background research part of the final
- report and will be mostly done as part of the interim report due January
- the 15th.
+ This has already been covered in our background research.
+ From this we have an understanding of how these systems are useful and
+ how they can be designed and implemented and this will guide us on the
+ design of the CLI extension.
+ This investigation forms the background research part of the final report
+ and has mostly been done as part of this interim report.
 \end_layout
 
 \begin_layout Section
-Design
+Design and implementation
 \end_layout
 
 \begin_layout Standard
