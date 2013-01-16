@@ -537,13 +537,12 @@ Indent();
 
 \begin_layout Plain Layout
 
-var dotproduct = string.Join("+",
+var dotproduct = string.Join("+", Components.Select(
 \end_layout
 
 \begin_layout Plain Layout
 
-	Components.Select(component => string.Format("left[{0}]*right[{0}]", component)))
-;
+	component => string.Format("left[{0}]*right[{0}]", component)));
 \end_layout
 
 \begin_layout Plain Layout
@@ -1423,7 +1422,7 @@ status open
 
 \begin_layout Plain Layout
 
-extends System.Object 
+extends [mscorlib]System.Object 
 \end_layout
 
 \begin_layout Plain Layout
@@ -1453,66 +1452,57 @@ extends System.Object
 
 \begin_layout Plain Layout
 
-		.locals init ([0] class Test.Square sq)         
+		.locals init ([0] class Test.Square sq)
 \end_layout
 
 \begin_layout Plain Layout
 
+   
 \end_layout
 
 \begin_layout Plain Layout
 
-		L_0000: nop          
+		newobj instance void Test.Square::.ctor()         
 \end_layout
 
 \begin_layout Plain Layout
 
-		L_0001: newobj instance void Test.Square::.ctor()         
+		stloc.0          
 \end_layout
 
 \begin_layout Plain Layout
 
-		L_0006: stloc.0          
+		ldloc.0          
 \end_layout
 
 \begin_layout Plain Layout
 
-		L_0007: ldloc.0          
+		ldc.i4.4          
 \end_layout
 
 \begin_layout Plain Layout
 
-		L_0008: ldc.i4.4          
+		stfld int32 Test.Square::Length         
 \end_layout
 
 \begin_layout Plain Layout
 
-		L_0009: stfld int32 Test.Square::Length         
+		ldloc.0          
 \end_layout
 
 \begin_layout Plain Layout
 
-		L_000e: ldloc.0          
+		callvirt instance int32 Test.Square::get_Area()         
 \end_layout
 
 \begin_layout Plain Layout
 
-		L_000f: callvirt instance int32 Test.Square::get_Area()         
+		call void [mscorlib]System.Console::WriteLine(int32)         
 \end_layout
 
 \begin_layout Plain Layout
 
-		L_0014: call void [mscorlib]System.Console::WriteLine(int32)         
-\end_layout
-
-\begin_layout Plain Layout
-
-		L_0019: nop          
-\end_layout
-
-\begin_layout Plain Layout
-
-		L_001a: ret      
+		ret
 \end_layout
 
 \begin_layout Plain Layout
@@ -1576,61 +1566,36 @@ extends System.Object
 
 \begin_layout Plain Layout
 
-		.locals init ([0] int32 CS$1$0000)
 \end_layout
 
 \begin_layout Plain Layout
 
+		ldarg.0
 \end_layout
 
 \begin_layout Plain Layout
 
-		L_0000: nop
+		ldfld int32 Test.Square::Length
 \end_layout
 
 \begin_layout Plain Layout
 
-		L_0001: ldarg.0
+		ldarg.0 
 \end_layout
 
 \begin_layout Plain Layout
 
-		L_0002: ldfld int32 Test.Square::Length
+		ldfld int32 Test.Square::Length
 \end_layout
 
 \begin_layout Plain Layout
 
-		L_0007: ldarg.0 
+		mul
 \end_layout
 
 \begin_layout Plain Layout
 
-		L_0008: ldfld int32 Test.Square::Length
-\end_layout
-
-\begin_layout Plain Layout
-
-		L_000d: mul
-\end_layout
-
-\begin_layout Plain Layout
-
-		L_000e: stloc.0 
-\end_layout
-
-\begin_layout Plain Layout
-
-		L_000f: br.s L_0011 
-\end_layout
-
-\begin_layout Plain Layout
-
-		L_0011: ldloc.0
-\end_layout
-
-\begin_layout Plain Layout
-
-		L_0012: ret  
+		ret  
 \end_layout
 
 \begin_layout Plain Layout
@@ -1840,7 +1805,7 @@ status open
 
 \begin_layout Plain Layout
 
-extends System.Object 
+extends [mscorlib]System.Object 
 \end_layout
 
 \begin_layout Plain Layout
@@ -1977,7 +1942,7 @@ status open
 
 \begin_layout Plain Layout
 
-extends System.Object
+extends [mscorlib]System.Object
 \end_layout
 
 \begin_layout Plain Layout
@@ -3942,27 +3907,766 @@ Design and implementation
 \end_layout
 
 \begin_layout Standard
-The second part of the project is to design an extension to the CLI that
- supports dependent types.
- Exactly what would be supported in this new system will depend on where
- are investigation has taken us.
- We will show what changes need to be made to ECMA-335 to support the extension.
- To allow time to work on an implementation the design should be completed
- by the April 22nd, giving us two months to work on the implementation.
- If an implementable design is not possible then those two months will be
- used to document why this is so.
+The second part of the project is to design and implement extensions to
+ the CLI.
+ For each extension we will show what changes need to be made to ECMA-335
+ to support the extension, and implement the extension in the open source
+ CLI Mono.
 \end_layout
 
-\begin_layout Section
-Implementation
+\begin_layout Subsection
+GADTs
 \end_layout
 
 \begin_layout Standard
-The last part of the project is to implement the extension.
- We will be using the open source Mono project for this.
- This will require us to change both the run time and the assembler, to
- support the new syntax.
- This will be completed by the project deadline of June 18th.
+The first extension will be to add type equality constraints and a match
+ and bind instruction to the CLI.
+ To do this we will take the ideas from 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "gadts"
+
+\end_inset
+
+ and translate them to apply to the CLI.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "keywordstyle={\color{blue}},language=sharpc,tabsize=4"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+GADTs in extended C#
+\end_layout
+
+\end_inset
+
+public abstract class List<T>
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	public abstract List<T> Append(List<T> list);
+\end_layout
+
+\begin_layout Plain Layout
+
+	public abstract List<U> Flatten<U>() where T=List<U>;
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+public class Nil<T> : List<T>
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	public override List<T> Append(List<T> list)
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		return list;
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+	public abstract List<U> Flatten<U>()
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		return new Nil<U>();
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+public class Cons<T> : List<T>
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	T Head;
+\end_layout
+
+\begin_layout Plain Layout
+
+	List<T> Tail;
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	public Cons(T head, List<T> tail) 
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		Head = head;
+\end_layout
+
+\begin_layout Plain Layout
+
+		Tail = tail;
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	public override List<T> Append(List<T> list)
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		return new Cons<T>(Head, Tail.Append(list));
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	public override List<U> Flatten<U>()
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		return Head.Append(Tail.Flatten<U>());
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "tabsize=4"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+Corresponding CIL
+\end_layout
+
+\end_inset
+
+.class public abstract auto ansi beforefieldinit List<T>
+\end_layout
+
+\begin_layout Plain Layout
+
+extends [mscorlib]System.Object 
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	.method family hidebysig specialname rtspecialname instance void .ctor()
+ 
+\end_layout
+
+\begin_layout Plain Layout
+
+		cil managed
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		.maxstack 8
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldarg.0
+\end_layout
+
+\begin_layout Plain Layout
+
+		call instance void [mscorlib]System.Object::.ctor()
+\end_layout
+
+\begin_layout Plain Layout
+
+		ret
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	.method public hidebysig newslot abstract virtual instance class 
+\end_layout
+
+\begin_layout Plain Layout
+
+		Test.List`1<!T> Append(class Test.List`1<!T> list) cil managed     
+\end_layout
+
+\begin_layout Plain Layout
+
+	{     }
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	.method public hidebysig newslot abstract virtual instance class 
+\end_layout
+
+\begin_layout Plain Layout
+
+		Test.List`1<!!U> Flatten<= T List<!!0> U>() cil managed
+\end_layout
+
+\begin_layout Plain Layout
+
+	{     }
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+.class public auto ansi beforefieldinit Nil<T>     
+\end_layout
+
+\begin_layout Plain Layout
+
+	extends Test.List`1<!T> 
+\end_layout
+
+\begin_layout Plain Layout
+
+{     
+\end_layout
+
+\begin_layout Plain Layout
+
+	.method public hidebysig specialname rtspecialname instance void .ctor()
+ 
+\end_layout
+
+\begin_layout Plain Layout
+
+		cil managed     
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		.maxstack 8
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldarg.0
+\end_layout
+
+\begin_layout Plain Layout
+
+		call instance void Test.List`1<!T>::.ctor()
+\end_layout
+
+\begin_layout Plain Layout
+
+		ret
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	.method public hidebysig virtual instance class 
+\end_layout
+
+\begin_layout Plain Layout
+
+		Test.List`1<!T> Append(class Test.List`1<!T> list) cil managed     
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		.maxstack 1
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldarg.1
+\end_layout
+
+\begin_layout Plain Layout
+
+		ret
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	.method public hidebysig virtual instance class 
+\end_layout
+
+\begin_layout Plain Layout
+
+		Test.List`1<!!U> Flatten<= T List<!!0> U>() cil managed
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		.maxstack 1
+\end_layout
+
+\begin_layout Plain Layout
+
+		newobj instance void Test.Nil`1<!!U>::.ctor()
+\end_layout
+
+\begin_layout Plain Layout
+
+		ret
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+.class public auto ansi beforefieldinit Cons<T>     
+\end_layout
+
+\begin_layout Plain Layout
+
+extends Test.List`1<!T> 
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	.method public hidebysig specialname rtspecialname instance void 
+\end_layout
+
+\begin_layout Plain Layout
+
+		.ctor(!T head, class Test.List`1<!T> tail) cil managed     
+\end_layout
+
+\begin_layout Plain Layout
+
+	{         
+\end_layout
+
+\begin_layout Plain Layout
+
+		.maxstack 2        
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldarg.0
+\end_layout
+
+\begin_layout Plain Layout
+
+		call instance void Test.List`1<!T>::.ctor()
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldarg.0
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldarg.1
+\end_layout
+
+\begin_layout Plain Layout
+
+		stfld !0 Test.Cons`1<!T>::Head
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldarg.0
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldarg.2
+\end_layout
+
+\begin_layout Plain Layout
+
+		stfld class Test.List`1<!0> Test.Cons`1<!T>::Tail
+\end_layout
+
+\begin_layout Plain Layout
+
+		ret
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	.method public hidebysig virtual instance class 
+\end_layout
+
+\begin_layout Plain Layout
+
+		Test.List`1<!T> Append(class Test.List`1<!T> list) cil managed     
+\end_layout
+
+\begin_layout Plain Layout
+
+	{         
+\end_layout
+
+\begin_layout Plain Layout
+
+		.maxstack 3
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldarg.0
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldfld !0 Test.Cons`1<!T>::Head
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldarg.0
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldfld class Test.List`1<!0> Test.Cons`1<!T>::Tail
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldarg.1
+\end_layout
+
+\begin_layout Plain Layout
+
+		callvirt instance class Test.List`1<!0> 
+\end_layout
+
+\begin_layout Plain Layout
+
+			Test.List`1<!T>::Append(class Test.List`1<!0>)
+\end_layout
+
+\begin_layout Plain Layout
+
+		newobj instance void Test.Cons`1<!T>::.ctor(!0, class Test.List`1<!0>)
+\end_layout
+
+\begin_layout Plain Layout
+
+		ret
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+    .method public hidebysig virtual instance class
+\end_layout
+
+\begin_layout Plain Layout
+
+		Test.List`1<!!U> Flatten<= T List<!!0> U>() cil managed     
+\end_layout
+
+\begin_layout Plain Layout
+
+	{         
+\end_layout
+
+\begin_layout Plain Layout
+
+		.maxstack 2
+\end_layout
+
+\begin_layout Plain Layout
+
+		nop
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldarg.0
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldfld !0 Test.Cons`1<!T>::Head
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldarg.0
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldfld class Test.List`1<!0> Test.Cons`1<!T>::Tail
+\end_layout
+
+\begin_layout Plain Layout
+
+		callvirt instance class Test.List`1<!!0> 
+\end_layout
+
+\begin_layout Plain Layout
+
+			Test.List`1<!T>::Flatten<!!U>()
+\end_layout
+
+\begin_layout Plain Layout
+
+		callvirt instance class Test.List`1<!0> 
+\end_layout
+
+\begin_layout Plain Layout
+
+			Test.List`1<!!U>::Append(class Test.List`1<!0>)
+\end_layout
+
+\begin_layout Plain Layout
+
+		ret
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+    .field private !T Head
+\end_layout
+
+\begin_layout Plain Layout
+
+    .field private class Test.List`1<!T> Tail
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Chapter
