@@ -1075,8 +1075,8 @@ CIL supports many features not common for low level assembly code, as well
 While CIL is targeted by a variety of languages Visual Basic and C# match
  it's semantics most closely so we will use C# code instead of raw CIL when
  possible in examples.
- Some C# features are uncommon in other languages so we we'll briefly go
- over them.
+ Some CLI/C# features are uncommon in other languages so we we'll briefly
+ go over them.
 \end_layout
 
 \begin_layout Subsection
@@ -1099,6 +1099,214 @@ Foo
 Foo*
 \family default
  would be a reference type, the semantics are similar.
+\end_layout
+
+\begin_layout Subsection
+Literal and initonly
+\end_layout
+
+\begin_layout Standard
+Fields in the CLI can be marked as 
+\family typewriter
+initonly
+\family default
+, and if they are static fields, 
+\family typewriter
+literal
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+A 
+\family typewriter
+static literal
+\family default
+ field has no space allocated for it in the metadata, instead any reference
+ to that field must have the literal value copied into the use site, as
+ such literal fields must be a primitive type (int, float, string etc).
+ In C# the keyword 
+\family typewriter
+const
+\family default
+ is used instead of 
+\family typewriter
+literal
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+An 
+\family typewriter
+initonly
+\family default
+ field can only be written to by a constructor method (or if static by the
+ type initializer method).
+ Other methods can only load from the field.
+ In C# the keyword 
+\family typewriter
+readonly
+\family default
+ is used instead of 
+\family typewriter
+initonly
+\family default
+.
+ The property initonly is not transitive, for example the following C# shows
+ a readonly Pair field being mutated, this is valid code.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "keywordstyle={\color{blue}},language=sharpc,tabsize=4"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class Pair
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	public int A;
+\end_layout
+
+\begin_layout Plain Layout
+
+	public int B;
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	public Pair(int a, int b)
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		A = a;
+\end_layout
+
+\begin_layout Plain Layout
+
+		B = b;
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+class Program
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	public readonly Pair MyPair;
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	public Program()
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		MyPair = new Pair(1, 2);
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	static Main()
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		var program = new Program();
+\end_layout
+
+\begin_layout Plain Layout
+
+		//program.MyPair = new Pair(3, 4); not valid
+\end_layout
+
+\begin_layout Plain Layout
+
+		program.MyPair.A = 3; // valid
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This is a very weak concept of immutability, and when adding user defined
+ types to value dependence could present problems.
 \end_layout
 
 \begin_layout Subsection
