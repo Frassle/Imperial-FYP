@@ -1452,7 +1452,7 @@ extends [mscorlib]System.Object
 
 \begin_layout Plain Layout
 
-		.locals init ([0] class Test.Square sq)
+		.locals init ([0] class Square sq)
 \end_layout
 
 \begin_layout Plain Layout
@@ -1462,7 +1462,7 @@ extends [mscorlib]System.Object
 
 \begin_layout Plain Layout
 
-		newobj instance void Test.Square::.ctor()         
+		newobj instance void Square::.ctor()         
 \end_layout
 
 \begin_layout Plain Layout
@@ -1482,7 +1482,7 @@ extends [mscorlib]System.Object
 
 \begin_layout Plain Layout
 
-		stfld int32 Test.Square::Length         
+		stfld int32 Square::Length         
 \end_layout
 
 \begin_layout Plain Layout
@@ -1492,7 +1492,7 @@ extends [mscorlib]System.Object
 
 \begin_layout Plain Layout
 
-		callvirt instance int32 Test.Square::get_Area()         
+		callvirt instance int32 Square::get_Area()         
 \end_layout
 
 \begin_layout Plain Layout
@@ -1527,7 +1527,7 @@ extends [mscorlib]System.Object
 
 \begin_layout Plain Layout
 
-		.get instance int32 Test.Square::get_Area()
+		.get instance int32 Square::get_Area()
 \end_layout
 
 \begin_layout Plain Layout
@@ -1575,7 +1575,7 @@ extends [mscorlib]System.Object
 
 \begin_layout Plain Layout
 
-		ldfld int32 Test.Square::Length
+		ldfld int32 Square::Length
 \end_layout
 
 \begin_layout Plain Layout
@@ -1585,7 +1585,7 @@ extends [mscorlib]System.Object
 
 \begin_layout Plain Layout
 
-		ldfld int32 Test.Square::Length
+		ldfld int32 Square::Length
 \end_layout
 
 \begin_layout Plain Layout
@@ -3912,6 +3912,8 @@ The second part of the project is to design and implement extensions to
  For each extension we will show what changes need to be made to ECMA-335
  to support the extension, and implement the extension in the open source
  CLI Mono.
+ We list each of these and propose some detail of it's implementation, all
+ syntax is highly subject to change however.
 \end_layout
 
 \begin_layout Subsection
@@ -3929,6 +3931,7 @@ key "gadts"
 \end_inset
 
  and translate them to apply to the CLI.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -3943,7 +3946,7 @@ status open
 
 \begin_layout Plain Layout
 
-GADTs in extended C#
+Type equality constraints in extended C#
 \end_layout
 
 \end_inset
@@ -4667,6 +4670,708 @@ extends Test.List`1<!T>
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="3" columns="3">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="75line%">
+<row>
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+match
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Format
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Assembly Format
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Description
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0xFE 0x19
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+match typetoken
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+matches and object against an open or close generic type and returns the
+ object cast to that type and the RuntimeHandles for the types required
+ for closure if typetoken is an open generic type.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Stack Transition: \SpecialChar \ldots{}
+, obj 
+\begin_inset Formula $\rightarrow$
+\end_inset
+
+ \SpecialChar \ldots{}
+, obj, RuntimeHandles
+\end_layout
+
+\begin_layout Subsection
+Value parameters
+\end_layout
+
+\begin_layout Standard
+The second extension is to add primitive value parameters to types and methods.
+ This extension will only allow primitive types as parameters and has no
+ support for constraints or operations on parameters at compile time.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "keywordstyle={\color{blue}},language=sharpc,tabsize=4"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+Value parameters in extended C#
+\end_layout
+
+\end_inset
+
+public class Value<int value>
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	public static int Dup<int v>(Value<v> a, Value<v> b)
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		return Value<v>.value * 2;
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	public static void Print()
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		System.Console.WriteLine(value);
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "tabsize=4"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+Corresponding CIL
+\end_layout
+
+\end_inset
+
+.class public auto ansi beforefieldinit Value``1<int value>
+\end_layout
+
+\begin_layout Plain Layout
+
+extends [mscorlib]System.Object 
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	.method family hidebysig specialname rtspecialname instance void .ctor()
+ 
+\end_layout
+
+\begin_layout Plain Layout
+
+		cil managed
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		.maxstack 8
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldarg.0
+\end_layout
+
+\begin_layout Plain Layout
+
+		call instance void [mscorlib]System.Object::.ctor()
+\end_layout
+
+\begin_layout Plain Layout
+
+		ret
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	.method public hidebysig static int32 
+\end_layout
+
+\begin_layout Plain Layout
+
+		Dup``1<int v>(class Value``1<$$0> a, class Value``1<$$0> b) cil managed
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		.maxstack 2
+\end_layout
+
+\begin_layout Plain Layout
+
+		.locals init (int32 temp)
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldsfld int32 Value``1<$$0>::value
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldc.i4.2 
+\end_layout
+
+\begin_layout Plain Layout
+
+		mul
+\end_layout
+
+\begin_layout Plain Layout
+
+		ret
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	.method public hidebysig static void Print() cil managed
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldsfld int32 Value``1<$0>::value
+\end_layout
+
+\begin_layout Plain Layout
+
+		call void [mscorlib]System.Console::WriteLine(int32)
+\end_layout
+
+\begin_layout Plain Layout
+
+		ret
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Value constraints and operations
+\end_layout
+
+\begin_layout Standard
+The third extension is to add constraints and operations to value parameters.
+ It's unclear at this stage quite how this could work in CIL and so we don't
+ provide an example of it.
+\end_layout
+
+\begin_layout Subsection
+User defined types as value parameters
+\end_layout
+
+\begin_layout Standard
+The final extension is to allow value parameters to be values of user defined
+ types, not just primitive types.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "keywordstyle={\color{blue}},language=sharpc,tabsize=4"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+User defined types as value parameters in extended C#
+\end_layout
+
+\end_inset
+
+public class Value<MyClass c>
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	public static int Access<MyStruct s>()
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		return s.field;
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	public static void Print()
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		System.Console.WriteLine(c.property);
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "tabsize=4"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+Corresponding CIL
+\end_layout
+
+\end_inset
+
+.class public auto ansi beforefieldinit Value``1<class MyClass c>
+\end_layout
+
+\begin_layout Plain Layout
+
+extends [mscorlib]System.Object 
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	.method family hidebysig specialname rtspecialname instance void .ctor()
+ 
+\end_layout
+
+\begin_layout Plain Layout
+
+		cil managed
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		.maxstack 8
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldarg.0
+\end_layout
+
+\begin_layout Plain Layout
+
+		call instance void [mscorlib]System.Object::.ctor()
+\end_layout
+
+\begin_layout Plain Layout
+
+		ret
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	.method public hidebysig static int32 
+\end_layout
+
+\begin_layout Plain Layout
+
+		Access``1<MyStruct s>() cil managed
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		.maxstack 2
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldvalue $$0
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldfld int32 MyStruct::field
+\end_layout
+
+\begin_layout Plain Layout
+
+		ret
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
+	.method public hidebysig static void Print() cil managed
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		ldvalue $0
+\end_layout
+
+\begin_layout Plain Layout
+
+		callvirt instance int32 MyClass::get_property()    
+\end_layout
+
+\begin_layout Plain Layout
+
+		call void [mscorlib]System.Console::WriteLine(int32)
+\end_layout
+
+\begin_layout Plain Layout
+
+		ret
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Timetable
+\end_layout
+
+\begin_layout Enumerate
+GADT extensions - 25
+\begin_inset script superscript
+
+\begin_layout Plain Layout
+th
+\end_layout
+
+\end_inset
+
+ February
+\end_layout
+
+\begin_layout Enumerate
+Primative value parameters - 25
+\begin_inset script superscript
+
+\begin_layout Plain Layout
+th
+\end_layout
+
+\end_inset
+
+ March
+\end_layout
+
+\begin_layout Enumerate
+Value parameter constraints and operations - 22
+\begin_inset script superscript
+
+\begin_layout Plain Layout
+nd
+\end_layout
+
+\end_inset
+
+ April
+\end_layout
+
+\begin_layout Enumerate
+User defined types as value parameters - 20
+\begin_inset script superscript
+
+\begin_layout Plain Layout
+th
+\end_layout
+
+\end_inset
+
+ May
+\end_layout
+
+\begin_layout Enumerate
+Further improvements and formalization - 17
+\begin_inset script superscript
+
+\begin_layout Plain Layout
+th
+\end_layout
+
+\end_inset
+
+ June
 \end_layout
 
 \begin_layout Chapter
