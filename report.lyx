@@ -745,12 +745,12 @@ The simplest way is to define Vector as dynamicly sized (like arrays) this
  loses all static type safety but does mean functions would only have to
  be written once, saving us the effort of creating and maintaining the generator
  but a cost.
- Vector is no longer purely a value type as it will have a referance field
+ Vector is no longer purely a value type as it will have a reference field
  in it, this changes the semantics from the current vector types (due to
- no user defined copy constructors or assingment operators in the CLI) and
+ no user defined copy constructors or assignment operators in the CLI) and
  also makes them more expensive as they are now tracked by the garbage collector.
  It also makes inter operating with native APIs such as OpenGL harder as
- the Vectors will have to be marshaled to correctly copy the ellements of
+ the Vectors will have to be marshaled to correctly copy the elements of
  their internal array to the native API, the current vector types can just
  be pinned and pointer copied.
 \end_layout
@@ -1098,7 +1098,7 @@ Foo
 \family typewriter
 Foo*
 \family default
- would be a referance type, the semantics are similar.
+ would be a reference type, the semantics are similar.
 \end_layout
 
 \begin_layout Subsection
@@ -2886,8 +2886,8 @@ key "gadts"
 
 \end_inset
 
- shows how GADT programs can be expressed in C# and that with some small
- modifications to the language be easily supported.
+ shows how GADT programs can be expressed in C# with some modifications
+ to the language.
  The two modifications proposed by 
 \begin_inset CommandInset citation
 LatexCommand cite
@@ -2895,8 +2895,8 @@ key "gadts"
 
 \end_inset
 
- are an extension of the switch statement and an extension of generic constraint
-s.
+ are an extension of generic constraints and an extension of the switch
+ statement.
  
 \end_layout
 
@@ -3135,10 +3135,103 @@ Conclusion
 \end_layout
 
 \begin_layout Standard
+Having looked at all these type systems we can see a progression of expressivity
+, and in some cases equality.
+ 
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+C++ templates
+\series default
+ being Turing complete are the most powerful system we've looked at, but
+ that comes with it's downsides.
+ Efficiently compiling templates such that the final code is small and fast
+ is difficult, they also make the language unsound as a template can recurse
+ forever (although most compilers have hard limits to this).
+\end_layout
+
+\begin_layout Standard
+The next most general was 
+\series bold
+value dependence
+\series default
+, this allowed types to be constructed based on values.
+ While this is powerful allowing arbitrary values as parameters is undecidable,
+ as it amounts to determining whether two different programs produce the
+ same result.
+ In chapter 30.5 of 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "tapl"
+
+\end_inset
+
+ is a warning about dependent types, 
+\end_layout
+
+\begin_layout Quotation
+Unfortunately, the power of dependent types is a two-edged sword.
+ Blurring the distinction between checking types and carrying out proofs
+ of arbitrary theorems does not magically make theorem proving simple -
+ on the contrary, it makes type checking computationally intractable! Mathematic
+ians working with mechanical proof assistants do not just type in a theorem,
+ press a button, and sit back to wait for a Yes or No: they spend significant
+ effort writing proof scripts and tactics to guide the tool in constructing
+ and verifying a proof.
+ If we carry the idea of correctness by construction to its limits, programmers
+ should expect to expend similar amounts of effort annotating programs with
+ hints and explanations to guide the type checker.
+ For certain critical programming tasks, this degree of effort may be justified,
+ but for day-to-day programming it is almost certainly too costly.
+\end_layout
+
+\begin_layout Standard
+The CLI as a mainstream day-to-day infrastructure would certainly not benefit
+ from an extension that required significant expenditure of programmer time.
+ As such we do not actually want to make our system too powerful, we want
+ to find a balance between opening up opportunities for optimization and
+ expressivity and the cost of annotation and understanding.
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+GADTs
+\series default
+ come in next.
+ We've explored how GADTs can be expressed in C# with some modifications.
+ Taking these ideas and applying them to the CLI is easily possible.
+ Generic constraints are already stored in the metadata, expanding them
+ to cover type equality should be simple.
+ 
+\end_layout
+
+\begin_layout Standard
+And we've seen how 
+\series bold
+virtual types
+\series default
+ are equivalent to generics.
+ As the CLI already supports generics further investigation of virtual types
+ seems unnecessary.
+\end_layout
+
+\begin_layout Standard
+Path dependence is a simpler case of value dependence as are F# units of
+ measure.
+ So while full value dependence may be too much, GADTs aren't enough leading
+ us to think about an extension somewhere inbetween the two.
+\end_layout
+
+\begin_layout Standard
 \begin_inset Formula 
 \[
 \begin{array}{c}
+Templates\\
 Value\; dependence\\
+Our\; extension?\\
 GADTs\sim Generics+Type\; equality\; constraints\\
 Virtual\; types\sim Generics
 \end{array}
@@ -3147,6 +3240,54 @@ Virtual\; types\sim Generics
 \end_inset
 
 
+\end_layout
+
+\begin_layout Subsection
+Concept of equality
+\end_layout
+
+\begin_layout Standard
+To be able to say if a type 
+\family typewriter
+T
+\family default
+ that depends on a value of 
+\family typewriter
+U
+\family default
+ (that is 
+\family typewriter
+T<U a>
+\family default
+) is equal to 
+\family typewriter
+T<U b>
+\family default
+ requires us to say what it means for 
+\family typewriter
+a
+\family default
+ and 
+\family typewriter
+b
+\family default
+ to be equal.
+ All CLI objects have a method 
+\family typewriter
+bool Equal(object obj)
+\family default
+ which we could use, however this is clearly unsound as an implementation
+ of 
+\family typewriter
+Equal
+\family default
+ could return nonsense, or never return at all.
+ Instead we propose using structural and reference equality.
+ That is two values of any referance type are equal if and only if they
+ are the same referance, and two values of a value type are equal if and
+ only if all their fields are equal in this manner as well.
+ In practice this amounts to checking that the values have the same bytes
+ in memory.
 \end_layout
 
 \begin_layout Chapter
