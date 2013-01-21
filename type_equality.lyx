@@ -392,158 +392,17 @@ Generalized algebraic data types
 \end_layout
 
 \begin_layout Standard
-Generalized algebraic data types (GADTs) are predominately a feature of
- functional languages.
- They are an extension to algebraic data types that reduce some constraints
- on data type constructors, in particular they allow pattern matching and
- recursion in a data constructor.
- The common example is a type for terms in a small language, without GADTs
- you cannot have the type checker check that the expression trees are correct.
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "keywordstyle={\color{blue}},language=Haskell,tabsize=4"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-\begin_inset Caption
-
-\begin_layout Plain Layout
-ADT
-\end_layout
-
-\end_inset
-
-data Exp 
-\end_layout
-
-\begin_layout Plain Layout
-
-	= Lit Int
-\end_layout
-
-\begin_layout Plain Layout
-
-	| Plus Exp Exp 
-\end_layout
-
-\begin_layout Plain Layout
-
-	| Equals Exp Exp
-\end_layout
-
-\begin_layout Plain Layout
-
-	| Cond Exp Exp Exp
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-It's clear that the first expression passed to 
-\family typewriter
-Cond
-\family default
- must evaluate to a boolean result (from 
-\family typewriter
-Equals
-\family default
-), but the type system cannot express that.
- If we add GADTs to our language we can rewrite 
-\family typewriter
-Exp
-\family default
- to the following.
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "keywordstyle={\color{blue}},tabsize=4"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-\begin_inset Caption
-
-\begin_layout Plain Layout
-GADT
-\end_layout
-
-\end_inset
-
-data Exp t where
-\end_layout
-
-\begin_layout Plain Layout
-
-	Lit :: Int -> Exp Int
-\end_layout
-
-\begin_layout Plain Layout
-
-	Plus :: Exp Int -> Exp Int -> Exp Int
-\end_layout
-
-\begin_layout Plain Layout
-
-	Equals :: Exp Int -> Exp Int -> Exp Bool
-\end_layout
-
-\begin_layout Plain Layout
-
-	Cond :: Exp Bool -> Exp a -> Exp a -> Exp a
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-This data type will only allow a boolean expression as the first argument
- to 
-\family typewriter
-Cond
-\family default
-.
- There are more examples that can be statically checked with GADTs such
- as lists that have their size as part of their type and statically typed
- printf functions.
-\end_layout
-
-\begin_layout Standard
-The use of GADTs in object orientated languages is less common than in functiona
-l languages (Haskell has supported GADTs for over 10 years) but 
+This report looks into how to add type equality constraints to the CLI.
+ Type equality constraints for C# are described in 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "gadts"
 
 \end_inset
 
- shows how GADT programs can be expressed in C# with some modifications
- to the language.
- The two modifications proposed by 
-\begin_inset CommandInset citation
-LatexCommand cite
-key "gadts"
-
-\end_inset
-
- are an extension of generic constraints and an extension of the switch
- statement.
- 
-\end_layout
-
-\begin_layout Standard
-The extension to generic constraints would allow equality constraints on
- generic types, section 3.1 (Equational constraints for C#) of 
+, we'll be using these ideas but for the CLI not C#.
+ The basic idea is to extend generic constraints to allow equality constraints
+ on generic types, section 3.1 (Equational constraints for C#) of 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "gadts"
@@ -697,96 +556,12 @@ Append
  
 \end_layout
 
-\begin_layout Standard
-The second proposal is an extension to the switch statement to allow switching
- on types, binding type 
-\family typewriter
-variables
-\family default
- in switch case clauses and matching multiple expressions.
-\end_layout
-
-\begin_layout Standard
-\begin_inset listings
-lstparams "keywordstyle={\color{blue}},language=sharpc,tabsize=4"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-switch (e1, e2)
-\end_layout
-
-\begin_layout Plain Layout
-
-	case (Lit x, Lit y):
-\end_layout
-
-\begin_layout Plain Layout
-
-		return x.value == y.value;
-\end_layout
-
-\begin_layout Plain Layout
-
-	case (Tuple<A,B> x, Tuple<C,D> y):
-\end_layout
-
-\begin_layout Plain Layout
-
-		return Eq(x.fst, y.fst) && Eq(x.snd, y.snd);
-\end_layout
-
-\begin_layout Plain Layout
-
-	default:
-\end_layout
-
-\begin_layout Plain Layout
-
-		returna false;
-\end_layout
-
-\begin_layout Plain Layout
-
-}
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-While switch statements are a language feature (at the CLI level they are
- encoded through a sequence of if statements) the authors point out that
- support at the CLI level for a match-and-bind primitive would be useful
- (see the end of section 3.4 in 
-\begin_inset CommandInset citation
-LatexCommand cite
-key "gadts"
-
-\end_inset
-
-).
-\end_layout
-
 \begin_layout Section
-Implementation
+Example
 \end_layout
 
 \begin_layout Standard
-The first extension will be to add type equality constraints and a match
- and bind instruction to the CLI.
- To do this we will take the ideas from 
-\begin_inset CommandInset citation
-LatexCommand cite
-key "gadts"
-
-\end_inset
-
- and translate them to apply to the CLI.
- 
+The following shows a minimal list example, in both C# and CIL.
 \end_layout
 
 \begin_layout Standard
@@ -1525,6 +1300,88 @@ extends Test.List`1<!T>
 
 \end_layout
 
+\begin_layout Standard
+The syntax here is purely to demonstrate the intuition of the feature.
+ Exact syntax will be expanded on as we explore how this can be added to
+ the CLI specification.
+\end_layout
+
+\begin_layout Chapter
+Specification changes
+\end_layout
+
+\begin_layout Section
+Generic constraints
+\end_layout
+
+\begin_layout Standard
+Section 9.11 (Constraints on generic parameters)
+\begin_inset CommandInset citation
+LatexCommand cite
+key "ecma-335"
+
+\end_inset
+
+ specifies generic constraints.
+ A type parameter that has been constrained must be instantiated with an
+ argument that is assignable to each of declared constraints, and that satisfies
+ all special constraints.
+\end_layout
+
+\begin_layout Standard
+The special constraints are, 
+\family typewriter
++
+\family default
+, 
+\family typewriter
+-
+\family default
+, 
+\family typewriter
+class
+\family default
+, 
+\family typewriter
+valuetype
+\family default
+ and 
+\family typewriter
+.ctor
+\family default
+.
+ 
+\family typewriter
+class
+\family default
+ constrains the argument to be a reference type.
+ 
+\family typewriter
+valuetype
+\family default
+ constrains the argument to be a value type, except for any instance of
+\family typewriter
+ System.Nullable<T>
+\family default
+.
+ 
+\family typewriter
+.ctor
+\family default
+ constrains the argument to a type that has a public default constructor
+ (implicitly this means all value types as value types always have a public
+ default constructor).
+ Finally 
+\family typewriter
++
+\family default
+ and 
+\family typewriter
+-
+\family default
+ are used to denote the parameter is covariant or contravariant respectively.
+\end_layout
+
 \begin_layout Chapter
 References
 \end_layout
@@ -1533,7 +1390,7 @@ References
 \begin_inset CommandInset bibtex
 LatexCommand bibtex
 btprint "btPrintAll"
-bibfiles "report"
+bibfiles "type_equality"
 options "plain"
 
 \end_inset
