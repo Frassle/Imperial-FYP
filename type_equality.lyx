@@ -1382,6 +1382,142 @@ valuetype
  are used to denote the parameter is covariant or contravariant respectively.
 \end_layout
 
+\begin_layout Standard
+While it might seem that this is a good place to add our extension type
+ equality constraints are a constraint on the entire parameter list, not
+ on each individual parameter.
+ There's also the potential to add an equality constraint to a non-generic
+ method.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "keywordstyle={\color{blue}},language=sharpc"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+class Foo<T>
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	public void Bar(List<int> list) where T = int
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		...
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\end_layout
+
+\begin_layout Plain Layout
+
+	public void Baz(List<string> list) where T = string
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		...
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In this example 
+\family typewriter
+Bar
+\family default
+ can only be called if 
+\family typewriter
+Foo<T>
+\family default
+ was initialized with 
+\family typewriter
+int
+\family default
+, and 
+\family typewriter
+Baz
+\family default
+ only if it was initialized with 
+\family typewriter
+string
+\family default
+.
+ A similar thing can be done with non-generic inner types.
+ So we need to look to add this new syntax somewhere seperate to the generic
+ parameter list.
+ Preferably it would have similar syntax for both methods and types (as
+ generic parameters look the same on a type declaration or method declaration).
+ A type declaration currently follows the pattern 
+\begin_inset Quotes eld
+\end_inset
+
+
+\family typewriter
+.class ClassAttr* Id ['<' GenPars '>'] [extends TypeSpec [ implements TypeSpec]
+ [',' TypeSpec]*]
+\family default
+
+\begin_inset Quotes erd
+\end_inset
+
+, while method declarations follow the pattern 
+\begin_inset Quotes eld
+\end_inset
+
+
+\family typewriter
+.method MethAttr* [CallConv] Type [marshal '(' [NativeType] ')'] MethodName
+ ['<' GenPars '>'] '(' Parameters ')' ImplAttr*
+\family default
+
+\begin_inset Quotes erd
+\end_inset
+
+.
+ 
+\end_layout
+
 \begin_layout Chapter
 References
 \end_layout
