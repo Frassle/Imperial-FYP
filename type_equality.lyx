@@ -1518,6 +1518,91 @@ string
  
 \end_layout
 
+\begin_layout Section
+Metadata tables
+\end_layout
+
+\begin_layout Standard
+Metadata tables are specified in section 22 (Metadata logical format: tables).
+ We're mostly intreasted in section 22.21 (GenericParamConstraint), which
+ explains how generic constraints are stored in the assembly.
+ 
+\end_layout
+
+\begin_layout Quotation
+The GenericParamConstraint table has the following columns:
+\end_layout
+
+\begin_layout Quotation
+• Owner (an index into the GenericParam table, specifying to which generic
+ parameter this row refers) 
+\end_layout
+
+\begin_layout Quotation
+• Constraint (an index into the TypeDef, TypeRef, or TypeSpec tables, specifying
+ from which class this generic parameter is constrained to derive; or which
+ interface this generic parameter is constrained to implement; more precisely,
+ a TypeDefOrRef (§24.2.6) coded index) 
+\end_layout
+
+\begin_layout Quotation
+The GenericParamConstraint table records the constraints for each generic
+ parameter.
+ Each generic parameter can be constrained to derive from zero or one class.
+ Each generic parameter can be constrained to implement zero or more interfaces.
+ 
+\end_layout
+
+\begin_layout Quotation
+Conceptually, each row in the GenericParamConstraint table is =owned‘ by
+ a row in the GenericParam table.
+ 
+\end_layout
+
+\begin_layout Quotation
+All rows in the GenericParamConstraint table for a given Owner shall refer
+ to distinct constraints.
+\end_layout
+
+\begin_layout Standard
+We need a similar table for our equality constraints.
+ It will need an owner (a type or method) and then two types that are constraine
+d to be equal within the owner.
+ Another column that isn't necessary but could be useful is a flags field
+ describing the relationship between the two types, currently this would
+ always be set to equal, however the system could be extended at a later
+ date to allow less than and greater than relationships as well.
+\end_layout
+
+\begin_layout Standard
+So the TypeRelationshipConstraint table has the following columns:
+\end_layout
+
+\begin_layout Itemize
+Owner (an index into the TypeDef or MethodDef table, specifying the Type
+ or Method to which this constraint applies; more precisely, a TypeOrMethodDef
+ (§24.2.6) coded index)
+\end_layout
+
+\begin_layout Itemize
+Flags (a 1-byte flag bitmask currently always set to 1.
+ To be used for extensions)
+\end_layout
+
+\begin_layout Itemize
+ConstraintA (an index into the TypeDef, TypeRef, or TypeSpec tables, specifying
+ the first type; more precisely, a TypeDefOrRef (§24.2.6) coded index)
+\end_layout
+
+\begin_layout Itemize
+ConstraintB (an index into the TypeDef, TypeRef, or TypeSpec tables, specifying
+ the second type; more precisely, a TypeDefOrRef (§24.2.6) coded index)
+\end_layout
+
+\begin_layout Standard
+
+\end_layout
+
 \begin_layout Chapter
 References
 \end_layout
