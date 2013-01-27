@@ -4533,7 +4533,6 @@ key "gadts"
 \end_inset
 
  and translate them to apply to the CLI.
- 
 \end_layout
 
 \begin_layout Standard
@@ -4624,7 +4623,7 @@ public class Nil<T> : List<T>
 
 \begin_layout Plain Layout
 
-	public abstract List<U> Flatten<U>()
+	public abstract List<U> Flatten<U>() // type constraints are inherited
 \end_layout
 
 \begin_layout Plain Layout
@@ -4730,7 +4729,7 @@ public class Cons<T> : List<T>
 
 \begin_layout Plain Layout
 
-	public override List<U> Flatten<U>()
+	public override List<U> Flatten<U>() // type constraints are inherited
 \end_layout
 
 \begin_layout Plain Layout
@@ -4740,7 +4739,7 @@ public class Cons<T> : List<T>
 
 \begin_layout Plain Layout
 
-		return Head.Append(Tail.Flatten<U>());
+		return Head.Append(Tail.Flatten<U>()); // invalid in standard C#
 \end_layout
 
 \begin_layout Plain Layout
