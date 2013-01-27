@@ -2006,7 +2006,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 Open and closed type in C# syntax
 \end_layout
 
@@ -3886,6 +3885,19 @@ key "gadts"
 \end_inset
 
 ).
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+Add printf example
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -5895,7 +5907,7 @@ th
 \end_layout
 
 \begin_layout Enumerate
-Primative value parameters - 25
+Primitive value parameters - 25
 \begin_inset script superscript
 
 \begin_layout Plain Layout
