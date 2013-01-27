@@ -383,7 +383,7 @@ Value dependent types are a powerful extension to type systems allowing
  types to be parametrized by terms.
  This project looks into how value dependent types could be introduced to
  the CLI, the underlying virtual machine specification for C#, Visual Basic,
- F# and many other languages, to allow more solutions to be succinctly expressed
+ F# and many other languages, to allow more programs to be succinctly expressed
  at the CLI level and exposed to these languages.
 \end_layout
 
@@ -396,8 +396,8 @@ Value dependent types
 \end_layout
 
 \begin_layout Standard
-Dependent types allow static typing of expression based on values rather
- than just other types.
+Dependent types allow expression to be statically typed based on values;
+ rather like how parametric types can be based on other types.
  There are some functional languages such as Agda
 \begin_inset CommandInset citation
 LatexCommand cite
@@ -500,11 +500,25 @@ One of the main motivations for looking into value dependence is for work
  the generator has to be run then the emitted code must be compiled to see
  any problems.
  The following shows a section of code used to generate all the required
- dot product functions currently, 
+ dot product functions.
+ 
 \family typewriter
 Components
 \family default
  is a list of component indices 0, 1, 2 etc.
+ 
+\family typewriter
+WriteLine
+\family default
+ writes a string to the code file using the current indent level, 
+\family typewriter
+Indent
+\family default
+ and 
+\family typewriter
+Dedent
+\family default
+ increase and decrease the indent level.
 \end_layout
 
 \begin_layout Standard
@@ -1078,6 +1092,11 @@ While CIL is targeted by a variety of languages Visual Basic and C# match
  go over them.
 \end_layout
 
+\begin_layout Standard
+For those more familiar with Java; the CLI can be compared to the JVM, and
+ CIL to Java Bytecode.
+\end_layout
+
 \begin_layout Subsection
 Value and Reference types
 \end_layout
@@ -1093,11 +1112,11 @@ g types allocation.
 \family typewriter
 Foo
 \family default
- would be a value type while 
+ is a value type, while 
 \family typewriter
 Foo*
 \family default
- would be a reference type, the semantics are similar.
+ is a reference type, the semantics are similar.
 \end_layout
 
 \begin_layout Subsection
@@ -1966,6 +1985,51 @@ implements System.Collections.Generic.IEnumerable`1<!0>,
 
 \end_layout
 
+\begin_layout Standard
+Sometimes it is necessary to distinguish between instantiated and non-instantiat
+ed generic types.
+ Common terminology for this, as used in ECMA-335, is close and open generic
+ types.
+ A closed generic type is one that has no unbound type parameters, conversly
+ an open generic type is a generic type that has at least one unbound type
+ paramter.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "keywordstyle={\color{blue}},language=sharpc,tabsize=4"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+Open and closed type in C# syntax
+\end_layout
+
+\end_inset
+
+Dictionary<TKey, TValue> a; // open
+\end_layout
+
+\begin_layout Plain Layout
+
+Dictionary<TKey, int> b; // open
+\end_layout
+
+\begin_layout Plain Layout
+
+Dictionary<string, int> c; // close
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 C++ templates
 \begin_inset CommandInset label
@@ -2356,6 +2420,520 @@ While they are implemented as a separate sort they behave somewhat like
  A system that allowed them to be values of a Measure type (rather than
  a separate sort) while retaining the current features (including inference)
  would be impressive and something our system should strive for.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "keywordstyle={\color{blue}},language=sharpc,showstringspaces=false,tabsize=4"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Example Unit type
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+public sealed class Unit 
+\end_layout
+
+\begin_layout Plain Layout
+
+{     
+\end_layout
+
+\begin_layout Plain Layout
+
+	public static Unit One     
+\end_layout
+
+\begin_layout Plain Layout
+
+	{         
+\end_layout
+
+\begin_layout Plain Layout
+
+		get         
+\end_layout
+
+\begin_layout Plain Layout
+
+		{             
+\end_layout
+
+\begin_layout Plain Layout
+
+			return new Unit(new List<Tuple<string, int>>());         
+\end_layout
+
+\begin_layout Plain Layout
+
+		}     
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+	    
+\end_layout
+
+\begin_layout Plain Layout
+
+	private readonly List<Tuple<string, int>> Units;
+\end_layout
+
+\begin_layout Plain Layout
+
+	    
+\end_layout
+
+\begin_layout Plain Layout
+
+	private Unit(List<Tuple<string, int>> units)     
+\end_layout
+
+\begin_layout Plain Layout
+
+	{         
+\end_layout
+
+\begin_layout Plain Layout
+
+		Units = units;     
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+	    
+\end_layout
+
+\begin_layout Plain Layout
+
+	public Unit(string unit)     
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		Units = new List<Tuple<string, int>>();
+\end_layout
+
+\begin_layout Plain Layout
+
+		Units.Add(Tuple.Create(unit, 1));
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+	    
+\end_layout
+
+\begin_layout Plain Layout
+
+	public static Unit operator *(Unit a, Unit b)
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		return new Unit(Product(a.Units, b.Units));
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+	    
+\end_layout
+
+\begin_layout Plain Layout
+
+	public static Unit operator /(Unit a, Unit b)
+\end_layout
+
+\begin_layout Plain Layout
+
+	{
+\end_layout
+
+\begin_layout Plain Layout
+
+		return new Unit(Product(a.Units, Reciprocal(b.Units)));
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+	    
+\end_layout
+
+\begin_layout Plain Layout
+
+	public static Unit operator ^(Unit a, int power)
+\end_layout
+
+\begin_layout Plain Layout
+
+	{         
+\end_layout
+
+\begin_layout Plain Layout
+
+		if (power == 0)
+\end_layout
+
+\begin_layout Plain Layout
+
+			return One;
+\end_layout
+
+\begin_layout Plain Layout
+
+		return new Unit(Power(a.Units, power));
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+	    
+\end_layout
+
+\begin_layout Plain Layout
+
+	private static List<Tuple<string, int>> Normalize(
+\end_layout
+
+\begin_layout Plain Layout
+
+		List<Tuple<string, int>> units)     
+\end_layout
+
+\begin_layout Plain Layout
+
+	{         
+\end_layout
+
+\begin_layout Plain Layout
+
+		var groups = units.GroupBy(tuple => tuple.Item1);         
+\end_layout
+
+\begin_layout Plain Layout
+
+		var sums = groups.Select(group => 
+\end_layout
+
+\begin_layout Plain Layout
+
+			Tuple.Create(group.Key, group.Sum(unit => unit.Item2)));         
+\end_layout
+
+\begin_layout Plain Layout
+
+		var filter = sums.Where(unit => unit.Item2 != 0);        
+\end_layout
+
+\begin_layout Plain Layout
+
+		var sorted = filter.OrderBy(unit => unit.Item1); 
+\end_layout
+
+\begin_layout Plain Layout
+
+		return sorted.ToList(); 
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+	    
+\end_layout
+
+\begin_layout Plain Layout
+
+	private static List<Tuple<string, int>> Product(
+\end_layout
+
+\begin_layout Plain Layout
+
+		List<Tuple<string, int>> a, List<Tuple<string, int>> b)     
+\end_layout
+
+\begin_layout Plain Layout
+
+	{         
+\end_layout
+
+\begin_layout Plain Layout
+
+		return Normalize(a.Concat(b).ToList());     
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+	    
+\end_layout
+
+\begin_layout Plain Layout
+
+	private static List<Tuple<string, int>> Power(
+\end_layout
+
+\begin_layout Plain Layout
+
+		List<Tuple<string, int>> a, int power)     
+\end_layout
+
+\begin_layout Plain Layout
+
+	{         
+\end_layout
+
+\begin_layout Plain Layout
+
+		return a.Select(unit => 
+\end_layout
+
+\begin_layout Plain Layout
+
+			Tuple.Create(unit.Item1, unit.Item2 * power)).ToList();     
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+	    
+\end_layout
+
+\begin_layout Plain Layout
+
+	private static List<Tuple<string, int>> Reciprocal(
+\end_layout
+
+\begin_layout Plain Layout
+
+		List<Tuple<string, int>> units)     
+\end_layout
+
+\begin_layout Plain Layout
+
+	{         
+\end_layout
+
+\begin_layout Plain Layout
+
+		return units.Select(unit => 
+\end_layout
+
+\begin_layout Plain Layout
+
+			Tuple.Create(unit.Item1, -unit.Item2)).ToList();  
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+	    
+\end_layout
+
+\begin_layout Plain Layout
+
+	public override bool Equals(object obj)     
+\end_layout
+
+\begin_layout Plain Layout
+
+	{         
+\end_layout
+
+\begin_layout Plain Layout
+
+		if (obj is Unit)         
+\end_layout
+
+\begin_layout Plain Layout
+
+		{             
+\end_layout
+
+\begin_layout Plain Layout
+
+			var other = obj as Unit;
+\end_layout
+
+\begin_layout Plain Layout
+
+			            
+\end_layout
+
+\begin_layout Plain Layout
+
+			return                  
+\end_layout
+
+\begin_layout Plain Layout
+
+				Units.Count == other.Units.Count &&                  
+\end_layout
+
+\begin_layout Plain Layout
+
+				Units.Zip(other.Units, (a, b) => 
+\end_layout
+
+\begin_layout Plain Layout
+
+					a.Item1 == b.Item1 && a.Item2 == b.Item2).All(b => b);         
+\end_layout
+
+\begin_layout Plain Layout
+
+		}         
+\end_layout
+
+\begin_layout Plain Layout
+
+		return false;     
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+	    
+\end_layout
+
+\begin_layout Plain Layout
+
+	public override string ToString()     
+\end_layout
+
+\begin_layout Plain Layout
+
+	{         
+\end_layout
+
+\begin_layout Plain Layout
+
+		return string.Join(" ", Units.Select(unit => 
+\end_layout
+
+\begin_layout Plain Layout
+
+			string.Format("{0}^{1}", unit.Item1, unit.Item2)));     
+\end_layout
+
+\begin_layout Plain Layout
+
+	}
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+    
+\end_layout
+
+\begin_layout Plain Layout
+
+public static void Example()     
+\end_layout
+
+\begin_layout Plain Layout
+
+{         
+\end_layout
+
+\begin_layout Plain Layout
+
+	Unit meters = new Unit("m");         
+\end_layout
+
+\begin_layout Plain Layout
+
+	Unit seconds = new Unit("s");        
+\end_layout
+
+\begin_layout Plain Layout
+
+	Unit metersPerSecond = meters / seconds;     
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -3945,7 +4523,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 Type equality constraints in extended C#
 \end_layout
 
@@ -4155,7 +4732,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 Corresponding CIL
 \end_layout
 
@@ -4806,7 +5382,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 Value parameters in extended C#
 \end_layout
 
@@ -4885,7 +5460,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 Corresponding CIL
 \end_layout
 
@@ -5073,7 +5647,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 User defined types as value parameters in extended C#
 \end_layout
 
@@ -5152,7 +5725,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 Corresponding CIL
 \end_layout
 
