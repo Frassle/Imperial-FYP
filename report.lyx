@@ -11,6 +11,8 @@
 \usepackage[sc]{mathpazo}
 \usepackage{fullpage}
 
+\usepackage{color}
+
 \usepackage{float}
 \floatstyle{boxed}
 \restylefloat{figure}
@@ -3685,12 +3687,22 @@ status open
 
 \begin_layout Plain Layout
 
-public abstract class List<T> {
-\end_layout
+\begin_inset Caption
 
 \begin_layout Plain Layout
+C# GADT
+\begin_inset CommandInset label
+LatexCommand label
+name "lis:csharp gadt"
 
-	...
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+public abstract class List<T> {
 \end_layout
 
 \begin_layout Plain Layout
@@ -4526,7 +4538,7 @@ key "gadts"
 
 \begin_layout Standard
 \begin_inset listings
-lstparams "keywordstyle={\color{blue}},language=sharpc,tabsize=4"
+lstparams "escapechar={~},keywordstyle={\color{blue}},language=sharpc,tabsize=4"
 inline false
 status open
 
@@ -4536,6 +4548,17 @@ status open
 
 \begin_layout Plain Layout
 Type equality constraints in extended C#
+\begin_inset Newline newline
+\end_inset
+
+Extension of listing 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "lis:csharp gadt"
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -4555,7 +4578,9 @@ public abstract class List<T>
 
 \begin_layout Plain Layout
 
-	public abstract List<U> Flatten<U>() where T=List<U>;
+	public abstract List<U> Flatten<U>() ~
+\backslash
+colorbox{yellow}{where T=List<U>;}~
 \end_layout
 
 \begin_layout Plain Layout
@@ -4735,7 +4760,7 @@ public class Cons<T> : List<T>
 
 \begin_layout Standard
 \begin_inset listings
-lstparams "tabsize=4"
+lstparams "escapechar={~},tabsize=4"
 inline false
 status open
 
@@ -4833,7 +4858,9 @@ extends [mscorlib]System.Object
 
 \begin_layout Plain Layout
 
-		Test.List`1<!!U> Flatten<= T List<!!0> U>() cil managed
+		Test.List`1<!!U> Flatten<~
+\backslash
+colorbox{yellow}{= T List<!!0>}~ U>() cil managed
 \end_layout
 
 \begin_layout Plain Layout
@@ -4956,7 +4983,9 @@ extends [mscorlib]System.Object
 
 \begin_layout Plain Layout
 
-		Test.List`1<!!U> Flatten<= T List<!!0> U>() cil managed
+		Test.List`1<!!U> Flatten<~
+\backslash
+colorbox{yellow}{= T List<!!0>}~ U>() cil managed
 \end_layout
 
 \begin_layout Plain Layout
@@ -5164,7 +5193,9 @@ extends Test.List`1<!T>
 
 \begin_layout Plain Layout
 
-		Test.List`1<!!U> Flatten<= T List<!!0> U>() cil managed     
+		Test.List`1<!!U> Flatten<~
+\backslash
+colorbox{yellow}{= T List<!!0>}~ U>() cil managed     
 \end_layout
 
 \begin_layout Plain Layout
@@ -5214,12 +5245,25 @@ extends Test.List`1<!T>
 
 \begin_layout Plain Layout
 
+\end_layout
+
+\begin_layout Plain Layout
+
+		// the following callvirt would not verify in the standard CLI
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+
 		callvirt instance class Test.List`1<!0> 
 \end_layout
 
 \begin_layout Plain Layout
 
-			Test.List`1<!!U>::Append(class Test.List`1<!0>)
+			Test.List`1<!!U>::Append(class Test.List`1<!0>) 
 \end_layout
 
 \begin_layout Plain Layout
@@ -5258,6 +5302,11 @@ extends Test.List`1<!T>
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+As per the style used in ECMA-335, match would be specified something like
+ the following.
 \end_layout
 
 \begin_layout Standard
@@ -5330,7 +5379,8 @@ Description
 \begin_inset Text
 
 \begin_layout Plain Layout
-0xFE 0x19
+\SpecialChar \ldots{}
+
 \end_layout
 
 \end_inset
@@ -5348,7 +5398,7 @@ match typetoken
 \begin_inset Text
 
 \begin_layout Plain Layout
-matches and object against an open or close generic type and returns the
+matches and object against an open or closed generic type and returns the
  object cast to that type and the RuntimeHandles for the types required
  for closure if typetoken is an open generic type.
 \end_layout
