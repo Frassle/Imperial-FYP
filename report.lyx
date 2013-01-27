@@ -4518,6 +4518,84 @@ The second part of the project is to design and implement extensions to
  syntax is highly subject to change however.
 \end_layout
 
+\begin_layout Enumerate
+GADT extensions - 25
+\begin_inset script superscript
+
+\begin_layout Plain Layout
+th
+\end_layout
+
+\end_inset
+
+ February
+\end_layout
+
+\begin_layout Enumerate
+Primitive value parameters - 25
+\begin_inset script superscript
+
+\begin_layout Plain Layout
+th
+\end_layout
+
+\end_inset
+
+ March
+\end_layout
+
+\begin_layout Enumerate
+Value parameter constraints and operations - 22
+\begin_inset script superscript
+
+\begin_layout Plain Layout
+nd
+\end_layout
+
+\end_inset
+
+ April
+\end_layout
+
+\begin_layout Enumerate
+User defined types as value parameters - 20
+\begin_inset script superscript
+
+\begin_layout Plain Layout
+th
+\end_layout
+
+\end_inset
+
+ May
+\end_layout
+
+\begin_layout Enumerate
+Further improvements and formalization - 17
+\begin_inset script superscript
+
+\begin_layout Plain Layout
+th
+\end_layout
+
+\end_inset
+
+ June
+\end_layout
+
+\begin_layout Enumerate
+Final report - 24
+\begin_inset script superscript
+
+\begin_layout Plain Layout
+th
+\end_layout
+
+\end_inset
+
+ June
+\end_layout
+
 \begin_layout Subsection
 GADTs
 \end_layout
@@ -5936,88 +6014,6 @@ extends [mscorlib]System.Object
 \end_inset
 
 
-\end_layout
-
-\begin_layout Section
-Timetable
-\end_layout
-
-\begin_layout Enumerate
-GADT extensions - 25
-\begin_inset script superscript
-
-\begin_layout Plain Layout
-th
-\end_layout
-
-\end_inset
-
- February
-\end_layout
-
-\begin_layout Enumerate
-Primitive value parameters - 25
-\begin_inset script superscript
-
-\begin_layout Plain Layout
-th
-\end_layout
-
-\end_inset
-
- March
-\end_layout
-
-\begin_layout Enumerate
-Value parameter constraints and operations - 22
-\begin_inset script superscript
-
-\begin_layout Plain Layout
-nd
-\end_layout
-
-\end_inset
-
- April
-\end_layout
-
-\begin_layout Enumerate
-User defined types as value parameters - 20
-\begin_inset script superscript
-
-\begin_layout Plain Layout
-th
-\end_layout
-
-\end_inset
-
- May
-\end_layout
-
-\begin_layout Enumerate
-Further improvements and formalization - 17
-\begin_inset script superscript
-
-\begin_layout Plain Layout
-th
-\end_layout
-
-\end_inset
-
- June
-\end_layout
-
-\begin_layout Enumerate
-Final report - 24
-\begin_inset script superscript
-
-\begin_layout Plain Layout
-th
-\end_layout
-
-\end_inset
-
- June
 \end_layout
 
 \begin_layout Chapter
