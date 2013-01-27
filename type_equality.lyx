@@ -1599,10 +1599,6 @@ ConstraintB (an index into the TypeDef, TypeRef, or TypeSpec tables, specifying
  the second type; more precisely, a TypeDefOrRef (§24.2.6) coded index)
 \end_layout
 
-\begin_layout Standard
-
-\end_layout
-
 \begin_layout Chapter
 References
 \end_layout
