@@ -2254,6 +2254,19 @@ It's worth noting that although this example looks like the constructors
  would be better, and with the new features of C++11 might be possible.
 \end_layout
 
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+Path dependance?
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section
 F# units of measure
 \begin_inset CommandInset label
@@ -3507,16 +3520,93 @@ printf
 
 \begin_layout Section
 Generalized algebraic data types
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:GADTs"
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
 Generalized algebraic data types (GADTs) are predominately a feature of
  functional languages.
- They are an extension to algebraic data types that reduce some constraints
- on data type constructors, in particular they allow pattern matching and
- recursion in a data constructor.
- The common example is a type for terms in a small language, without GADTs
- you cannot have the type checker check that the expression trees are correct.
+ They are an extension to algebraic data types.
+ They allow more expression in data type constructors, in particular they
+ allow pattern matching and more general recursion in a data constructor.
+ The common example is a type for terms in a small language; with GADTs
+ it's possible to express constraints on the expression trees that are not
+ expresable in normal ADTs.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "keywordstyle={\color{blue}},tabsize=4"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+GADT
+\end_layout
+
+\end_inset
+
+data Exp t where
+\end_layout
+
+\begin_layout Plain Layout
+
+	Lit :: Int -> Exp Int
+\end_layout
+
+\begin_layout Plain Layout
+
+	Plus :: Exp Int -> Exp Int -> Exp Int
+\end_layout
+
+\begin_layout Plain Layout
+
+	Equals :: Exp Int -> Exp Int -> Exp Bool
+\end_layout
+
+\begin_layout Plain Layout
+
+	Cond :: Exp Bool -> Exp a -> Exp a -> Exp a
+\end_layout
+
+\end_inset
+
+This data type will only allow correct instantations of 
+\family typewriter
+Exp
+\family default
+ as paramters.
+ The constraint that 
+\family typewriter
+Plus
+\family default
+ takes two 
+\family typewriter
+Int
+\family default
+ expressions and returns a new Int expression is expressed.
+ As is the constraint that 
+\family typewriter
+Cond
+\family default
+ must take a 
+\family typewriter
+Bool
+\family default
+ expression and two other expression of the same type returning an expression
+ of that type.
+ Without GADTs these constraints cannot be expressed, the following shows
+ the same type as an ADT.
 \end_layout
 
 \begin_layout Standard
@@ -3564,7 +3654,7 @@ data Exp
 \end_layout
 
 \begin_layout Standard
-It's clear that the first expression passed to 
+The first expression passed to 
 \family typewriter
 Cond
 \family default
@@ -3573,67 +3663,12 @@ Cond
 Equals
 \family default
 ), but the type system cannot express that.
- If we add GADTs to our language we can rewrite 
-\family typewriter
-Exp
-\family default
- to the following.
 \end_layout
 
 \begin_layout Standard
-\begin_inset listings
-lstparams "keywordstyle={\color{blue}},tabsize=4"
-inline false
-status open
-
-\begin_layout Plain Layout
-
-\begin_inset Caption
-
-\begin_layout Plain Layout
-GADT
-\end_layout
-
-\end_inset
-
-data Exp t where
-\end_layout
-
-\begin_layout Plain Layout
-
-	Lit :: Int -> Exp Int
-\end_layout
-
-\begin_layout Plain Layout
-
-	Plus :: Exp Int -> Exp Int -> Exp Int
-\end_layout
-
-\begin_layout Plain Layout
-
-	Equals :: Exp Int -> Exp Int -> Exp Bool
-\end_layout
-
-\begin_layout Plain Layout
-
-	Cond :: Exp Bool -> Exp a -> Exp a -> Exp a
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-This data type will only allow a boolean expression as the first argument
- to 
-\family typewriter
-Cond
-\family default
-.
- There are more examples that can be statically checked with GADTs such
- as lists that have their size as part of their type and statically typed
- printf functions.
+There are more examples that can be statically checked with GADTs such as
+ lists that have their size as part of their type and statically typed printf
+ functions.
 \end_layout
 
 \begin_layout Standard
@@ -3671,8 +3706,15 @@ key "gadts"
  describes this extension.
  This would allow a generic type to be declared equal to another type, this
  would be checked statically at compile time.
- For example a list flatten method could check that the list was a list
- of lists by the addition of the 
+ 
+\end_layout
+
+\begin_layout Standard
+We'll use a different example from the expressions code above, as the expression
+ type is much larger expressed in C#.
+ Instead we'll look at list flatten methods.
+ A list flatten method could check that the list was a list of lists by
+ the addition of the 
 \family typewriter
 where T=List<U>
 \family default
@@ -3819,9 +3861,18 @@ List<U>
 Append
 \family default
  method.
- While the paper suggests this as a C# extension generic constraints are
- currently encoded at the CLI level and so we could add this as a CLI extension,
- thus allowing this to be added to C# and other languages easily.
+ While 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "gadts"
+
+\end_inset
+
+ suggests this addition of type equality constraints as a C# extension;
+ generic constraints are currently encoded at the CLI level and so we could
+ add this as a CLI extension.
+ Adding type equality constraints at the CLI level would allow it to be
+ added to C# and other languages more easily.
  
 \end_layout
 
@@ -3886,17 +3937,18 @@ switch (e1, e2)
 \end_layout
 
 \begin_layout Standard
-While switch statements are a language feature (at the CLI level they are
- encoded through a sequence of if statements) the authors point out that
- support at the CLI level for a match-and-bind primitive would be useful
- (see the end of section 3.4 in 
+While standard switch statements are a language feature (at the CLI level
+ they are encoded through a sequence of if statements) the authors point
+ out that support at the CLI level for a match-and-bind primitive would
+ be useful (see the end of section 3.4 in 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "gadts"
 
 \end_inset
 
-).
+) as their switch extension is currently difficult to translate to CIL code,
+ having to rely on run time reflection and generic methods to bind correctly.
 \end_layout
 
 \begin_layout Standard
@@ -3917,9 +3969,8 @@ Conclusion
 \end_layout
 
 \begin_layout Standard
-Having looked at all these type systems we can see a progression of expressivity
-, and in some cases equality.
- 
+Having looked at all these type systems we can see that some systems are
+ more powerfull, while other are equal in power but differ in expresivity.
 \end_layout
 
 \begin_layout Standard
@@ -3935,11 +3986,12 @@ C++ templates
 \end_layout
 
 \begin_layout Standard
-The next most general was 
+The next most general is 
 \series bold
 value dependence
 \series default
-, this allowed types to be constructed based on values.
+.
+ Value dependence allowed types to be constructed based on values.
  While this is powerful allowing arbitrary values as parameters is undecidable,
  as it amounts to determining whether two different programs produce the
  same result.
@@ -3950,7 +4002,7 @@ key "tapl"
 
 \end_inset
 
- is a warning about dependent types, 
+ is a warning about dependent types:
 \end_layout
 
 \begin_layout Quotation
@@ -3972,7 +4024,7 @@ ians working with mechanical proof assistants do not just type in a theorem,
 \begin_layout Standard
 The CLI as a mainstream day-to-day infrastructure would certainly not benefit
  from an extension that required significant expenditure of programmer time.
- As such we do not actually want to make our system too powerful, we want
+ As such, we do not actually want to make our system too powerful, we want
  to find a balance between opening up opportunities for optimization and
  expressivity and the cost of annotation and understanding.
 \end_layout
@@ -3983,10 +4035,16 @@ The CLI as a mainstream day-to-day infrastructure would certainly not benefit
 GADTs
 \series default
  come in next.
- We've explored how GADTs can be expressed in C# with some modifications.
- Taking these ideas and applying them to the CLI is easily possible.
- Generic constraints are already stored in the metadata, expanding them
- to cover type equality should be simple.
+ Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:GADTs"
+
+\end_inset
+
+ explored how GADTs can be expressed in C# with some modifications.
+ As generic constraints are already stored in the metadata, taking these
+ ideas and expanding them to cover type equality should be simple.
  
 \end_layout
 
@@ -3998,12 +4056,13 @@ virtual types
  are equivalent to generics.
  As the CLI already supports generics further investigation of virtual types
  seems unnecessary.
+ Finally, path dependence is a simpler case of value dependence as are F#
+ units of measure.
+ 
 \end_layout
 
 \begin_layout Standard
-Finally path dependence is a simpler case of value dependence as are F#
- units of measure.
- So while full value dependence may be too much, GADTs aren't enough leading
+So while full value dependence may be too much, GADTs aren't enough leading
  us to think about an extension somewhere in between the two.
 \end_layout
 
@@ -4022,6 +4081,15 @@ Virtual\; types\sim Generics
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+The following table shows some of the differances and similarites between
+ these systems.
+ The Type safe printf column indicates if the system can express a printf
+ like function in a type safe way.
+ The type sized lists column indicates if the system can express lists that
+ carry their size as part of their type.
 \end_layout
 
 \begin_layout Standard
@@ -4166,7 +4234,7 @@ status open
 
 \begin_layout Plain Layout
 Being Turing complete it feels this should be yes, however we can't find
- any material to suggest eitehr way
+ any material to suggest either way
 \end_layout
 
 \end_inset
@@ -4192,6 +4260,16 @@ Value dependence
 
 \begin_layout Plain Layout
 No
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Agda and Coq aren't Turing complete.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -4247,7 +4325,7 @@ Yes
 \begin_inset Text
 
 \begin_layout Plain Layout
-GADT
+GADTs
 \end_layout
 
 \end_inset
