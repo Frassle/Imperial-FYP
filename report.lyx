@@ -6162,6 +6162,10 @@ reference "sub:Performance"
 \end_inset
 
  we want certain performance characteristics out of the system.
+ For each extension we will include test cases to demonstrate that the implement
+ation is correct.
+ Test cases will be created both during the development of each extension
+ and, time permiting, some time after the extension is finished.
 \end_layout
 
 \begin_layout Chapter
@@ -6174,6 +6178,20 @@ LatexCommand bibtex
 btprint "btPrintAll"
 bibfiles "report"
 options "plain"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+Still need to fix this.
+ Also need to setup a glossary.
+\end_layout
 
 \end_inset
 
