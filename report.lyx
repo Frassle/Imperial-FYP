@@ -1903,6 +1903,12 @@ key "ext-vox"
 
 , the paper does give an insight into what we need to be thinking about
  while designing value parametrics.
+ One major change between the proposal and the final implementation is the
+ use of value types and generic.
+ It was originally thought that allowing value types as generic arguments
+ was not worth the performance cost of having to re-jit all code that used
+ it; the final implementation decided that the expressivity and performance
+ increase from not boxing out weighed this downside.
  It's worth taking some time to look at how generics ended up being specified
  in ECMA-335
 \begin_inset CommandInset citation
