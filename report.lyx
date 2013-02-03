@@ -43,11 +43,13 @@
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 
 \usepackage{caption}
-\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFont{black}{\color{black}}
+
 \DeclareCaptionFormat{listing}{%
-  \parbox{\textwidth}{\colorbox{black}{\parbox{\textwidth}{#1#2#3}}\vskip4pt}}
-\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white}
-\lstset{frame=lrbt,xleftmargin=\fboxsep,xrightmargin=-\fboxsep}
+  \parbox{\textwidth}{\fbox{\parbox{\textwidth}{#1#2#3}}\vskip4pt}}
+
+\captionsetup[lstlisting]{format=listing,labelfont=black,textfont=black}
+\lstset{frame=single,xleftmargin=\fboxsep,xrightmargin=-\fboxsep}
 \end_preamble
 \use_default_options true
 \maintain_unincluded_children false
@@ -1013,9 +1015,10 @@ Common intermediate language
 \begin_layout Standard
 To allow the reader to more easily follow later discussions we will first
  briefly go over the CLI and CIL.
+ For those more familiar with Java; the CLI can be compared to the JVM,
+ and CIL to Java Bytecode.
  The CLI runs Common Intermediate Language (CIL) byte code.
  CIL is a type rich, stack based assembly language.
- 
 \end_layout
 
 \begin_layout Standard
@@ -1025,6 +1028,15 @@ inline false
 status open
 
 \begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+Hello world
+\end_layout
+
+\end_inset
 
 .assembly Hello {} 
 \end_layout
@@ -1092,11 +1104,7 @@ While CIL is targeted by a variety of languages Visual Basic and C# match
  possible in examples.
  Some CLI/C# features are uncommon in other languages so we we'll briefly
  go over them.
-\end_layout
-
-\begin_layout Standard
-For those more familiar with Java; the CLI can be compared to the JVM, and
- CIL to Java Bytecode.
+ These features 
 \end_layout
 
 \begin_layout Subsection
