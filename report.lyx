@@ -1130,8 +1130,12 @@ LoadPpm
 
 \begin_layout Plain Layout
 
-	class [Ibasa.SharpIL]Ibasa.SharpIL.Image LoadPpm(string name) cil managed
- 
+	class [Ibasa.SharpIL]Ibasa.SharpIL.Image LoadPpm(string name) 
+\end_layout
+
+\begin_layout Plain Layout
+
+	cil managed 
 \end_layout
 
 \begin_layout Plain Layout
@@ -1181,7 +1185,12 @@ LoadPpm
 
 \begin_layout Plain Layout
 
-	L_000b: call string [mscorlib]System.IO.Path::Combine(string, string, string)
+	L_000b: call string 
+\end_layout
+
+\begin_layout Plain Layout
+
+		[mscorlib]System.IO.Path::Combine(string, string, string)
 \end_layout
 
 \begin_layout Plain Layout
@@ -1196,7 +1205,12 @@ LoadPpm
 
 \begin_layout Plain Layout
 
-	L_0012: newobj instance void [Ibasa.Media]Ibasa.Media.Visual.Pnm::.ctor(string)
+	L_0012: newobj instance void 
+\end_layout
+
+\begin_layout Plain Layout
+
+		[Ibasa.Media]Ibasa.Media.Visual.Pnm::.ctor(string)
 \end_layout
 
 \begin_layout Plain Layout
@@ -1577,11 +1591,7 @@ The corresponding CIL follows, note the method call for
 \family typewriter
 get_Area
 \family default
- at 
-\family typewriter
-L_000f
-\family default
- in 
+ on line 16 in 
 \family typewriter
 Main
 \family default
@@ -1597,7 +1607,7 @@ Main
 
 \begin_layout Standard
 \begin_inset listings
-lstparams "tabsize=4"
+lstparams "numbers=left,tabsize=4"
 inline false
 status open
 
