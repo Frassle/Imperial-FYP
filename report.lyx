@@ -1025,7 +1025,7 @@ Hello World
 \emph default
  in CIL, it shows the loading of a literal string and then calling a static
  method.
- 
+ Where possible I have elided instruction offsets in CIL code.
 \end_layout
 
 \begin_layout Standard
