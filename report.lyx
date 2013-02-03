@@ -1019,6 +1019,13 @@ To allow the reader to more easily follow later discussions we will first
  and CIL to Java Bytecode.
  The CLI runs Common Intermediate Language (CIL) byte code.
  CIL is a type rich, stack based assembly language.
+ Below is 
+\emph on
+Hello World
+\emph default
+ in CIL, it shows the loading of a literal string and then calling a static
+ method.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -1096,6 +1103,155 @@ CIL supports many features not common for low level assembly code, as well
  as basic operations such as add, jump, load, store.
  Operations such as field access, method call, object creation, casting
  etc all have dedicated CIL instructions.
+ LoadPpm is a method from a real C# application, it shows the use of locals,
+ calling static and instance methods, method arguments, constructors and
+ properties.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+LoadPpm
+\end_layout
+
+\end_inset
+
+.method private hidebysig static 
+\end_layout
+
+\begin_layout Plain Layout
+
+	class [Ibasa.SharpIL]Ibasa.SharpIL.Image LoadPpm(string name) cil managed
+ 
+\end_layout
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\begin_layout Plain Layout
+
+	.maxstack 4
+\end_layout
+
+\begin_layout Plain Layout
+
+	.locals init (
+\end_layout
+
+\begin_layout Plain Layout
+
+	[0] string path,
+\end_layout
+
+\begin_layout Plain Layout
+
+	[1] class [Ibasa.Media]Ibasa.Media.Visual.Pnm ppm)
+\end_layout
+
+\begin_layout Plain Layout
+
+ 
+\end_layout
+
+\begin_layout Plain Layout
+
+	L_0000: call string Graphics.Program::Toplevel()
+\end_layout
+
+\begin_layout Plain Layout
+
+	L_0005: ldstr "Memorial"
+\end_layout
+
+\begin_layout Plain Layout
+
+	L_000a: ldarg.0
+\end_layout
+
+\begin_layout Plain Layout
+
+	L_000b: call string [mscorlib]System.IO.Path::Combine(string, string, string)
+\end_layout
+
+\begin_layout Plain Layout
+
+	L_0010: stloc.0
+\end_layout
+
+\begin_layout Plain Layout
+
+	L_0011: ldloc.0
+\end_layout
+
+\begin_layout Plain Layout
+
+	L_0012: newobj instance void [Ibasa.Media]Ibasa.Media.Visual.Pnm::.ctor(string)
+\end_layout
+
+\begin_layout Plain Layout
+
+	L_0017: stloc.1
+\end_layout
+
+\begin_layout Plain Layout
+
+	L_0018: ldloc.1
+\end_layout
+
+\begin_layout Plain Layout
+
+	L_0019: callvirt instance class [Ibasa.SharpIL]Ibasa.SharpIL.Resource
+\end_layout
+
+\begin_layout Plain Layout
+
+		[Ibasa.Media]Ibasa.Media.Visual.Pnm::get_Image()
+\end_layout
+
+\begin_layout Plain Layout
+
+	L_001e: ldc.i4.0
+\end_layout
+
+\begin_layout Plain Layout
+
+	L_001f: ldc.i4.0
+\end_layout
+
+\begin_layout Plain Layout
+
+	L_0020: newobj instance void [Ibasa.SharpIL]Ibasa.SharpIL.Image::.ctor(
+\end_layout
+
+\begin_layout Plain Layout
+
+		class [Ibasa.SharpIL]Ibasa.SharpIL.Resource, int32, int32)
+\end_layout
+
+\begin_layout Plain Layout
+
+	L_0025: ret
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -1104,7 +1260,8 @@ While CIL is targeted by a variety of languages Visual Basic and C# match
  possible in examples.
  Some CLI/C# features are uncommon in other languages so we we'll briefly
  go over them.
- These features 
+ Some of these features may affect ideas for our extensions, others just
+ help simplify explanations and code examples.
 \end_layout
 
 \begin_layout Subsection
