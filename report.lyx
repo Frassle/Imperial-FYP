@@ -1008,6 +1008,19 @@ Background
 The CLI
 \end_layout
 
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+Why are types important? Important to our project or in general?
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Subsection
 Common intermediate language
 \end_layout
