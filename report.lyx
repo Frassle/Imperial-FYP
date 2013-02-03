@@ -2212,6 +2212,20 @@ Dictionary<string, int> c; // close
 
 \end_layout
 
+\begin_layout Subsection
+Other CLI features
+\end_layout
+
+\begin_layout Standard
+There are many other parts of the CLI that we haven’t looked at.
+ These include things such as initialization guarantees, object layouts,
+ serialization and others.
+ These do not have a direct effect on the extensions we discuss, and so
+ to save time we skip them.
+ There are many resource available if you wish to understand a keyword or
+ feature that I havn't explained.
+\end_layout
+
 \begin_layout Section
 C++ templates
 \begin_inset CommandInset label
@@ -3848,6 +3862,32 @@ Cond
 Equals
 \family default
 ), but the type system cannot express that.
+ The following expression tree is valid with the ADT type, and invalid with
+ GADTs.
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language=Haskell"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+Cond (Lit 1) (Lit 2) (Equals (Lit 3) (Lit 4))
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
