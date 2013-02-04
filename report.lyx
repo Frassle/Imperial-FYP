@@ -1052,7 +1052,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 Hello world
 \end_layout
 
@@ -1132,7 +1131,6 @@ status open
 \begin_inset Caption
 
 \begin_layout Plain Layout
-
 LoadPpm
 \end_layout
 
@@ -4195,6 +4193,19 @@ status open
 
 \begin_layout Plain Layout
 Add printf example
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Greyedout
+status open
+
+\begin_layout Plain Layout
+Relation to type classes? Why do we need equality constraints?
 \end_layout
 
 \end_inset
