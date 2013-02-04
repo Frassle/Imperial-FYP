@@ -1600,6 +1600,28 @@ ConstraintB (an index into the TypeDef, TypeRef, or TypeSpec tables, specifying
 \end_layout
 
 \begin_layout Chapter
+Implementation changes
+\end_layout
+
+\begin_layout Section
+Assembler
+\end_layout
+
+\begin_layout Standard
+The mono assembler is found in /mcs/ilasm.
+ 
+\end_layout
+
+\begin_layout Section
+Runtime
+\end_layout
+
+\begin_layout Standard
+The runtime needs to be changed to load and understand equality constraint
+ metadata, these changes will be focused on /mono/metadata.
+\end_layout
+
+\begin_layout Chapter
 References
 \end_layout
 
