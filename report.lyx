@@ -1290,6 +1290,24 @@ While CIL is targeted by a variety of languages Visual Basic and C# match
 \end_layout
 
 \begin_layout Subsection
+CLI features
+\end_layout
+
+\begin_layout Standard
+There are many other parts of the CLI that we haven’t looked at.
+ These include things such as initialization guarantees, object layouts,
+ serialization and others.
+ These do not have a direct effect on the extensions we discuss, and so
+ to save time we skip them.
+ There are many resource available if you wish to understand a keyword or
+ feature that I havn't explained.
+\end_layout
+
+\begin_layout Subsection
+CLI type system
+\end_layout
+
+\begin_layout Subsubsection
 Value and Reference types
 \end_layout
 
@@ -2221,20 +2239,6 @@ Dictionary<string, int> c; // close
 \end_inset
 
 
-\end_layout
-
-\begin_layout Subsection
-Other CLI features
-\end_layout
-
-\begin_layout Standard
-There are many other parts of the CLI that we haven’t looked at.
- These include things such as initialization guarantees, object layouts,
- serialization and others.
- These do not have a direct effect on the extensions we discuss, and so
- to save time we skip them.
- There are many resource available if you wish to understand a keyword or
- feature that I havn't explained.
 \end_layout
 
 \begin_layout Section
