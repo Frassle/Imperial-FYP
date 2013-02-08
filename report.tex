@@ -1,5 +1,3 @@
-%% LyX 2.0.4 created this file.  For more info, see http://www.lyx.org/.
-%% Do not edit unless you really know what you are doing.
 \documentclass[english]{report}
 \usepackage[T1]{fontenc}
 \usepackage[latin9]{inputenc}
@@ -320,10 +318,7 @@ and it's evaluation.
 
 \section{The CLI}
 
-\begin{lyxgreyedout}
-Why are types important? Important to our project or in general?%
-\end{lyxgreyedout}
-
+%Why are types important? Important to our project or in general?%
 
 
 \subsection{Common intermediate language}
@@ -730,12 +725,8 @@ some elements uninitialized or not use some of the values passed in.
 Real variadic parameters that matched the dimension of the vector/matrix
 would be better, and with the new features of C++11 might be possible.
 
-\begin{lyxgreyedout}
-Path dependance?
-
-Printf example.%
-\end{lyxgreyedout}
-
+%Path dependance?
+%Printf example.
 
 
 \section{F\# units of measure\label{sec:Fsharp-units}}
@@ -1176,15 +1167,9 @@ switch extension is currently difficult to translate to CIL code,
 having to rely on run time reflection and generic methods to bind
 correctly.
 
-\begin{lyxgreyedout}
-Add printf example%
-\end{lyxgreyedout}
+%Add printf example%
 
-
-\begin{lyxgreyedout}
-Relation to type classes? Why do we need equality constraints?%
-\end{lyxgreyedout}
-
+%Relation to type classes? Why do we need equality constraints?%
 
 
 \section{Conclusion}
@@ -1286,10 +1271,8 @@ us to say what it means for \texttt{a} and \texttt{b} to be equal.
 All CLI objects have a method \texttt{bool Equal(object obj)} which
 we could use, however this is clearly unsound as an implementation
 of \texttt{Equal} could return nonsense, or never return at all. %
-\begin{lyxgreyedout}
-I'm thinking this is done at compile time, not runtime (it's a static
-type check?)%
-\end{lyxgreyedout}
+%I'm thinking this is done at compile time, not runtime (it's a static
+%type check?)%
 Instead we propose using structural and reference equality. That is
 two values of any reference type are equal if and only if they are
 the same reference, and two values of a value type are equal if and
