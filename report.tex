@@ -10,33 +10,8 @@
 \definecolor{note_fontcolor}{rgb}{0.80078125, 0.80078125, 0.80078125}
 \usepackage{array}
 \usepackage{longtable}
-\usepackage[dot]{bibtopic}
 
 \makeatletter
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LyX specific LaTeX commands.
-%% Special footnote code from the package 'stblftnt.sty'
-%% Author: Robin Fairbairns -- Last revised Dec 13 1996
-\let\SF@@footnote\footnote
-\def\footnote{\ifx\protect\@typeset@protect
-    \expandafter\SF@@footnote
-  \else
-    \expandafter\SF@gobble@opt
-  \fi
-}
-\expandafter\def\csname SF@gobble@opt \endcsname{\@ifnextchar[%]
-  \SF@gobble@twobracket
-  \@gobble
-}
-\edef\SF@gobble@opt{\noexpand\protect
-  \expandafter\noexpand\csname SF@gobble@opt \endcsname}
-\def\SF@gobble@twobracket[#1]#2{}
-%% Because html converters don't know tabularnewline
-\providecommand{\tabularnewline}{\\}
-%% The greyedout annotation environment
-\newenvironment{lyxgreyedout}
-  {\textcolor{note_fontcolor}\bgroup\ignorespaces}
-  {\ignorespacesafterend\egroup}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
 \usepackage{amsmath,amssymb,dot2texi,tikz,hyperref,enumitem}
@@ -89,6 +64,7 @@
 \makeatother
 
 \usepackage{babel}
+
 \begin{document}
 \begin{titlepage}
 \begin{center}
@@ -123,6 +99,7 @@ Fraser \textsc{Waters}\\
 \end{titlepage}
 
 \tableofcontents{}
+
 \begin{abstract}
 Value dependent types are a powerful extension to type systems allowing
 types to be parametrized by terms. This project looks into how value
@@ -133,7 +110,6 @@ and exposed to these languages.
 \end{abstract}
 
 \chapter{Introduction}
-
 
 \section{Value dependent types}
 
@@ -286,19 +262,16 @@ While these vector types are the main motivator for value dependence
 there are more uses for value dependent types, we explore these in
 the background section.
 
-
-\section{The CLI%
-\footnote{Common Language Infrastructure%
-}}
+\section{\texorpdfstring{The CLI\footnote{Common Language Infrastructure}}%
+{The Common Language Infrastructure}}
 
 The CLI is a specification for a virtual execution environment, that
-is implemented by Microsoft\textquoteright{}s CLR%
-\footnote{Common Language Runtime%
-} (often confused with the .NET branding) and the open source Mono
+is implemented by Microsoft's CLR\footnote{Common Language Runtime}
+(often confused with the .NET branding) and the open source Mono
 project. It is targeted by VB, C\#, F\#, IronPython and other languages.
-It retains a high level of type information, more so than the JVM%
-\footnote{Java Virtual Machine%
-} (which for example has no concept of generic types despite Java supporting
+It retains a high level of type information, more so than the JVM
+\footnote{Java Virtual Machine} 
+(which for example has no concept of generic types despite Java supporting
 them\cite{jvm-erasure}).
 
 As a C\# and F\# programmer the CLI is a more attractive specification
