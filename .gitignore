@@ -33,3 +33,5 @@
 *.tex
 *.lyx~
 *.lyx#
+
+old*
