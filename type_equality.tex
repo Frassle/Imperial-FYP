@@ -1,0 +1,432 @@
+%% LyX 2.0.4 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[english]{report}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{listings}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+\usepackage{color}
+\usepackage{textcomp}
+\usepackage[dot]{bibtopic}
+
+\makeatletter
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
+\usepackage{amsmath,amssymb,dot2texi,tikz,hyperref,enumitem}
+\usetikzlibrary{shapes,arrows}
+
+\usepackage[T1]{fontenc}
+\usepackage[sc]{mathpazo}
+\usepackage{fullpage}
+
+\usepackage{float}
+\floatstyle{boxed}
+\restylefloat{figure}
+
+\usepackage{url}
+\usepackage{listings}
+
+\lstdefinelanguage{sharpc}{language=[Sharp]C}
+
+% "define" Scala
+\lstdefinelanguage{scala}{
+  morekeywords={abstract,case,catch,class,def,%
+    do,else,extends,false,final,finally,%
+    for,if,implicit,import,match,mixin,%
+    new,null,object,override,package,%
+    private,protected,requires,return,sealed,%
+    super,this,throw,trait,true,try,%
+    type,val,var,while,with,yield},
+  otherkeywords={=>,<-,<\%,<:,>:,\#,@},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[n]{/*}{*/},
+  morestring=[b]",
+  morestring=[b]',
+  morestring=[b]"""
+}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\usepackage{caption}
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{%
+  \parbox{\textwidth}{\colorbox{black}{\parbox{\textwidth}{#1#2#3}}\vskip4pt}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white}
+\lstset{frame=lrbt,xleftmargin=\fboxsep,xrightmargin=-\fboxsep}
+
+\makeatother
+
+\usepackage{babel}
+\begin{document}
+\begin{titlepage}
+\begin{center}
+%Upper part of the page 
+\includegraphics[width=0.50\textwidth]{imperial_crest_colour.jpg}\\[1cm]
+\textsc{\LARGE Imperial College London}\\[1.5cm]
+\textsc{\Large Value dependent types for the CLI}\\[0.5cm]
+% Title 
+\HRule \\[0.4cm] 
+{ \huge \bfseries Type equality constraints}\\[0.4cm]
+\HRule \\[1.5cm]
+% Author and supervisor 
+\begin{minipage}{0.4\textwidth} 
+\begin{flushleft} \large 
+\emph{Author:}\\ 
+Fraser \textsc{Waters}\\
+\href{mailto:fraser.waters08@imperial.ac.uk}{fraser.waters08@imperial.ac.uk} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{0.4\textwidth} 
+\begin{flushright} \large 
+\emph{Supervisor:} \\ Professor Sophia \textsc{Drossopoulou} 
+\end{flushright} 
+\end{minipage}
+
+\vfill
+
+% Bottom of the page 
+{\large \today}
+
+\end{center}
+\end{titlepage}
+
+\tableofcontents{}
+\begin{abstract}
+Type equality constraints would allow the CLI to better express generalized
+algebraic data types.
+\end{abstract}
+
+\chapter{Introduction}
+
+
+\section{Generalized algebraic data types}
+
+This report looks into how to add type equality constraints to the
+CLI. Type equality constraints for C\# are described in \cite{gadts},
+we'll be using these ideas but for the CLI not C\#. The basic idea
+is to extend generic constraints to allow equality constraints on
+generic types, section 3.1 (Equational constraints for C\#) of \cite{gadts}
+describes this extension. This would allow a generic type to be declared
+equal to another type, this would be checked statically at compile
+time. For example a list flatten method could check that the list
+was a list of lists by the addition of the \texttt{where T=List<U>}
+clause.
+
+\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc,tabsize=4]
+public abstract class List<T> {
+	...
+	public abstract List<T> Append(List<T> list);
+	public abstract List<U> Flatten<U>() where T=List<U>;
+}
+
+public class Nil<T> : List<T> {
+	public override List<U> Flatten<U>() {
+		return new Nil<U>;
+	}
+}
+
+public class Cons<T> : List<T> {	
+	T head; List<T> tail;
+	public override List<U> Flatten<U>() {
+		return this.head.Append(this.tail.Flatten());
+	}
+}
+\end{lstlisting}
+
+
+Calling \texttt{Flatten} on a \texttt{List<T>} would statically check
+that \texttt{T=List<U>} where \texttt{U} is any type. Thus in the
+method body of flatten we can assume that the type of \texttt{head}
+is \texttt{List<U>} which has an \texttt{Append} method. While the
+paper suggests this as a C\# extension generic constraints are currently
+encoded at the CLI level and so we could add this as a CLI extension,
+thus allowing this to be added to C\# and other languages easily. 
+
+
+\section{Example}
+
+The following shows a minimal list example, in both C\# and CIL.
+
+\begin{lstlisting}[caption={Type equality constraints in extended C\#},keywordstyle={\color{blue}},language=sharpc,tabsize=4]
+public abstract class List<T>
+{
+	public abstract List<T> Append(List<T> list);
+	public abstract List<U> Flatten<U>() where T=List<U>;
+}
+
+public class Nil<T> : List<T>
+{
+	public override List<T> Append(List<T> list)
+	{
+		return list;
+	}
+	public abstract List<U> Flatten<U>()
+	{
+		return new Nil<U>();
+	}
+}
+
+public class Cons<T> : List<T>
+{
+	T Head;
+	List<T> Tail;
+
+	public Cons(T head, List<T> tail) 
+	{
+		Head = head;
+		Tail = tail;
+	}
+
+	public override List<T> Append(List<T> list)
+	{
+		return new Cons<T>(Head, Tail.Append(list));
+	}
+
+	public override List<U> Flatten<U>()
+	{
+		return Head.Append(Tail.Flatten<U>());
+	}
+}
+\end{lstlisting}
+
+
+\begin{lstlisting}[caption={Corresponding CIL},tabsize=4]
+.class public abstract auto ansi beforefieldinit List<T>
+extends [mscorlib]System.Object 
+{
+	.method family hidebysig specialname rtspecialname instance void .ctor() 
+		cil managed
+	{
+		.maxstack 8
+		ldarg.0
+		call instance void [mscorlib]System.Object::.ctor()
+		ret
+	}
+
+	.method public hidebysig newslot abstract virtual instance class 
+		Test.List`1<!T> Append(class Test.List`1<!T> list) cil managed     
+	{     }
+
+	.method public hidebysig newslot abstract virtual instance class 
+		Test.List`1<!!U> Flatten<= T List<!!0> U>() cil managed
+	{     }
+}
+
+.class public auto ansi beforefieldinit Nil<T>     
+	extends Test.List`1<!T> 
+{     
+	.method public hidebysig specialname rtspecialname instance void .ctor() 
+		cil managed     
+	{
+		.maxstack 8
+		ldarg.0
+		call instance void Test.List`1<!T>::.ctor()
+		ret
+	}
+
+	.method public hidebysig virtual instance class 
+		Test.List`1<!T> Append(class Test.List`1<!T> list) cil managed     
+	{
+		.maxstack 1
+		ldarg.1
+		ret
+	}
+
+	.method public hidebysig virtual instance class 
+		Test.List`1<!!U> Flatten<= T List<!!0> U>() cil managed
+	{
+		.maxstack 1
+		newobj instance void Test.Nil`1<!!U>::.ctor()
+		ret
+	}
+}
+
+.class public auto ansi beforefieldinit Cons<T>     
+extends Test.List`1<!T> 
+{
+	.method public hidebysig specialname rtspecialname instance void 
+		.ctor(!T head, class Test.List`1<!T> tail) cil managed     
+	{         
+		.maxstack 2        
+		ldarg.0
+		call instance void Test.List`1<!T>::.ctor()
+		ldarg.0
+		ldarg.1
+		stfld !0 Test.Cons`1<!T>::Head
+		ldarg.0
+		ldarg.2
+		stfld class Test.List`1<!0> Test.Cons`1<!T>::Tail
+		ret
+	}
+	
+	.method public hidebysig virtual instance class 
+		Test.List`1<!T> Append(class Test.List`1<!T> list) cil managed     
+	{         
+		.maxstack 3
+		ldarg.0
+		ldfld !0 Test.Cons`1<!T>::Head
+		ldarg.0
+		ldfld class Test.List`1<!0> Test.Cons`1<!T>::Tail
+		ldarg.1
+		callvirt instance class Test.List`1<!0> 
+			Test.List`1<!T>::Append(class Test.List`1<!0>)
+		newobj instance void Test.Cons`1<!T>::.ctor(!0, class Test.List`1<!0>)
+		ret
+	}
+
+    .method public hidebysig virtual instance class
+		Test.List`1<!!U> Flatten<= T List<!!0> U>() cil managed     
+	{         
+		.maxstack 2
+		nop
+		ldarg.0
+		ldfld !0 Test.Cons`1<!T>::Head
+		ldarg.0
+		ldfld class Test.List`1<!0> Test.Cons`1<!T>::Tail
+		callvirt instance class Test.List`1<!!0> 
+			Test.List`1<!T>::Flatten<!!U>()
+		callvirt instance class Test.List`1<!0> 
+			Test.List`1<!!U>::Append(class Test.List`1<!0>)
+		ret
+	}
+
+    .field private !T Head
+    .field private class Test.List`1<!T> Tail
+}
+\end{lstlisting}
+
+
+The syntax here is purely to demonstrate the intuition of the feature.
+Exact syntax will be expanded on as we explore how this can be added
+to the CLI specification.
+
+
+\chapter{Specification changes}
+
+
+\section{Generic constraints}
+
+Section 9.11 (Constraints on generic parameters)\cite{ecma-335} specifies
+generic constraints. A type parameter that has been constrained must
+be instantiated with an argument that is assignable to each of declared
+constraints, and that satisfies all special constraints.
+
+The special constraints are, \texttt{+}, \texttt{-}, \texttt{class},
+\texttt{valuetype} and \texttt{.ctor}. \texttt{class} constrains the
+argument to be a reference type. \texttt{valuetype} constrains the
+argument to be a value type, except for any instance of\texttt{ System.Nullable<T>}.
+\texttt{.ctor} constrains the argument to a type that has a public
+default constructor (implicitly this means all value types as value
+types always have a public default constructor). Finally \texttt{+}
+and \texttt{-} are used to denote the parameter is covariant or contravariant
+respectively.
+
+While it might seem that this is a good place to add our extension
+type equality constraints are a constraint on the entire parameter
+list, not on each individual parameter. There's also the potential
+to add an equality constraint to a non-generic method.
+
+\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc]
+class Foo<T>
+{
+	public void Bar(List<int> list) where T = int
+	{
+		...
+	}
+	
+	public void Baz(List<string> list) where T = string
+	{
+		...
+	}
+}
+\end{lstlisting}
+
+
+In this example \texttt{Bar} can only be called if \texttt{Foo<T>}
+was initialized with \texttt{int}, and \texttt{Baz} only if it was
+initialized with \texttt{string}. A similar thing can be done with
+non-generic inner types. So we need to look to add this new syntax
+somewhere seperate to the generic parameter list. Preferably it would
+have similar syntax for both methods and types (as generic parameters
+look the same on a type declaration or method declaration). A type
+declaration currently follows the pattern ``\texttt{.class ClassAttr{*}
+Id {[}'<' GenPars '>'{]} {[}extends TypeSpec {[} implements TypeSpec{]}
+{[}',' TypeSpec{]}{*}{]}}'', while method declarations follow the
+pattern ``\texttt{.method MethAttr{*} {[}CallConv{]} Type {[}marshal
+'(' {[}NativeType{]} ')'{]} MethodName {[}'<' GenPars '>'{]} '(' Parameters
+')' ImplAttr{*}}''. 
+
+
+\section{Metadata tables}
+
+Metadata tables are specified in section 22 (Metadata logical format:
+tables). We're mostly intreasted in section 22.21 (GenericParamConstraint),
+which explains how generic constraints are stored in the assembly. 
+\begin{quotation}
+The GenericParamConstraint table has the following columns:
+
+\textbullet{} Owner (an index into the GenericParam table, specifying
+to which generic parameter this row refers) 
+
+\textbullet{} Constraint (an index into the TypeDef, TypeRef, or TypeSpec
+tables, specifying from which class this generic parameter is constrained
+to derive; or which interface this generic parameter is constrained
+to implement; more precisely, a TypeDefOrRef (§24.2.6) coded index) 
+
+The GenericParamConstraint table records the constraints for each
+generic parameter. Each generic parameter can be constrained to derive
+from zero or one class. Each generic parameter can be constrained
+to implement zero or more interfaces. 
+
+Conceptually, each row in the GenericParamConstraint table is =owned\textquoteleft{}
+by a row in the GenericParam table. 
+
+All rows in the GenericParamConstraint table for a given Owner shall
+refer to distinct constraints.
+\end{quotation}
+We need a similar table for our equality constraints. It will need
+an owner (a type or method) and then two types that are constrained
+to be equal within the owner. Another column that isn't necessary
+but could be useful is a flags field describing the relationship between
+the two types, currently this would always be set to equal, however
+the system could be extended at a later date to allow less than and
+greater than relationships as well.
+
+So the TypeRelationshipConstraint table has the following columns:
+\begin{itemize}
+\item Owner (an index into the TypeDef or MethodDef table, specifying the
+Type or Method to which this constraint applies; more precisely, a
+TypeOrMethodDef (§24.2.6) coded index)
+\item Flags (a 1-byte flag bitmask currently always set to 1. To be used
+for extensions)
+\item ConstraintA (an index into the TypeDef, TypeRef, or TypeSpec tables,
+specifying the first type; more precisely, a TypeDefOrRef (§24.2.6)
+coded index)
+\item ConstraintB (an index into the TypeDef, TypeRef, or TypeSpec tables,
+specifying the second type; more precisely, a TypeDefOrRef (§24.2.6)
+coded index)
+\end{itemize}
+
+\chapter{Implementation changes}
+
+
+\section{Assembler}
+
+The mono assembler is found in /mcs/ilasm. 
+
+
+\section{Runtime}
+
+The runtime needs to be changed to load and understand equality constraint
+metadata, these changes will be focused on /mono/metadata.
+
+
+\chapter{References}
+
+\bibliographystyle{plain}
+\begin{btSect}{type_equality}
+\btPrintAll
+\end{btSect}
+
+\end{document}
