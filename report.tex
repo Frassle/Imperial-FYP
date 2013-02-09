@@ -318,8 +318,6 @@ and it's evaluation.
 
 \section{The CLI}
 
-%Why are types important? Important to our project or in general?%
-
 
 \subsection{Common intermediate language}
 
@@ -404,15 +402,22 @@ explanations and code examples.
 
 \subsection{CLI features}
 
-There are many other parts of the CLI that we haven\textquoteright{}t
+The CLI is a supports a number of features to provide a comprehensive target
+for a variety of languages. 
+
+
+
+There are many other parts of the CLI that we haven't
 looked at. These include things such as initialization guarantees,
 object layouts, serialization and others. These do not have a direct
 effect on the extensions we discuss, and so to save time we skip them.
 There are many resource available if you wish to understand a keyword
-or feature that I havn't explained.
+or feature that I haven't explained.
 
 
 \subsection{CLI type system}
+
+%Why are types important? Important to our project or in general?%
 
 
 \subsubsection{Value and Reference types}
@@ -1646,6 +1651,30 @@ extends [mscorlib]System.Object
 }
 \end{lstlisting}
 
+\chapter{Testing}
+
+As part of our implementation we will develop a number of tests to show that
+our system works. These tests will show that there is no current code that does
+not run in the new system (backwards compatibility) and also show if code runs
+in the new system it could run in the old system safely but would not
+necessarily be verifiable.
+
+This will be done by assembly rewriting. The CLI supports metadata reflection,
+writing and rewriting via objects in the \texttt{System.Reflection}
+namespace. Our implementation will extend these objects to support our new
+metadata constructs. With this we can mark up standard C\# or F\# code with
+special methods and attributes and rewrite the resulting assemblies to include
+our metadata.
+
+\section{Type equality}
+
+For type equality there is very little we need to define. We need a method
+\texttt{U Cast<T, U>(T obj)} that checks \texttt{T} and \texttt{U} are equal at
+runtime and casts \texttt{obj} to type \texttt{U} if they are. Also an
+\texttt{Attribute} \texttt{EqualityAttribute<T,U>()} that indicates that we
+consider T and U equal in this context. 
+
+The rewriter would search an assembly for 
 
 
 \chapter{Evaluation plan}
