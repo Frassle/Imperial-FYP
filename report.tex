@@ -57,7 +57,7 @@
   \parbox{\textwidth}{\fbox{\parbox{\textwidth}{#1#2#3}}\vskip4pt}}
 
 \captionsetup[lstlisting]{format=listing,labelfont=black,textfont=black}
-\lstset{frame=single,xleftmargin=\fboxsep,xrightmargin=-\fboxsep}
+\lstset{tabsize=4,frame=single,xleftmargin=\fboxsep,xrightmargin=-\fboxsep}
 
 \makeatother
 
@@ -96,7 +96,7 @@ Fraser \textsc{Waters}\\
 \end{center}
 \end{titlepage}
 
-\tableofcontents{}
+\tableofcontents
 
 \begin{abstract}
 Value dependent types are a powerful extension to type systems allowing
@@ -151,7 +151,7 @@ of component indices 0, 1, 2 etc. \texttt{WriteLine} writes a string
 to the code file using the current indent level, \texttt{Indent} and
 \texttt{Dedent} increase and decrease the indent level.
 
-\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc,showstringspaces=false,tabsize=4]
+\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc,showstringspaces=false]
 if (!Type.IsCLSCompliant) { WriteLine("[CLSCompliant(false)]"); }             
 WriteLine("public static float Dot({0} left, {0} right)", Name);             
 WriteLine("{");             
@@ -168,7 +168,7 @@ With value dependence we could write the code directly to be compiled,
 skipping the generator step, and allowing the use of auto complete
 and faster iteration times.
 
-\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc,tabsize=4]
+\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc]
 public static float Dot<int n>(Vector<n> left, Vector<n> right)
 {
 	float dot = 0;
@@ -183,7 +183,7 @@ The usage of these types would remain nearly the same, the following
 shows how they look at the moment compared to what they might look
 like with value dependence.
 
-\begin{lstlisting}[caption={Current method},keywordstyle={\color{blue}},language=sharpc,tabsize=4]
+\begin{lstlisting}[caption={Current method},keywordstyle={\color{blue}},language=sharpc]
 var a = new Vector3(1, 1, 1);
 var b = new Vector3(2, 2, 2);
 
@@ -192,7 +192,7 @@ var dot = Vector.Dot(ab, a);
 \end{lstlisting}
 
 
-\begin{lstlisting}[caption={Proposal},keywordstyle={\color{blue}},language=sharpc,tabsize=4]
+\begin{lstlisting}[caption={Proposal},keywordstyle={\color{blue}},language=sharpc]
 var a = new Vector<3>(1, 1, 1);
 var b = new Vector<3>(2, 2, 2);
 
@@ -230,7 +230,7 @@ the indexing operator and length property, and then write functions
 using this interface. However we still need to create concrete types
 for each vector size which requires the generator.
 
-\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc,tabsize=4]
+\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc]
 interface Vector
 {
 	int Length { get; }
@@ -332,7 +332,7 @@ in CIL, it shows the loading of a literal string and then calling
 a static method. Where possible I have elided instruction offsets
 in CIL code.
 
-\begin{lstlisting}[caption={Hello world},tabsize=4]
+\begin{lstlisting}[caption={Hello world}]
 .assembly Hello {} 
 .assembly extern mscorlib {} 
 .method static void Main() 
@@ -435,7 +435,7 @@ is used instead of \texttt{initonly}. The property initonly is not
 transitive, for example the following C\# shows a readonly Pair field
 being mutated, this is valid code.
 
-\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc,tabsize=4]
+\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc]
 class Pair
 {
 	public int A;
@@ -477,7 +477,7 @@ As pointed out above the CIL has instructions for field access but
 it also has first class support for properties. In the CIL code these
 look similar to method calls but in C\# they look like field access.
 
-\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc,tabsize=4]
+\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc]
 class Square {
 	public int Length;
 	public int Area { get { return Length * Length; } }
@@ -496,7 +496,7 @@ on line 16 in \texttt{Main}. While the property getter is just a method
 it is marked up specially in the \texttt{.property} clause so that
 other tools can treat it as such. 
 
-\begin{lstlisting}[numbers=left,tabsize=4]
+\begin{lstlisting}[numbers=left]
 .class private auto ansi beforefieldinit Square     
 extends [mscorlib]System.Object 
 { 
@@ -544,7 +544,7 @@ have to have the same visibility (it's valid to have a public get
 and private set). Properties can also have parameters which turns
 them into indexers.
 
-\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc,tabsize=4]
+\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc]
 class StringIntMap {
 	public int this[string key] { 
 		get { ...; } set { ...; } // assuming a sensible implementation
@@ -602,7 +602,7 @@ excessive boxing of values.
 If we look at the definition of \texttt{List<T>} in Microsoft\textquoteright{}s
 distribution of .NET 4.0 we can see how the generic parameter is declared
 and used.
-\begin{lstlisting}[numbers=left,tabsize=4]
+\begin{lstlisting}[numbers=left]
 .class public auto ansi serializable beforefieldinit List`1<T>
 extends [mscorlib]System.Object 
 implements System.Collections.Generic.IList`1<!0>, 
@@ -632,7 +632,7 @@ then it can be compared equal to other values of its type. Adding
 the constraint that the first generic parameters has this property
 is shown here. Note the \texttt{(IEquatable`1<!0>)} before the \texttt{T}.
 
-\begin{lstlisting}[tabsize=4]
+\begin{lstlisting}[]
 .class public auto ansi sealed beforefieldinit
 	CompressedList`1<(IEquatable`1<!0>) T> 
 extends [mscorlib]System.Object
@@ -648,7 +648,7 @@ in ECMA-335, is close and open generic types. A closed generic type
 is one that has no unbound type parameters, conversly an open generic
 type is a generic type that has at least one unbound type paramter.
 
-\begin{lstlisting}[caption={Open and closed type in C\# syntax},keywordstyle={\color{blue}},language=sharpc,tabsize=4]
+\begin{lstlisting}[caption={Open and closed type in C\# syntax},keywordstyle={\color{blue}},language=sharpc]
 Dictionary<TKey, TValue> a; // open
 Dictionary<TKey, int> b; // open
 Dictionary<string, int> c; // close
@@ -680,7 +680,7 @@ generator uses template values to set generator parameters such as
 the constants \texttt{a}, \texttt{c} and \texttt{m} to be used in
 \texttt{std::linear\_congruential\_engine}.
 
-\begin{lstlisting}[keywordstyle={\color{blue}},language={C++},tabsize=4]
+\begin{lstlisting}[keywordstyle={\color{blue}},language={C++}]
 template<
 	class UIntType, 
 	UIntType a, 
@@ -710,7 +710,7 @@ of how many elements they store/point to. When using these statically
 sized storage types you get extra static type safety that you're not
 mixing vector sizes in operations.
 
-\begin{lstlisting}[keywordstyle={\color{blue}},language={C++},tabsize=4]
+\begin{lstlisting}[keywordstyle={\color{blue}},language={C++}]
 cml::vector<float, fixed<3>> a(1,0,0);
 cml::vector<float, fixed<2>> b = a; // compile error
 cml::matrix<float, fixed<2,2>> i(1, 2, 3, 4);
@@ -787,7 +787,7 @@ type (rather than a separate sort) while retaining the current features
 (including inference) would be impressive and something our system
 should strive for.
 
-\begin{lstlisting}[caption={Example Unit type},keywordstyle={\color{blue}},language=sharpc,showstringspaces=false,tabsize=4]
+\begin{lstlisting}[caption={Example Unit type},keywordstyle={\color{blue}},language=sharpc,showstringspaces=false]
 public sealed class Unit 
 {     
 	public static Unit One     
@@ -897,7 +897,7 @@ dependent types in that they depend on the value of the object that
 created them, but they are not as general. An example of path dependence
 in Scala is the following Board and Coordinate example\cite{stack-2693067}.
 
-\begin{lstlisting}[keywordstyle={\color{blue}},language=scala,tabsize=4]
+\begin{lstlisting}[keywordstyle={\color{blue}},language=scala]
 case class Board(length: Int, height: Int) 
 {   
 	case class Coordinate(x: Int, y: Int) 
@@ -947,7 +947,7 @@ types we also need to add instance inner types to the CLI. Alternatively
 we could try to design value dependence such that the following was
 possible.
 
-\begin{lstlisting}[keywordstyle={\color{blue}},language={C++},tabsize=4]
+\begin{lstlisting}[keywordstyle={\color{blue}},language={C++}]
 class Board
 {
 	int length, height;
@@ -984,7 +984,7 @@ a type variable in the super class. In the following example the type
 \texttt{T} declared in class \texttt{A} is made more specific in the
 subclass \texttt{B}.
 
-\begin{lstlisting}[keywordstyle={\color{blue}},language=Java,tabsize=4]
+\begin{lstlisting}[keywordstyle={\color{blue}},language=Java]
 class A
 {
 	type T
@@ -1055,7 +1055,7 @@ The common example is a type for terms in a small language; with GADTs
 it's possible to express constraints on the expression trees that
 are not expresable in normal ADTs.
 
-\begin{lstlisting}[caption={GADT},keywordstyle={\color{blue}},tabsize=4]
+\begin{lstlisting}[caption={GADT},keywordstyle={\color{blue}}]
 data Exp t where
 	Lit :: Int -> Exp Int
 	Plus :: Exp Int -> Exp Int -> Exp Int
@@ -1070,7 +1070,7 @@ and two other expression of the same type returning an expression
 of that type. Without GADTs these constraints cannot be expressed,
 the following shows the same type as an ADT.
 
-\begin{lstlisting}[caption={ADT},keywordstyle={\color{blue}},language=Haskell,tabsize=4]
+\begin{lstlisting}[caption={ADT},keywordstyle={\color{blue}},language=Haskell]
 data Exp 
 	= Lit Int
 	| Plus Exp Exp 
@@ -1112,7 +1112,7 @@ look at list flatten methods. A list flatten method could check that
 the list was a list of lists by the addition of the \texttt{where
 T=List<U>} clause.
 
-\begin{lstlisting}[caption={C\# GADT},label={lis:csharp gadt},keywordstyle={\color{blue}},language=sharpc,tabsize=4]
+\begin{lstlisting}[caption={C\# GADT},label={lis:csharp gadt},keywordstyle={\color{blue}},language=sharpc]
 public abstract class List<T> {
 	public abstract List<T> Append(List<T> list);
 	public abstract List<U> Flatten<U>() where T=List<U>;
@@ -1147,7 +1147,7 @@ The second proposal is an extension to the switch statement to allow
 switching on types, binding type \texttt{variables} in switch case
 clauses and matching multiple expressions.
 
-\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc,tabsize=4]
+\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc]
 switch (e1, e2)
 	case (Lit x, Lit y):
 		return x.value == y.value;
@@ -1348,7 +1348,7 @@ match and bind instruction to the CLI. To do this we will take the
 ideas from \cite{gadts} and translate them to apply to the CLI.
 
 \begin{lstlisting}[caption={Type equality constraints in extended C\#\protect \\
-Extension of listing \ref{lis:csharp gadt}},escapechar={~},keywordstyle={\color{blue}},language=sharpc,tabsize=4]
+Extension of listing \ref{lis:csharp gadt}},escapechar={~},keywordstyle={\color{blue}},language=sharpc]
 public abstract class List<T>
 {
 	public abstract List<T> Append(List<T> list);
@@ -1391,7 +1391,7 @@ public class Cons<T> : List<T>
 \end{lstlisting}
 
 
-\begin{lstlisting}[caption={Corresponding CIL},escapechar={~},tabsize=4]
+\begin{lstlisting}[caption={Corresponding CIL},escapechar={~}]
 .class public abstract auto ansi beforefieldinit List<T>
 extends [mscorlib]System.Object 
 {
@@ -1526,7 +1526,7 @@ and methods. This extension will only allow primitive types as parameters
 and has no support for constraints or operations on parameters at
 compile time.
 
-\begin{lstlisting}[caption={Value parameters in extended C\#},keywordstyle={\color{blue}},language=sharpc,tabsize=4]
+\begin{lstlisting}[caption={Value parameters in extended C\#},keywordstyle={\color{blue}},language=sharpc]
 public class Value<int value>
 {
 	public static int Dup<int v>(Value<v> a, Value<v> b)
@@ -1542,7 +1542,7 @@ public class Value<int value>
 \end{lstlisting}
 
 
-\begin{lstlisting}[caption={Corresponding CIL},tabsize=4]
+\begin{lstlisting}[caption={Corresponding CIL}]
 .class public auto ansi beforefieldinit Value``1<int value>
 extends [mscorlib]System.Object 
 {
@@ -1589,7 +1589,7 @@ CIL and so we don't provide an example of it.
 The final extension is to allow value parameters to be values of user
 defined types, not just primitive types.
 
-\begin{lstlisting}[caption={User defined types as value parameters in extended C\#},keywordstyle={\color{blue}},language=sharpc,tabsize=4]
+\begin{lstlisting}[caption={User defined types as value parameters in extended C\#},keywordstyle={\color{blue}},language=sharpc]
 public class Value<MyClass c>
 {
 	public static int Access<MyStruct s>()
@@ -1605,7 +1605,7 @@ public class Value<MyClass c>
 \end{lstlisting}
 
 
-\begin{lstlisting}[caption={Corresponding CIL},tabsize=4]
+\begin{lstlisting}[caption={Corresponding CIL}]
 .class public auto ansi beforefieldinit Value``1<class MyClass c>
 extends [mscorlib]System.Object 
 {
