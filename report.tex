@@ -353,7 +353,16 @@ have dedicated CIL instructions. LoadPpm is a method from a real C\#
 application, it shows the use of locals, calling static and instance
 methods, method arguments, constructors and properties. 
 
-\begin{lstlisting}[caption={LoadPpm}]
+\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc,caption={LoadPpm C\#}]
+private static Image LoadPpm(string name)
+{
+	var path = System.IO.Path.Combine(Toplevel(), "Memorial", name);
+	var ppm = new Ibasa.Media.Visual.Pnm(path);
+
+	return new Ibasa.SharpIL.Image(ppm.Image, 0, 0);
+}
+\end{lstlisting}
+\begin{lstlisting}[caption={LoadPpm CIL}]
 .method private hidebysig static 
 	class [Ibasa.SharpIL]Ibasa.SharpIL.Image LoadPpm(string name) 
 	cil managed 
