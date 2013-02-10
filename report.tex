@@ -1679,7 +1679,49 @@ The rewriter would search an assembly for uses of \texttt{Cast} and
 will be removed and the method metadata rewriten to include the new type 
 equality tags. Any use of \texttt{Cast} would rewrite it's containg 
 method as if it had \texttt{EqualityAttribute<T,U>} attribute and also remove 
-the call the \texttt{Cast}.
+the call to \texttt{Cast}.
+
+\begin{lstlisting}[caption={Cast},keywordstyle={\color{blue}},language=sharpc]
+public static class Cast
+{
+	public static U Cast<T, U>(T obj)
+	{
+		if(typeof(T) == typeof(U))
+		{
+			return (U)(Object)obj;
+		}
+		else
+		{
+			throw new InvalidCastException();
+		}
+	}
+}
+\end{lstlisting}
+
+This system of testing has a number of advantages. Firstly it allows us to run our tests in a standard CLI runtime, secondly it means we can 
+write our tests in a high level language such as C\# instead of low level CIL.
+
+The main benefit of writing in C\# should be clear, it's much easier. However we also get another less obvious benefit, that we are able to test both imperative (C\#) and functional (F\#) code. This should mean coverage over most aspects of the CLI.
+
+Being able to run on a standard CLI runtime allows some verification. If a program $P$ runs correctly (doesn't throw an exception) in a runtime 
+$r$ we write $\vdash_r P$. If it does not run correctly we write $\nvdash_o P$. If a program is correct in regards to type equality constraints 
+then $P \diamond_tc$ is true. A program $P$ can be rewritten to $P'$ by our rewriter, this is written $P \underset{R}{\rightarrow} P'$. Lastly 
+the two systems we consider are the standard CLI $o$ and our new CLI with type equality constraints $n$.
+
+With this notation we can write the following:\\
+A program that runs in the old system will continue to run in the new system.
+\[ P \vdash_o \implies P \vdash_n \]
+A program with correct type constraints will run correctly in the old system.
+\[ P \diamond_tc \implies P \vdash_o \]
+A program with correct type constraints when rewritten will run in the new system.
+\[ P \diamond_tc \wedge P \underset{R}{\rightarrow} P' \implies P \vdash_n \]
+A program with incorrect type constraints when rewritten will not run in the new system.
+\[ ¬P \diamond_tc \wedge P \underset{R}{\rightarrow} P' \implies P \nvdash_n \]
+
+All this together means that we can do some verification of our new system against the old system. If a program ran correctly in the old system 
+it should also run correctly in the new system. If a program has correct equality type constraints then it should run in the old system (and by 
+the first rule also run in the new system) and when rewritten it should run in the new system.
+
 
 \chapter{Evaluation plan}
 
