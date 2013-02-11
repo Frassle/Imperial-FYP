@@ -402,17 +402,32 @@ explanations and code examples.
 
 \subsection{CLI features}
 
-The CLI is a supports a number of features to provide a comprehensive target
-for a variety of languages. 
+The CLI supports a number of features to provide a comprehensive target for a
+variety of languages. The specification defines a type system, a virtual
+execution system that provides an environment for executing code, and finally
+metadata that provides a structured way to represent all the information the
+CLI needs to load types, layout objects, resolve methods, translating CIL,
+enforcing security and set up runtime context boundaries. 
+
+The CLI specification is made of three main parts, the type system, the
+execution system, and metadata. The type system is covered in the next section.
+
+\subsubsection{The type system}
+
+The type system of the CLI is covered in more detail later, but briefly.
+
+\subsubsection{The virtual execution system}
+
+The virtual execution system defines 
 
 
 
-There are many other parts of the CLI that we haven't
-looked at. These include things such as initialization guarantees,
-object layouts, serialization and others. These do not have a direct
-effect on the extensions we discuss, and so to save time we skip them.
-There are many resource available if you wish to understand a keyword
-or feature that I haven't explained.
+
+There are many other parts of the CLI that we haven't looked at. These include
+things such as initialization guarantees, object layouts, serialization and
+others. These do not have a direct effect on the extensions we discuss, and so
+to save time we skip them.  There are many resource available if you wish to
+understand a keyword or feature that I haven't explained.
 
 
 \subsection{CLI type system}
@@ -439,7 +454,7 @@ are static fields, \texttt{literal}.
 A \texttt{static literal} field has no space allocated for it in the
 metadata, instead any reference to that field must have the literal
 value copied into the use site, as such literal fields must be a primitive
-type (int, float, string etc). In C\# the keyword \texttt{const} is
+type (int, float, string, etc) In C\# the keyword \texttt{const} is
 used instead of \texttt{literal}.
 
 An \texttt{initonly} field can only be written to by a constructor
