@@ -1671,7 +1671,7 @@ our metadata.
 For type equality there is very little we need to define. We need a method
 \texttt{U Cast<T, U>(T obj)} that checks \texttt{T} and \texttt{U} are equal at
 runtime and casts \texttt{obj} to type \texttt{U} if they are. Also an
-\texttt{Attribute} \texttt{EqualityAttribute<T,U>} that indicates that we
+attribute \texttt{EqualityAttribute<T,U>} that indicates that we
 consider T and U equal in this context. 
 
 The rewriter would search an assembly for uses of \texttt{Cast} and 
