@@ -1,0 +1,1679 @@
+\documentclass[english]{report}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{listings}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+\usepackage{color}
+\definecolor{note_fontcolor}{rgb}{0.80078125, 0.80078125, 0.80078125}
+\usepackage{array}
+\usepackage{longtable}
+
+\makeatletter
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
+\usepackage{amsmath,amssymb,dot2texi,tikz,hyperref,enumitem}
+\usetikzlibrary{shapes,arrows}
+
+\usepackage[T1]{fontenc}
+\usepackage[sc]{mathpazo}
+\usepackage{fullpage}
+
+\usepackage{color}
+
+\usepackage{float}
+\floatstyle{boxed}
+\restylefloat{figure}
+
+\usepackage{url}
+\usepackage{listings}
+
+\lstdefinelanguage{sharpc}{language=[Sharp]C}
+
+% "define" Scala
+\lstdefinelanguage{scala}{
+  morekeywords={abstract,case,catch,class,def,%
+    do,else,extends,false,final,finally,%
+    for,if,implicit,import,match,mixin,%
+    new,null,object,override,package,%
+    private,protected,requires,return,sealed,%
+    super,this,throw,trait,true,try,%
+    type,val,var,while,with,yield},
+  otherkeywords={=>,<-,<\%,<:,>:,\#,@},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[n]{/*}{*/},
+  morestring=[b]",
+  morestring=[b]',
+  morestring=[b]"""
+}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\usepackage{caption}
+\DeclareCaptionFont{black}{\color{black}}
+
+\DeclareCaptionFormat{listing}{%
+  \parbox{\textwidth}{\fbox{\parbox{\textwidth}{#1#2#3}}\vskip4pt}}
+
+\captionsetup[lstlisting]{format=listing,labelfont=black,textfont=black}
+\lstset{tabsize=4,frame=single,xleftmargin=\fboxsep,xrightmargin=-\fboxsep}
+
+\makeatother
+
+\usepackage{babel}
+
+\begin{document}
+\begin{titlepage}
+\begin{center}
+%Upper part of the page 
+\includegraphics[width=0.50\textwidth]{imperial_crest_colour.jpg}\\[1cm]
+\textsc{\LARGE Imperial College London}\\[1.5cm]
+\textsc{\Large Interim Report}\\[0.5cm]
+% Title 
+\HRule \\[0.4cm] 
+{ \huge \bfseries Value dependent types for the CLI}\\[0.4cm]
+\HRule \\[1.5cm]
+% Author and supervisor 
+\begin{minipage}{0.4\textwidth} 
+\begin{flushleft} \large 
+\emph{Author:}\\ 
+Fraser \textsc{Waters}\\
+\href{mailto:fraser.waters08@imperial.ac.uk}{fraser.waters08@imperial.ac.uk} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{0.4\textwidth} 
+\begin{flushright} \large 
+\emph{Supervisor:} \\ Professor Sophia \textsc{Drossopoulou} 
+\end{flushright} 
+\end{minipage}
+
+\vfill
+
+% Bottom of the page 
+{\large \today}
+
+\end{center}
+\end{titlepage}
+
+\tableofcontents
+
+\begin{abstract}
+Value dependent types are a powerful extension to type systems allowing
+types to be parametrized by terms. This project looks into how value
+dependent types could be introduced to the CLI, the underlying virtual
+machine specification for C\#, Visual Basic, F\# and many other languages,
+to allow more programs to be succinctly expressed at the CLI level
+and exposed to these languages.
+\end{abstract}
+
+\chapter{Introduction}
+
+\section{Value dependent types}
+
+Dependent types allow expression to be statically typed based on values;
+rather like how parametric types can be based on other types. There
+are some functional languages such as Agda\cite{agda}, Coq\cite{coq},
+Idris\cite{idris} and Cayanne\cite{cayenne} that support dependent
+types, but in object oriented languages dependent types are not so
+common. While fully general value dependent types are rare, some weaker
+versions, including path dependent types (section \ref{sec:Path-dependent-types})
+and virtual types (section \ref{sec:Virtual-types}), are used in
+some mainstream languages. Notably Scala\cite{scala} supports both
+path dependence and virtual types, F\#\cite{fsharp} supports units
+of measure (section \ref{sec:Fsharp-units}) allowing numbers to be
+typed based on a unit value, and C++ has templates (section \ref{sec:Cpp-templates})
+that can be parametrized on values.
+
+
+\section{Motivation}
+
+One of the main motivations for looking into value dependence is for
+work in graphics and physics applications where most vectors and matrices
+in the problem domain are small (3 or 4 elements, but no reason this
+couldn't scale to many more for other applications). Using types such
+as Vector3, Vector4, Matrix3x4 which are 3 and 4 element float vectors
+and a 3 by 4 float matrix respectively, make writing code much easier
+than working with multiple float variables. Currently there is no
+nice way to represent all the different sizes for types like this
+in C\# (or any other CLI language). Consequently it lead me to the
+creation of a numeric type generator, a separate program that outputs
+the source code for a pre defined set of configurations (currently
+Vector2 to Vector8 and Matrix2x2 up to Matrix4x4). While the use of
+these types is mostly acceptable extending them is difficult. As shown
+below using the generator requires writing the code in literal strings,
+these literals can not be checked at compile time for obvious mistakes
+and the IDE does not offer auto completion when writing them, the
+generator has to be run then the emitted code must be compiled to
+see any problems. The following shows a section of code used to generate
+all the required dot product functions. \texttt{Components} is a list
+of component indices 0, 1, 2 etc. \texttt{WriteLine} writes a string
+to the code file using the current indent level, \texttt{Indent} and
+\texttt{Dedent} increase and decrease the indent level.
+
+\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc,showstringspaces=false]
+if (!Type.IsCLSCompliant) { WriteLine("[CLSCompliant(false)]"); }             
+WriteLine("public static float Dot({0} left, {0} right)", Name);             
+WriteLine("{");             
+Indent();
+var dotproduct = string.Join("+", Components.Select(
+	component => string.Format("left[{0}]*right[{0}]", component)));
+WriteLine("return {0};", dotproduct);
+Dedent();
+WriteLine("}");
+\end{lstlisting}
+
+
+With value dependence we could write the code directly to be compiled,
+skipping the generator step, and allowing the use of auto complete
+and faster iteration times.
+
+\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc]
+public static float Dot<int n>(Vector<n> left, Vector<n> right)
+{
+	float dot = 0;
+	for(int i=0; i<n; ++i)
+	{
+		dot += left[i]*right[i];
+	}
+	return dot;
+}
+\end{lstlisting}
+The usage of these types would remain nearly the same, the following
+shows how they look at the moment compared to what they might look
+like with value dependence.
+
+\begin{lstlisting}[caption={Current method},keywordstyle={\color{blue}},language=sharpc]
+var a = new Vector3(1, 1, 1);
+var b = new Vector3(2, 2, 2);
+
+var ab = b - a;
+var dot = Vector.Dot(ab, a);
+\end{lstlisting}
+
+
+\begin{lstlisting}[caption={Proposal},keywordstyle={\color{blue}},language=sharpc]
+var a = new Vector<3>(1, 1, 1);
+var b = new Vector<3>(2, 2, 2);
+
+var ab = b - a;
+var dot = Vector.Dot(ab, a);
+\end{lstlisting}
+
+
+As you can see there isn't a big difference. Users get more benefit
+with the latter as they can write dependent functions that work for
+any vector size, as opposed to having to use multiple functions for
+different sizes.
+
+
+\subsection{Performance\label{sub:Performance}}
+
+There are ways to avoid the generator step now, however they do not
+have acceptable performance and layout properties to be used. 
+
+The simplest way is to define Vector as dynamicly sized (like arrays)
+this loses all static type safety but does mean functions would only
+have to be written once, saving us the effort of creating and maintaining
+the generator but a cost. Vector is no longer purely a value type
+as it will have a reference field in it, this changes the semantics
+from the current vector types (due to no user defined copy constructors
+or assignment operators in the CLI) and also makes them more expensive
+as they are now tracked by the garbage collector. It also makes inter
+operating with native APIs such as OpenGL harder as the Vectors will
+have to be marshaled to correctly copy the elements of their internal
+array to the native API, the current vector types can just be pinned
+and pointer copied.
+
+Another way is to define an interface \texttt{Vector} that defines
+the indexing operator and length property, and then write functions
+using this interface. However we still need to create concrete types
+for each vector size which requires the generator.
+
+\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc]
+interface Vector
+{
+	int Length { get; }
+	float this[int index] { get; }
+}
+public static float Dot<T>(T a, T b) where T : Vector
+{
+	float dot = 0;
+	for(int i=0; i<a.Length; ++i)
+	{
+		dot += a[i]*b[i];
+	}
+	return dot;
+}
+\end{lstlisting}
+
+
+The issue with this interface approach (and this give some suggestion
+as to how we would want to implement dependent types) is that the
+loop cannot be unrolled. For high performance code that theses small
+vector types are supposed to be used for that's an unacceptable trade
+off, especially as we still have to maintain the generator anyway.
+With dependent types we could have better performance characteristics
+and with the preferred flat data layout. 
+
+While these vector types are the main motivator for value dependence
+there are more uses for value dependent types, we explore these in
+the background section.
+
+\section{\texorpdfstring{The CLI\footnote{Common Language Infrastructure}}%
+{The Common Language Infrastructure}}
+
+The CLI is a specification for a virtual execution environment, that
+is implemented by Microsoft's CLR\footnote{Common Language Runtime}
+(often confused with the .NET branding) and the open source Mono
+project. It is targeted by VB, C\#, F\#, IronPython and other languages.
+It retains a high level of type information, more so than the JVM
+\footnote{Java Virtual Machine} 
+(which for example has no concept of generic types despite Java supporting
+them\cite{jvm-erasure}).
+
+As a C\# and F\# programmer the CLI is a more attractive specification
+to work with. The ability to retain high level type information allows
+easy interoperability between separate CLI modules, even with modules
+compiled using different languages.
+
+However this interoperability starts to fall apart when languages
+add typing extensions that aren't supported by the CLI. Units of measure
+in F\#, for example, are erased at compile time; therefore other modules
+which consume an F\# module where units of measure were used cannot
+see, and be type-checked according to, the units. This loss of typing
+information is not ideal, as it reduces interoperability, and so prompts
+us to consider adding value dependence as a CLI feature and not just
+an extension to a current CLI language such as C\# or F\#. If units
+could be written in terms of dependent types then we can \emph{fix}
+them, else at least our extension will not suffer the same problem
+of interoperability. 
+
+Moreover any new features added to the CLI should be backwards compatible
+and efficient, we need to keep in mind the size of the new types and
+their instances, the size of the byte code and the speed to process
+it and the speed and size of the JITed code.
+
+
+\section{Project}
+
+This project will investigate value dependent types in the CLI. It
+will be split into 3 parts. 
+\begin{enumerate}
+\item To investigate the use and benefits of value dependent typing.
+\item To show how value dependent types could be added to the CLI, preferably
+in a clean and backwards compatible way.
+\item If part 2 is successful to implement value dependent typing in Mono. 
+\item If part 2 is unsuccessful then an through explanation of why it can't
+be done should be written.
+\end{enumerate}
+The rest of this report looks more in depth at the CLI and then covers
+various type system enhancements related to value dependence and value
+dependence itself. It finishes with an plan for the rest of the project
+and it's evaluation.
+
+
+\chapter{Background}
+
+
+\section{The CLI}
+
+%Why are types important? Important to our project or in general?%
+
+
+\subsection{Common intermediate language}
+
+To allow the reader to more easily follow later discussions we will
+first briefly go over the CLI and CIL. For those more familiar with
+Java; the CLI can be compared to the JVM, and CIL to Java Bytecode.
+The CLI runs Common Intermediate Language (CIL) byte code. CIL is
+a type rich, stack based assembly language. Below is \emph{Hello World}
+in CIL, it shows the loading of a literal string and then calling
+a static method. Where possible I have elided instruction offsets
+in CIL code.
+
+\begin{lstlisting}[caption={Hello world}]
+.assembly Hello {} 
+.assembly extern mscorlib {} 
+.method static void Main() 
+{     
+	.entrypoint     
+	.maxstack 1     
+	ldstr "Hello, world!"     
+	call void [mscorlib]System.Console::WriteLine(string)     
+	ret 
+}
+\end{lstlisting}
+
+
+CIL supports many features not common for low level assembly code,
+as well as basic operations such as add, jump, load, store. Operations
+such as field access, method call, object creation, casting etc all
+have dedicated CIL instructions. LoadPpm is a method from a real C\#
+application, it shows the use of locals, calling static and instance
+methods, method arguments, constructors and properties. 
+
+\begin{lstlisting}[caption={LoadPpm}]
+.method private hidebysig static 
+	class [Ibasa.SharpIL]Ibasa.SharpIL.Image LoadPpm(string name) 
+	cil managed 
+{
+	.maxstack 4
+	.locals init (
+	[0] string path,
+	[1] class [Ibasa.Media]Ibasa.Media.Visual.Pnm ppm)
+ 
+	L_0000: call string Graphics.Program::Toplevel()
+	L_0005: ldstr "Memorial"
+	L_000a: ldarg.0
+	L_000b: call string 
+		[mscorlib]System.IO.Path::Combine(string, string, string)
+	L_0010: stloc.0
+	L_0011: ldloc.0
+	L_0012: newobj instance void 
+		[Ibasa.Media]Ibasa.Media.Visual.Pnm::.ctor(string)
+	L_0017: stloc.1
+	L_0018: ldloc.1
+	L_0019: callvirt instance class [Ibasa.SharpIL]Ibasa.SharpIL.Resource
+		[Ibasa.Media]Ibasa.Media.Visual.Pnm::get_Image()
+	L_001e: ldc.i4.0
+	L_001f: ldc.i4.0
+	L_0020: newobj instance void [Ibasa.SharpIL]Ibasa.SharpIL.Image::.ctor(
+		class [Ibasa.SharpIL]Ibasa.SharpIL.Resource, int32, int32)
+	L_0025: ret
+}
+\end{lstlisting}
+
+
+While CIL is targeted by a variety of languages Visual Basic and C\#
+match it's semantics most closely so we will use C\# code instead
+of raw CIL when possible in examples. Some CLI/C\# features are uncommon
+in other languages so we we'll briefly go over them. Some of these
+features may affect ideas for our extensions, others just help simplify
+explanations and code examples.
+
+
+\subsection{CLI features}
+
+There are many other parts of the CLI that we haven\textquoteright{}t
+looked at. These include things such as initialization guarantees,
+object layouts, serialization and others. These do not have a direct
+effect on the extensions we discuss, and so to save time we skip them.
+There are many resource available if you wish to understand a keyword
+or feature that I havn't explained.
+
+
+\subsection{CLI type system}
+
+
+\subsubsection{Value and Reference types}
+
+The CLI (and C\#) differentiates between value types (structs) and
+reference types (classes). Value types are allocated inline, either
+on the stack or as part of a containing types allocation. Reference
+types are allocated on the heap and referred to by a pointer (called
+a reference), these are tracked by the garbage collector. To compare
+this to C++, \texttt{Foo} is a value type, while \texttt{Foo{*}} is
+a reference type, the semantics are similar.
+
+
+\subsection{Literal and initonly\label{sub:Literal-and-initonly}}
+
+Fields in the CLI can be marked as \texttt{initonly}, and if they
+are static fields, \texttt{literal}.
+
+A \texttt{static literal} field has no space allocated for it in the
+metadata, instead any reference to that field must have the literal
+value copied into the use site, as such literal fields must be a primitive
+type (int, float, string etc). In C\# the keyword \texttt{const} is
+used instead of \texttt{literal}.
+
+An \texttt{initonly} field can only be written to by a constructor
+method (or if static by the type initializer method). Other methods
+can only load from the field. In C\# the keyword \texttt{readonly}
+is used instead of \texttt{initonly}. The property initonly is not
+transitive, for example the following C\# shows a readonly Pair field
+being mutated, this is valid code.
+
+\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc]
+class Pair
+{
+	public int A;
+	public int B;
+
+	public Pair(int a, int b)
+	{
+		A = a;
+		B = b;
+	}
+}
+
+class Program
+{
+	public readonly Pair MyPair;
+
+	public Program()
+	{
+		MyPair = new Pair(1, 2);
+	}
+
+	static Main()
+	{
+		var program = new Program();
+		//program.MyPair = new Pair(3, 4); not valid
+		program.MyPair.A = 3; // valid
+	}
+}
+\end{lstlisting}
+
+
+This is a very weak concept of immutability, and when adding user
+defined types to value dependence could present problems.
+
+
+\subsection{Properties}
+
+As pointed out above the CIL has instructions for field access but
+it also has first class support for properties. In the CIL code these
+look similar to method calls but in C\# they look like field access.
+
+\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc]
+class Square {
+	public int Length;
+	public int Area { get { return Length * Length; } }
+
+	static void Main() {
+		Square sq = new Square();
+		sq.Length = 4;
+		Console.WriteLine(sq.Area); // outputs 16
+	}
+}
+\end{lstlisting}
+
+
+The corresponding CIL follows, note the method call for \texttt{get\_Area}
+on line 16 in \texttt{Main}. While the property getter is just a method
+it is marked up specially in the \texttt{.property} clause so that
+other tools can treat it as such. 
+
+\begin{lstlisting}[numbers=left]
+.class private auto ansi beforefieldinit Square     
+extends [mscorlib]System.Object 
+{ 
+	.method private hidebysig static void Main() cil managed     
+	{         
+		.entrypoint
+		.maxstack 2
+		.locals init ([0] class Square sq)
+   
+		newobj instance void Square::.ctor()         
+		stloc.0          
+		ldloc.0          
+		ldc.i4.4          
+		stfld int32 Square::Length         
+		ldloc.0          
+		callvirt instance int32 Square::get_Area()         
+		call void [mscorlib]System.Console::WriteLine(int32)         
+		ret
+	}
+	
+	.property instance int32 Area     
+	{
+		.get instance int32 Square::get_Area()
+	}
+	
+	.field public int32 Length 
+
+	.method public hidebysig specialname instance int32 get_Area() cil managed
+	{
+		.maxstack 2
+
+		ldarg.0
+		ldfld int32 Square::Length
+		ldarg.0 
+		ldfld int32 Square::Length
+		mul
+		ret  
+	}
+}
+\end{lstlisting}
+
+
+Properties support get and set methods (both optional), which do not
+have to have the same visibility (it's valid to have a public get
+and private set). Properties can also have parameters which turns
+them into indexers.
+
+\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc]
+class StringIntMap {
+	public int this[string key] { 
+		get { ...; } set { ...; } // assuming a sensible implementation
+}
+
+void Main() {
+	StringIntMap map = new StringIntMap();
+	map["test"] = 1;
+	Console.WriteLine(map["test"]); // outputs 1
+}
+\end{lstlisting}
+
+
+
+\subsection{Generics}
+
+The CLI supports parametric polymorphic types via generics types.
+Generic types are parametrized on other types (value dependence would
+allow types to also be parametrized on values). The MSR White paper
+\cite{ext-vox} describes some initial design considerations to do
+parametric polymorphism in COM+ (the original name for what became
+the CLI and .NET). While the final design and implementation that
+shipped with .NET differs slightly from the design presented in \cite{ext-vox},
+the paper does give an insight into what we need to be thinking about
+while designing value parametrics. One major change between the proposal
+and the final implementation is the use of value types and generic.
+It was originally thought that allowing value types as generic arguments
+was not worth the performance cost of having to re-jit all code that
+used it; the final implementation decided that the expressivity and
+performance increase from not boxing out weighed this downside. It's
+worth taking some time to look at how generics ended up being specified
+in ECMA-335\cite{ecma-335} and implemented in Mono (due to copyright
+reasons we can't look at Microsoft\textquoteright{}s open source CLR
+code). 
+
+Generics are defined in section II.9 of \cite{ecma-335}. A type in
+the CLI can have a fixed generic arity (that is generics are not variadic),
+the parameters are unnamed and are accessed by index (either !0 or
+for type parameters and !!0 for method parameters). Each type parameter
+may be constrained by a number of properties, including constraints
+on being a value or reference type, having a defined base class or
+interface or being default constructable. Type parameters can be value
+or reference types; this is a marked difference from the suggestion
+in \cite{ext-vox} which suggested that value types should not be
+allowed due to having to re-JIT the types code for each value type.
+
+Generics allow the CLI to represent types such as \texttt{List<T>}
+while retaining run time information such that the run time type of
+\texttt{List<object>} is different to \texttt{List<int>}%
+\footnote{In contrast theses types would be equivalent in the JVM.%
+}. \texttt{List<int>} is also special in that \texttt{int} is a value
+type and yet the run time can use a \texttt{List<int>}without causing
+excessive boxing of values.
+
+If we look at the definition of \texttt{List<T>} in Microsoft\textquoteright{}s
+distribution of .NET 4.0 we can see how the generic parameter is declared
+and used.
+\begin{lstlisting}[numbers=left]
+.class public auto ansi serializable beforefieldinit List`1<T>
+extends [mscorlib]System.Object 
+implements System.Collections.Generic.IList`1<!0>, 
+	System.Collections.Generic.ICollection`1<!0>, 
+	System.Collections.Generic.IEnumerable`1<!0>, 
+	System.Collections.IList, 
+	System.Collections.ICollection, 
+	System.Collections.IEnumerable
+{ ... }
+\end{lstlisting}
+
+
+The declaration \texttt{.class public auto ansi serializable beforefieldinit
+List`1<T>} declares a new class type with one generic parameter \texttt{T},
+which has no constraints. The \texttt{implements} clause lists interfaces
+implemented by \texttt{List`1<T>}, the first three of these interfaces
+are themselves generic. On line 3 the \texttt{System.Collections.Generic.IList`1}
+syntax indicates that we mean the generic \texttt{IList} with one
+parameter \texttt{`1}, while <!0> refers to the first generic class
+parameter \texttt{T}, and passes that as the type argument to \texttt{IList}.
+
+Generic parameters can also be constrained, a run length compressed
+list for example would require that the type it stored had an equality
+operator. The \texttt{IEquatable<T>} interface defines a method \texttt{bool
+Equal(T value)}, so if a type \texttt{T} inherits from \texttt{IEquatable<T>}
+then it can be compared equal to other values of its type. Adding
+the constraint that the first generic parameters has this property
+is shown here. Note the \texttt{(IEquatable`1<!0>)} before the \texttt{T}.
+
+\begin{lstlisting}[]
+.class public auto ansi sealed beforefieldinit
+	CompressedList`1<(IEquatable`1<!0>) T> 
+extends [mscorlib]System.Object
+implements System.Collections.Generic.IEnumerable`1<!0>, 
+	System.Collections.IEnumerable
+{ ... }
+\end{lstlisting}
+
+
+Sometimes it is necessary to distinguish between instantiated and
+non-instantiated generic types. Common terminology for this, as used
+in ECMA-335, is close and open generic types. A closed generic type
+is one that has no unbound type parameters, conversly an open generic
+type is a generic type that has at least one unbound type paramter.
+
+\begin{lstlisting}[caption={Open and closed type in C\# syntax},keywordstyle={\color{blue}},language=sharpc]
+Dictionary<TKey, TValue> a; // open
+Dictionary<TKey, int> b; // open
+Dictionary<string, int> c; // close
+\end{lstlisting}
+
+
+
+\section{C++ templates\label{sec:Cpp-templates}}
+
+C++ templates allow functions and types to be parametrized by types
+or values. Templates are a turning complete language by themselves
+making them very general, however most implementations of templates
+simply perform substitution at compile time leading to a large amount
+of generated code that then has to be reduced by looking for similarities
+(in contrast to CLR and Mono generics that duplicate very little code),
+and with large use cases substantial slowdowns to compilation time.
+
+Many libraries including the standard library make use of templates,
+particularity the parametrization on types. Parametrization on values
+is less used but it's similarities to value dependence make it worth
+looking at, to this end we will look at a few examples from the standard
+library, Boost\cite{boost} and CML\cite{cmldev}. 
+
+The standard C++ library uses value templates in a few places including
+\texttt{std::ratio} and the random number generation library. \texttt{std::ratio}
+is a compile time rational number added in C++11, it reduces the numerator
+and denominator to lowest terms at compile time. The random number
+generator uses template values to set generator parameters such as
+the constants \texttt{a}, \texttt{c} and \texttt{m} to be used in
+\texttt{std::linear\_congruential\_engine}.
+
+\begin{lstlisting}[keywordstyle={\color{blue}},language={C++}]
+template<
+	class UIntType, 
+	UIntType a, 
+	UIntType c, 
+	UIntType m 
+> class linear_congruential_engine;
+\end{lstlisting}
+
+
+The open source Boost\cite{boost} libraries make use of value templates
+much more, using them in obvious ways in the Array library, which
+is for safer arrays using a new class \texttt{Array<typename T, int
+N>}, but also scattered throughout the other libraries. For example
+in \texttt{Spirit::Qi}, a parser combinator library, the type \texttt{unit\_parser}
+is templated on the type name of the integer type to return but also
+on the values of the radix and minimum and maximum digits to parse. 
+
+Finally CML\cite{cmldev} uses value templates to define the sizes
+of vectors and matrices, this is similar to our motivating example
+in C\#. Vector and matrix are templated on two types \texttt{ElementT}
+and \texttt{StorageT}. \texttt{ElementT} is the element type, float,
+double, int or another type that supports the same operations. \texttt{StorageT}
+is a type that provides access to the elements, either by pointing
+to an external data source or storing the data itself. Two of the
+built in storage types (fixed and external) are templated on the value
+of how many elements they store/point to. When using these statically
+sized storage types you get extra static type safety that you're not
+mixing vector sizes in operations.
+
+\begin{lstlisting}[keywordstyle={\color{blue}},language={C++}]
+cml::vector<float, fixed<3>> a(1,0,0);
+cml::vector<float, fixed<2>> b = a; // compile error
+cml::matrix<float, fixed<2,2>> i(1, 2, 3, 4);
+cml::matrix<float, fixed<3,3>> j = i; // compile error
+\end{lstlisting}
+
+
+It's worth noting that although this example looks like the constructors
+match the value passed to fixed they are actually pre declared constructors
+for all normal sizes, using the wrong constructor will either leave
+some elements uninitialized or not use some of the values passed in.
+Real variadic parameters that matched the dimension of the vector/matrix
+would be better, and with the new features of C++11 might be possible.
+
+%Path dependance?
+%Printf example.
+
+
+\section{F\# units of measure\label{sec:Fsharp-units}}
+
+F\# has the ability to markup number values with units of measure
+that allow checking of units at compile time. This extra checking
+can prevent mistakes such as that which brought down the Mars Climate
+Orbiter in 1999. The Orbiter crashed because of a mismatch between
+Imperial and Metric units in force calculation. A very expensive mistake
+as the mission cost \$327.6 million\cite{mars}. 
+
+Units of measure are declared as opaque types marked up with the \texttt{Measure}
+attribute.
+\begin{lstlisting}[keywordstyle={\color{blue}},language=ML]
+[<Measure>] type meter
+\end{lstlisting}
+They can also be declared as equal to other units, for example milliliters
+as cubic centimeters.
+\begin{lstlisting}[keywordstyle={\color{blue}},language=ML]
+[<Measure>] type ml = cm^3
+\end{lstlisting}
+The normal unit operators such as multiplication, division and powers
+are usable and can be worked out by the type inference engine. For
+example in the following, code type inference correctly identifies
+\texttt{distance} as type \texttt{float<meter>}.
+\begin{lstlisting}[keywordstyle={\color{blue}},language=ML]
+let speed = 55.0<meter/second>
+let time = 3.5<second>
+let distance = speed * time;
+
+speed    : float<meter/second>
+time     : float<second>
+distance : float<meter>
+\end{lstlisting}
+The compiler will normalize units of measure to a standard form, from
+the MSDN documentation\cite{fsharp-units-of-measure}
+\begin{quotation}
+``Unit formulas that mean the same thing can be written in various
+equivalent ways. Therefore, the compiler converts unit formulas into
+a consistent form, which converts negative powers to reciprocals,
+groups units into a single numerator and a denominator, and alphabetizes
+the units in the numerator and denominator.''
+\end{quotation}
+Units of measure are a common praise of F\# and provided a valuable
+case study for us to use in our type system extension. 
+
+F\# units of measure are checked at compile time, implemented as a
+sort separate from the standard types. However all units units information
+is erased from the run time. Therefore values cast to \texttt{Object}
+cannot be recast to a measured type safely at run time, but also these
+units cannot be exposed as part of a public interface to be consumed
+by other CLI languages such as C\# or VB. 
+
+While they are implemented as a separate sort they behave somewhat
+like values of a standard type (with operations for multiplication
+and division). A system that allowed them to be values of a Measure
+type (rather than a separate sort) while retaining the current features
+(including inference) would be impressive and something our system
+should strive for.
+
+\begin{lstlisting}[caption={Example Unit type},keywordstyle={\color{blue}},language=sharpc,showstringspaces=false]
+public sealed class Unit 
+{     
+	public static Unit One     
+	{         
+		get         
+		{             
+			return new Unit(new List<Tuple<string, int>>());         
+		}     
+	}
+	    
+	private readonly List<Tuple<string, int>> Units;
+	    
+	private Unit(List<Tuple<string, int>> units)     
+	{         
+		Units = units;     
+	}
+	    
+	public Unit(string unit)     
+	{
+		Units = new List<Tuple<string, int>>();
+		Units.Add(Tuple.Create(unit, 1));
+	}
+	    
+	public static Unit operator *(Unit a, Unit b)
+	{
+		return new Unit(Product(a.Units, b.Units));
+	}
+	    
+	public static Unit operator /(Unit a, Unit b)
+	{
+		return new Unit(Product(a.Units, Reciprocal(b.Units)));
+	}
+	    
+	public static Unit operator ^(Unit a, int power)
+	{         
+		if (power == 0)
+			return One;
+		return new Unit(Power(a.Units, power));
+	}
+	    
+	private static List<Tuple<string, int>> Normalize(
+		List<Tuple<string, int>> units)     
+	{         
+		var groups = units.GroupBy(tuple => tuple.Item1);         
+		var sums = groups.Select(group => 
+			Tuple.Create(group.Key, group.Sum(unit => unit.Item2)));         
+		var filter = sums.Where(unit => unit.Item2 != 0);        
+		var sorted = filter.OrderBy(unit => unit.Item1); 
+		return sorted.ToList(); 
+	}
+	    
+	private static List<Tuple<string, int>> Product(
+		List<Tuple<string, int>> a, List<Tuple<string, int>> b)     
+	{         
+		return Normalize(a.Concat(b).ToList());     
+	}
+	    
+	private static List<Tuple<string, int>> Power(
+		List<Tuple<string, int>> a, int power)     
+	{         
+		return a.Select(unit => 
+			Tuple.Create(unit.Item1, unit.Item2 * power)).ToList();     
+	}
+	    
+	private static List<Tuple<string, int>> Reciprocal(
+		List<Tuple<string, int>> units)     
+	{         
+		return units.Select(unit => 
+			Tuple.Create(unit.Item1, -unit.Item2)).ToList();  
+	}
+	    
+	public override bool Equals(object obj)     
+	{         
+		if (obj is Unit)         
+		{             
+			var other = obj as Unit;
+			            
+			return                  
+				Units.Count == other.Units.Count &&                  
+				Units.Zip(other.Units, (a, b) => 
+					a.Item1 == b.Item1 && a.Item2 == b.Item2).All(b => b);         
+		}         
+		return false;     
+	}
+	    
+	public override string ToString()     
+	{         
+		return string.Join(" ", Units.Select(unit => 
+			string.Format("{0}^{1}", unit.Item1, unit.Item2)));     
+	}
+}
+    
+public static void Example()     
+{         
+	Unit meters = new Unit("m");         
+	Unit seconds = new Unit("s");        
+	Unit metersPerSecond = meters / seconds;     
+}
+\end{lstlisting}
+
+
+
+\section{Path dependent types\label{sec:Path-dependent-types}}
+
+Path dependent types like those found in Scala are similar to value
+dependent types in that they depend on the value of the object that
+created them, but they are not as general. An example of path dependence
+in Scala is the following Board and Coordinate example\cite{stack-2693067}.
+
+\begin{lstlisting}[keywordstyle={\color{blue}},language=scala]
+case class Board(length: Int, height: Int) 
+{   
+	case class Coordinate(x: Int, y: Int) 
+	{      
+		require(0 <= x && x < length && 0 <= y && y < height)    
+	}   
+	val occupied = scala.collection.mutable.Set[Coordinate]() 
+}
+
+val b1 = Board(20, 20) 
+val b2 = Board(30, 30)
+var b3 = b1
+val c1 = b1.Coordinate(15, 15) 
+val c2 = b2.Coordinate(25, 25) 
+b1.occupied += c1 
+b2.occupied += c2
+b3.occupied += c1
+// Next line doesn't compile 
+b1.occupied += c2
+\end{lstlisting}
+
+
+Here the type of \texttt{c1} and \texttt{c2} depend on the values
+\texttt{b1} and \texttt{b2}. Not that it is in fact the values not
+these specific identifiers that are the dependence, as shown on line
+17. Path dependence in the type system does not allow line 19, which
+is stricter than just inner classes in Java. 
+
+Path dependence is an extension of the fact that in Scala and Java
+inner classes are created via an instance of the outer class and maintain
+a reference to their creator. I call the creation via an instance
+of the outer class an instance inner types, as opposed to static inner
+types that do not require an instance of the outer class. The CLI
+does not support path dependent types or instance inner types, the
+only difference between inner and outer class in the CLI is viability
+(that is an inner class can be made private and thus only be accessed
+by the outer class). While it's possible to require a reference to
+the outer class as part of the inner class's constructor it is not
+a requirement. While instance created inner classes and then path
+dependence could be added at the language level this leads to the
+risk that Scala ran into where the virtual machine reflection system
+no longer resembled the language type system, thus pushing for the
+implementation of a whole new reflection system to be built. 
+
+Therefore if we are to investigate the addition of adding path dependent
+types we also need to add instance inner types to the CLI. Alternatively
+we could try to design value dependence such that the following was
+possible.
+
+\begin{lstlisting}[keywordstyle={\color{blue}},language={C++}]
+class Board
+{
+	int length, height;
+
+	public Board(int length, int height)
+	{
+		this.length = length;
+		this.height = height;
+	}
+
+	class Coordianate<Board b>
+	{
+		public Coordinate(int x, int y)
+		{
+			require(0 <= x && x < b.length && 0 <= y && y < b.height)
+		}
+	}
+
+	Set<Coordianate<this>> occupied = new Set<Coordinate<this>>;
+}
+\end{lstlisting}
+
+
+Allowing the value parameter to be any type is much more general than
+path dependence, In this case \texttt{Coordinate} would not even need
+to be an inner class of \texttt{Board}. However  this is a very ambitious
+addition and if it's even possible is uncertain.
+
+
+\section{Virtual types\label{sec:Virtual-types}}
+
+Virtual types are also found in Scala, they allow a subclass to override
+a type variable in the super class. In the following example the type
+\texttt{T} declared in class \texttt{A} is made more specific in the
+subclass \texttt{B}.
+
+\begin{lstlisting}[keywordstyle={\color{blue}},language=Java]
+class A
+{
+	type T
+	abstract T foo();
+}
+
+class B 
+{
+	override type T = String
+	override T foo() { return "string"; }
+}
+\end{lstlisting}
+
+
+While virtual types can be useful everything they accomplish can also
+be done with generics, albeit with sometime much more syntax. \cite{staticvts}
+shows how the same program can be expressed with virtual types or
+parametrized types. While one way is often more elegant than the other
+you gain little in supporting both. As parametrized types are already
+supported by the CLI virtual types are not hugely interesting.
+
+
+\section{First class types}
+
+Cayenne\cite{cayenne} is a language with support for dependent types
+and first class types (i.e. types can be be used like values). As
+Cayenne is a functional language inspired by Haskell, it's unlikely
+we can lift ideas straight from it to be used in the CLI, however
+it provides an example of a very general dependent types system. Two
+core features of Cayenne are dependent functions and dependent records.
+Dependent functions allow a function return type to depend on the
+value of the parameter, as shown in the following example from \cite{cayenne}.
+
+\begin{lstlisting}[keywordstyle={\color{blue}},language=Haskell]
+printfType :: String -> #
+PrintfType "" = String
+PrintfType ('%':'d':cs) = Int    -> PrintfType cs
+PrintfType ('%':'s':cs) = Stirng -> PrintfType cs
+PrintfType ('%':_:cs)   =           PrintfType cs
+PrintfType (_:cs)       =           PrintfType cs
+
+printf :: (fmt::String) -> PrintfType fmt
+printf fmt = pr fmt ""
+
+pr :: (fmt::String) -> String -> PrintfType fmt
+pr "" res = res
+pr ('%':'d':cs) res = \(i::Int) -> pr cs (res ++ show i)
+pr ('%':'s':cs) res = \(s::String) -> pr cs (res ++ s)
+pr ('%':c:cs) res   = pr cs (res ++ [c])
+pr (c:cs) res       = pr css (res ++ [c])
+\end{lstlisting}
+
+
+In this example the type of \texttt{printf} depends on the value of
+the parameter fmt. This also shows how types and values are treated
+equally in Cayenne. The type \texttt{\#} is the type of all types
+(normal notation is \texttt{{*}} but \texttt{\#} was chosen to avoid
+clashes with the infix operator \texttt{{*}}). 
+
+
+\section{Generalized algebraic data types\label{sec:GADTs}}
+
+Generalized algebraic data types (GADTs) are predominately a feature
+of functional languages. They are an extension to algebraic data types.
+They allow more expression in data type constructors, in particular
+they allow pattern matching and more general recursion in a data constructor.
+The common example is a type for terms in a small language; with GADTs
+it's possible to express constraints on the expression trees that
+are not expresable in normal ADTs.
+
+\begin{lstlisting}[caption={GADT},keywordstyle={\color{blue}}]
+data Exp t where
+	Lit :: Int -> Exp Int
+	Plus :: Exp Int -> Exp Int -> Exp Int
+	Equals :: Exp Int -> Exp Int -> Exp Bool
+	Cond :: Exp Bool -> Exp a -> Exp a -> Exp a
+\end{lstlisting}
+This data type will only allow correct instantations of \texttt{Exp}
+as paramters. The constraint that \texttt{Plus} takes two \texttt{Int}
+expressions and returns a new Int expression is expressed. As is the
+constraint that \texttt{Cond} must take a \texttt{Bool} expression
+and two other expression of the same type returning an expression
+of that type. Without GADTs these constraints cannot be expressed,
+the following shows the same type as an ADT.
+
+\begin{lstlisting}[caption={ADT},keywordstyle={\color{blue}},language=Haskell]
+data Exp 
+	= Lit Int
+	| Plus Exp Exp 
+	| Equals Exp Exp
+	| Cond Exp Exp Exp
+\end{lstlisting}
+
+
+The first expression passed to \texttt{Cond} must evaluate to a boolean
+result (from \texttt{Equals}), but the type system cannot express
+that. The following expression tree is valid with the ADT type, and
+invalid with GADTs.
+
+\begin{lstlisting}[language=Haskell]
+Cond (Lit 1) (Lit 2) (Equals (Lit 3) (Lit 4))
+\end{lstlisting}
+
+
+There are more examples that can be statically checked with GADTs
+such as lists that have their size as part of their type and statically
+typed printf functions.
+
+The use of GADTs in object orientated languages is less common than
+in functional languages (Haskell has supported GADTs for over 10 years)
+but \cite{gadts} shows how GADT programs can be expressed in C\#
+with some modifications to the language. The two modifications proposed
+by \cite{gadts} are an extension of generic constraints and an extension
+of the switch statement. 
+
+The extension to generic constraints would allow equality constraints
+on generic types, section 3.1 (Equational constraints for C\#) of
+\cite{gadts} describes this extension. This would allow a generic
+type to be declared equal to another type, this would be checked statically
+at compile time. 
+
+We'll use a different example from the expressions code above, as
+the expression type is much larger expressed in C\#. Instead we'll
+look at list flatten methods. A list flatten method could check that
+the list was a list of lists by the addition of the \texttt{where
+T=List<U>} clause.
+
+\begin{lstlisting}[caption={C\# GADT},label={lis:csharp gadt},keywordstyle={\color{blue}},language=sharpc]
+public abstract class List<T> {
+	public abstract List<T> Append(List<T> list);
+	public abstract List<U> Flatten<U>() where T=List<U>;
+}
+
+public class Nil<T> : List<T> {
+	public override List<U> Flatten<U>() {
+		return new Nil<U>;
+	}
+}
+
+public class Cons<T> : List<T> {	
+	T head; List<T> tail;
+	public override List<U> Flatten<U>() {
+		return this.head.Append(this.tail.Flatten());
+	}
+}
+\end{lstlisting}
+
+
+Calling \texttt{Flatten} on a \texttt{List<T>} would statically check
+that \texttt{T=List<U>} where \texttt{U} is any type. Thus in the
+method body of flatten we can assume that the type of \texttt{head}
+is \texttt{List<U>} which has an \texttt{Append} method. While \cite{gadts}
+suggests this addition of type equality constraints as a C\# extension;
+generic constraints are currently encoded at the CLI level and so
+we could add this as a CLI extension. Adding type equality constraints
+at the CLI level would allow it to be added to C\# and other languages
+more easily. 
+
+The second proposal is an extension to the switch statement to allow
+switching on types, binding type \texttt{variables} in switch case
+clauses and matching multiple expressions.
+
+\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc]
+switch (e1, e2)
+	case (Lit x, Lit y):
+		return x.value == y.value;
+	case (Tuple<A,B> x, Tuple<C,D> y):
+		return Eq(x.fst, y.fst) && Eq(x.snd, y.snd);
+	default:
+		returna false;
+}
+\end{lstlisting}
+
+
+While standard switch statements are a language feature (at the CLI
+level they are encoded through a sequence of if statements) the authors
+point out that support at the CLI level for a match-and-bind primitive
+would be useful (see the end of section 3.4 in \cite{gadts}) as their
+switch extension is currently difficult to translate to CIL code,
+having to rely on run time reflection and generic methods to bind
+correctly.
+
+%Add printf example%
+
+%Relation to type classes? Why do we need equality constraints?%
+
+
+\section{Conclusion}
+
+Having looked at all these type systems we can see that some systems
+are more powerfull, while other are equal in power but differ in expresivity.
+
+\textbf{C++ templates} being Turing complete are the most powerful
+system we've looked at, but that comes with it's downsides. Efficiently
+compiling templates such that the final code is small and fast is
+difficult, they also make the language unsound as a template can recurse
+forever (although most compilers have hard limits to this).
+
+The next most general is \textbf{value dependence}. Value dependence
+allowed types to be constructed based on values. While this is powerful
+allowing arbitrary values as parameters is undecidable, as it amounts
+to determining whether two different programs produce the same result.
+In chapter 30.5 of \cite{tapl} is a warning about dependent types:
+\begin{quotation}
+Unfortunately, the power of dependent types is a two-edged sword.
+Blurring the distinction between checking types and carrying out proofs
+of arbitrary theorems does not magically make theorem proving simple
+- on the contrary, it makes type checking computationally intractable!
+Mathematicians working with mechanical proof assistants do not just
+type in a theorem, press a button, and sit back to wait for a Yes
+or No: they spend significant effort writing proof scripts and tactics
+to guide the tool in constructing and verifying a proof. If we carry
+the idea of correctness by construction to its limits, programmers
+should expect to expend similar amounts of effort annotating programs
+with hints and explanations to guide the type checker. For certain
+critical programming tasks, this degree of effort may be justified,
+but for day-to-day programming it is almost certainly too costly.
+\end{quotation}
+The CLI as a mainstream day-to-day infrastructure would certainly
+not benefit from an extension that required significant expenditure
+of programmer time. As such, we do not actually want to make our system
+too powerful, we want to find a balance between opening up opportunities
+for optimization and expressivity and the cost of annotation and understanding.
+
+\textbf{GADTs} come in next. Section \ref{sec:GADTs} explored how
+GADTs can be expressed in C\# with some modifications. As generic
+constraints are already stored in the metadata, taking these ideas
+and expanding them to cover type equality should be simple. 
+
+We've seen how \textbf{virtual types} are equivalent to generics.
+As the CLI already supports generics further investigation of virtual
+types seems unnecessary. Finally, path dependence is a simpler case
+of value dependence as are F\# units of measure. 
+
+So while full value dependence may be too much, GADTs aren't enough
+leading us to think about an extension somewhere in between the two.
+
+\[
+\begin{array}{c}
+Templates\\
+Value\; dependence\\
+Our\; extension?\\
+GADTs\sim Generics+Type\; equality\; constraints\\
+Virtual\; types\sim Generics
+\end{array}
+\]
+
+
+The following table shows some of the differances and similarites
+between these systems. The Type safe printf column indicates if the
+system can express a printf like function in a type safe way. The
+type sized lists column indicates if the system can express lists
+that carry their size as part of their type.
+
+\begin{center}
+\begin{longtable}{|>{\centering}p{0.12\linewidth}|>{\centering}p{0.12\linewidth}|>{\centering}p{0.12\linewidth}|>{\centering}p{0.12\linewidth}|>{\centering}p{0.12\linewidth}|>{\centering}p{0.12\linewidth}|>{\centering}p{0.12\linewidth}|}
+\cline{2-7} 
+\multicolumn{1}{>{\centering}p{0.12\linewidth}|}{} & Turing complete & Type safe printf & Type sized lists & Decidable & Units of measure & Path dependence\tabularnewline
+\hline 
+Templates & Yes & Yes & Yes & No & Yes & ?%
+\footnote{Being Turing complete it feels this should be yes, however we can't
+find any material to suggest either way%
+}\tabularnewline
+\hline 
+Value dependence & No%
+\footnote{Agda and Coq aren't Turing complete.%
+} & Yes & Yes & No & Yes & Yes\tabularnewline
+\hline 
+GADTs & No & Yes & Yes & Yes & No%
+\footnote{Yes if we allow new Kinds\cite{gadtsext}.%
+} & No\tabularnewline
+\hline 
+Generics & No & No & No & Yes & No & No\tabularnewline
+\hline 
+\end{longtable}
+\par\end{center}
+
+
+\subsection{Concept of equality}
+
+To be able to say if a type \texttt{T} that depends on a value of
+\texttt{U} (that is \texttt{T<U a>}) is equal to \texttt{T<U b>} requires
+us to say what it means for \texttt{a} and \texttt{b} to be equal.
+All CLI objects have a method \texttt{bool Equal(object obj)} which
+we could use, however this is clearly unsound as an implementation
+of \texttt{Equal} could return nonsense, or never return at all. %
+%I'm thinking this is done at compile time, not runtime (it's a static
+%type check?)%
+Instead we propose using structural and reference equality. That is
+two values of any reference type are equal if and only if they are
+the same reference, and two values of a value type are equal if and
+only if all their fields are equal in this manner as well. In practice
+this amounts to checking that the values have the same bytes in memory.
+
+
+\subsection{Immutability}
+
+Type preservation means that an expression's type should not change
+under evaluation, therfore value type parameters should be immutable.
+As shown in subsection \ref{sub:Literal-and-initonly} the CLI does
+not have strong support for immutability. As such our initial work
+will concentrate on using the primitive types as their immutability
+can be easily guaranteed.
+
+
+\subsection{Operations}
+
+Once we have the ability to mark up types with values, we will want
+to use the value for operations. Either for changing the value before
+passing it on as another type paramter or for using at runtime. Support
+for using the value in normal methods at runtime seems trivial, just
+expose it similar to a static readonly field. However supporting the
+ability to do operations on value parameters before passing them to
+another type constructor is more challenging. Firstly it will require
+some effort to fit into the CIL bytecode, currently opcodes are only
+allowed in method bodies, we would have to either point to a method
+to calculate the operations on value parameters or find some other
+way to fit opcodes at the declaration level. Secondly we have the
+issue of soundness as user defined operations can do anything.
+
+
+\chapter{Project plan}
+
+As already briefly mentioned in the introduction this project can
+be split into three major parts, investigation, design and implementation.
+
+
+\section{Investigation}
+
+The first part of the project is an investigation into value dependent
+types and similar systems. This has already been covered in our background
+research. From this we have an understanding of how these systems
+are useful and how they can be designed and implemented and this will
+guide us on the design of the CLI extension. This investigation forms
+the background research part of the final report and has mostly been
+done as part of this interim report.
+
+
+\section{Design and implementation}
+
+The second part of the project is to design and implement extensions
+to the CLI. For each extension we will show what changes need to be
+made to ECMA-335 to support the extension, and implement the extension
+in the open source CLI Mono. We list each of these and propose some
+detail of it's implementation, all syntax is highly subject to change
+however.
+\begin{enumerate}
+\item GADT extensions - 25\textsuperscript{th} February
+\item Primitive value parameters - 25\textsuperscript{th} March
+\item Value parameter constraints and operations - 22\textsuperscript{nd}
+April
+\item User defined types as value parameters - 20\textsuperscript{th} May
+\item Further improvements and formalization - 17\textsuperscript{th} June
+\item Final report - 24\textsuperscript{th} June
+\end{enumerate}
+
+\subsection{GADTs}
+
+The first extension will be to add type equality constraints and a
+match and bind instruction to the CLI. To do this we will take the
+ideas from \cite{gadts} and translate them to apply to the CLI.
+
+\begin{lstlisting}[caption={Type equality constraints in extended C\#\protect \\
+Extension of listing \ref{lis:csharp gadt}},escapechar={~},keywordstyle={\color{blue}},language=sharpc]
+public abstract class List<T>
+{
+	public abstract List<T> Append(List<T> list);
+	public abstract List<U> Flatten<U>() ~\colorbox{yellow}{where T=List<U>;}~
+}
+
+public class Nil<T> : List<T>
+{
+	public override List<T> Append(List<T> list)
+	{
+		return list;
+	}
+	public abstract List<U> Flatten<U>() // type constraints are inherited
+	{
+		return new Nil<U>();
+	}
+}
+
+public class Cons<T> : List<T>
+{
+	T Head;
+	List<T> Tail;
+
+	public Cons(T head, List<T> tail) 
+	{
+		Head = head;
+		Tail = tail;
+	}
+
+	public override List<T> Append(List<T> list)
+	{
+		return new Cons<T>(Head, Tail.Append(list));
+	}
+
+	public override List<U> Flatten<U>() // type constraints are inherited
+	{
+		return Head.Append(Tail.Flatten<U>()); // invalid in standard C#
+	}
+}
+\end{lstlisting}
+
+
+\begin{lstlisting}[caption={Corresponding CIL},escapechar={~}]
+.class public abstract auto ansi beforefieldinit List<T>
+extends [mscorlib]System.Object 
+{
+	.method family hidebysig specialname rtspecialname instance void .ctor() 
+		cil managed
+	{
+		.maxstack 8
+		ldarg.0
+		call instance void [mscorlib]System.Object::.ctor()
+		ret
+	}
+
+	.method public hidebysig newslot abstract virtual instance class 
+		Test.List`1<!T> Append(class Test.List`1<!T> list) cil managed     
+	{     }
+
+	.method public hidebysig newslot abstract virtual instance class 
+		Test.List`1<!!U> Flatten<~\colorbox{yellow}{= T List<!!0>}~ U>() cil managed
+	{     }
+}
+
+.class public auto ansi beforefieldinit Nil<T>     
+	extends Test.List`1<!T> 
+{     
+	.method public hidebysig specialname rtspecialname instance void .ctor() 
+		cil managed     
+	{
+		.maxstack 8
+		ldarg.0
+		call instance void Test.List`1<!T>::.ctor()
+		ret
+	}
+
+	.method public hidebysig virtual instance class 
+		Test.List`1<!T> Append(class Test.List`1<!T> list) cil managed     
+	{
+		.maxstack 1
+		ldarg.1
+		ret
+	}
+
+	.method public hidebysig virtual instance class 
+		Test.List`1<!!U> Flatten<~\colorbox{yellow}{= T List<!!0>}~ U>() cil managed
+	{
+		.maxstack 1
+		newobj instance void Test.Nil`1<!!U>::.ctor()
+		ret
+	}
+}
+
+.class public auto ansi beforefieldinit Cons<T>     
+extends Test.List`1<!T> 
+{
+	.method public hidebysig specialname rtspecialname instance void 
+		.ctor(!T head, class Test.List`1<!T> tail) cil managed     
+	{         
+		.maxstack 2        
+		ldarg.0
+		call instance void Test.List`1<!T>::.ctor()
+		ldarg.0
+		ldarg.1
+		stfld !0 Test.Cons`1<!T>::Head
+		ldarg.0
+		ldarg.2
+		stfld class Test.List`1<!0> Test.Cons`1<!T>::Tail
+		ret
+	}
+	
+	.method public hidebysig virtual instance class 
+		Test.List`1<!T> Append(class Test.List`1<!T> list) cil managed     
+	{         
+		.maxstack 3
+		ldarg.0
+		ldfld !0 Test.Cons`1<!T>::Head
+		ldarg.0
+		ldfld class Test.List`1<!0> Test.Cons`1<!T>::Tail
+		ldarg.1
+		callvirt instance class Test.List`1<!0> 
+			Test.List`1<!T>::Append(class Test.List`1<!0>)
+		newobj instance void Test.Cons`1<!T>::.ctor(!0, class Test.List`1<!0>)
+		ret
+	}
+
+    .method public hidebysig virtual instance class
+		Test.List`1<!!U> Flatten<~\colorbox{yellow}{= T List<!!0>}~ U>() cil managed     
+	{         
+		.maxstack 2
+		nop
+		ldarg.0
+		ldfld !0 Test.Cons`1<!T>::Head
+		ldarg.0
+		ldfld class Test.List`1<!0> Test.Cons`1<!T>::Tail
+		callvirt instance class Test.List`1<!!0> 
+			Test.List`1<!T>::Flatten<!!U>()
+
+		// the following callvirt would not verify in the standard CLI
+
+		callvirt instance class Test.List`1<!0> 
+			Test.List`1<!!U>::Append(class Test.List`1<!0>) 
+		ret
+	}
+
+    .field private !T Head
+    .field private class Test.List`1<!T> Tail
+}
+\end{lstlisting}
+
+
+As per the style used in ECMA-335, match would be specified something
+like the following.
+
+\begin{tabular}{|c|c|>{\centering}p{0.75\linewidth}|}
+\hline 
+\multicolumn{3}{|c}{match}\tabularnewline
+\hline 
+\hline 
+Format & Assembly Format & Description\tabularnewline
+\hline 
+\ldots{} & match typetoken & matches and object against an open or closed generic type and returns
+the object cast to that type and the RuntimeHandles for the types
+required for closure if typetoken is an open generic type.\tabularnewline
+\hline 
+\end{tabular}
+
+Stack Transition: \ldots{}, obj $\rightarrow$ \ldots{}, obj, RuntimeHandles
+
+
+\subsection{Value parameters}
+
+The second extension is to add primitive value parameters to types
+and methods. This extension will only allow primitive types as parameters
+and has no support for constraints or operations on parameters at
+compile time.
+
+\begin{lstlisting}[caption={Value parameters in extended C\#},keywordstyle={\color{blue}},language=sharpc]
+public class Value<int value>
+{
+	public static int Dup<int v>(Value<v> a, Value<v> b)
+	{
+		return Value<v>.value * 2;
+	}
+
+	public static void Print()
+	{
+		System.Console.WriteLine(value);
+	}
+}
+\end{lstlisting}
+
+
+\begin{lstlisting}[caption={Corresponding CIL}]
+.class public auto ansi beforefieldinit Value``1<int value>
+extends [mscorlib]System.Object 
+{
+	.method family hidebysig specialname rtspecialname instance void .ctor() 
+		cil managed
+	{
+		.maxstack 8
+		ldarg.0
+		call instance void [mscorlib]System.Object::.ctor()
+		ret
+	}
+
+	.method public hidebysig static int32 
+		Dup``1<int v>(class Value``1<$$0> a, class Value``1<$$0> b) cil managed
+	{
+		.maxstack 2
+		.locals init (int32 temp)
+		ldsfld int32 Value``1<$$0>::value
+		ldc.i4.2 
+		mul
+		ret
+	}
+
+	.method public hidebysig static void Print() cil managed
+	{
+		ldsfld int32 Value``1<$0>::value
+		call void [mscorlib]System.Console::WriteLine(int32)
+		ret
+	}
+}
+\end{lstlisting}
+
+
+
+\subsection{Value constraints and operations}
+
+The third extension is to add constraints and operations to value
+parameters. It's unclear at this stage quite how this could work in
+CIL and so we don't provide an example of it.
+
+
+\subsection{User defined types as value parameters}
+
+The final extension is to allow value parameters to be values of user
+defined types, not just primitive types.
+
+\begin{lstlisting}[caption={User defined types as value parameters in extended C\#},keywordstyle={\color{blue}},language=sharpc]
+public class Value<MyClass c>
+{
+	public static int Access<MyStruct s>()
+	{
+		return s.field;
+	}
+
+	public static void Print()
+	{
+		System.Console.WriteLine(c.property);
+	}
+}
+\end{lstlisting}
+
+
+\begin{lstlisting}[caption={Corresponding CIL}]
+.class public auto ansi beforefieldinit Value``1<class MyClass c>
+extends [mscorlib]System.Object 
+{
+	.method family hidebysig specialname rtspecialname instance void .ctor() 
+		cil managed
+	{
+		.maxstack 8
+		ldarg.0
+		call instance void [mscorlib]System.Object::.ctor()
+		ret
+	}
+
+	.method public hidebysig static int32 
+		Access``1<MyStruct s>() cil managed
+	{
+		.maxstack 2
+		ldvalue $$0
+		ldfld int32 MyStruct::field
+		ret
+	}
+
+	.method public hidebysig static void Print() cil managed
+	{
+		ldvalue $0
+		callvirt instance int32 MyClass::get_property()    
+		call void [mscorlib]System.Console::WriteLine(int32)
+		ret
+	}
+}
+\end{lstlisting}
+
+
+
+\chapter{Evaluation plan}
+
+
+\section{Semantics}
+
+Defining semantics for what value dependence means can be done in
+two ways. Firstly we could extend the ECMA specification (\cite{ecma-335}).
+Secondly we could take a formal specification of the CLI and extend
+that. While work has been done on formalization of CLI languages such
+as C\#, work on formalizing the CLI does not seem to have been done.
+If we can work out how value dependence should work in the CLI then
+extending the ECMA specification is a required aim, as it is the basis
+for compiler writers targeting the CLI. Extending a formal specification
+would be a stretch goal to complete once other goals are achieved,
+both because it may require translating our extension to C\# to use
+a lightweight C\# formalization based on featherweight GJ and secondly
+as a formalization is not required for the implementation work.
+
+
+\section{Implementation}
+
+Given an extension to the CLI specification we want to show that the
+extension can be implemented. To do this we will extend the open source
+Mono run time to support value dependent types. The most important
+aspect is correctness but performance should be kept in mind. As pointed
+out in section \ref{sub:Performance} we want certain performance
+characteristics out of the system. For each extension we will include
+test cases to demonstrate that the implementation is correct. Test
+cases will be created both during the development of each extension
+and, time permiting, some time after the extension is finished.
+
+
+\bibliographystyle{plain}
+\bibliography{report}
+
+%Still need to fix this. Also need to setup a glossary.%
+
+\end{document}
