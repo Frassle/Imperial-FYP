@@ -1676,8 +1676,8 @@ consider T and U equal in this context.
 
 The rewriter would search an assembly for uses of \texttt{Cast} and 
 \texttt{EqualityAttribute<T,U>}. Any use of \texttt{EqualityAttribute<T,U>} 
-will be removed and the method metadata rewriten to include the new type 
-equality tags. Any use of \texttt{Cast} would rewrite it's containg 
+will be removed and the method metadata rewritten to include the new type 
+equality tags. Any use of \texttt{Cast} would rewrite it's containing 
 method as if it had \texttt{EqualityAttribute<T,U>} attribute and also remove 
 the call to \texttt{Cast}.
 
@@ -1701,7 +1701,7 @@ public static class Cast
 This system of testing has a number of advantages. Firstly it allows us to run our tests in a standard CLI runtime, secondly it means we can 
 write our tests in a high level language such as C\# instead of low level CIL.
 
-The main benefit of writing in C\# should be clear, it's much easier. However we also get another less obvious benefit, that we are able to test both imperative (C\#) and functional (F\#) code. This should mean coverage over most aspects of the CLI.
+The main benefit of writing in a high level language should be clear, it's much easier. However we also get another less obvious benefit, that we are able to test both imperative (C\#) and functional (F\#) code. This should mean coverage over most aspects of the CLI.
 
 Being able to run on a standard CLI runtime allows some verification. If a program $P$ runs correctly (doesn't throw an exception) in a runtime 
 $r$ we write $\vdash_r P$. If it does not run correctly we write $\nvdash_o P$. If a program is correct in regards to type equality constraints 
