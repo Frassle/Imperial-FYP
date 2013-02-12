@@ -412,20 +412,60 @@ execution system, and metadata. The type system is covered in the next section.
 
 \subsubsection{The type system}
 
-The type system of the CLI is covered in more detail later, but briefly.
+The type system of the CLI is covered in more detail later, but briefly covered
+here as well.
+
+Types in the CLI fall into two categories, value types and reference types.
+Value types are built in types such as integers and floats, or user defined
+enumerations and structures. Reference types are the built in types (Object and
+String), objects, interfaces, arrays, delegates, boxed value types, managed and
+unmanaged pointers.
+
+Value types describe the sequence of bits that make up a value of that type.
+Reference types describes the sequence of bits that make up the value but also
+describe the location of that value. Some types do not fully describe any
+values (abstract classes and interfaces). While every value has a type it is
+not possible to infer the type given the value if the value is of a value type,
+if the value is a reference type it is always possible to infer the type.
 
 \subsubsection{The virtual execution system}
 
-The virtual execution system defines 
+The VES\footnote{Virtual Execution System} provides an environment for executing
+managed code. It supports some built-in data types, control flow constructs,
+an exception handling model and support for the CIL instruction set.
 
+The supported data types are:
+\begin{itemize}
+\item Signed and unsigned integers of 8, 16, 32 and 64 bits
+\item 32 and 64 bit IEEE floating point numbers
+\item Native size signed integer
+\item Native size unsigned integer, also used as unmanaged pointer
+\item Native size floating point number (internal, not externally visible)
+\item Native size object reference to managed memory
+\item Native size managed pointer
+\end{itemize}
 
+All signed integers are implemented with two's-complement arithmetic.
 
+Managed memory supports garbage collection so does not need to be manually
+deallocated. Both managed pointers and references can be changed during a
+garbage collection cycle as objects are moved in memory.
 
-There are many other parts of the CLI that we haven't looked at. These include
-things such as initialization guarantees, object layouts, serialization and
-others. These do not have a direct effect on the extensions we discuss, and so
-to save time we skip them.  There are many resource available if you wish to
-understand a keyword or feature that I haven't explained.
+Exceptions objects are any valid class type (a boxed value type or any class),
+but not native integers. When an exception is throw the CLI searches for the
+first \texttt{catch} handler up the stack that covers the throw instruction. If
+no \texttt{catch} handler is found execution is aborted. If a match is found
+the stack is wound back to that \texttt{catch} handler executing all
+\texttt{finally} and \texttt{fault} handlers found on the way up.
+
+\subsubsection{Metadata}
+
+Executables and libraries are stored in assemblies. Each assembly is made up of
+one or more modules. Each module is made up of type and method declarations.
+This information is stored in a structured way and is known as metadata. The
+CLI uses metadata to locate and load classes, lay instances out in memory,
+resolve method invocations, translate CIL to native code, enforce security and
+set up runtime context boundaries.
 
 
 \subsection{CLI type system}
