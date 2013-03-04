@@ -48,6 +48,18 @@
   morestring=[b]"""
 }
 
+% "define" cil
+\lstdefinelanguage{cil}{
+  morekeywords={.assembly, .method, static, void, extern, .entrypoint,%
+	.maxstack, public, private, hidebysig, class, cil, managed, .locals,%
+	auto, ansi, beforefieldinit, extends, .property, instance, .get, .set,%
+	.field, specialname, sealed, implements,serializable},
+  morecomment=[l]{//},
+  morecomment=[n]{/*}{*/},
+  morestring=[b]",
+  morestring=[b]',
+}
+
 \newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 
 \usepackage{caption}
@@ -328,7 +340,7 @@ in CIL, it shows the loading of a literal string and then calling
 a static method. Where possible I have elided instruction offsets
 in CIL code.
 
-\begin{lstlisting}[caption={Hello world}]
+\begin{lstlisting}[caption={Hello world},language=cil]
 .assembly Hello {} 
 .assembly extern mscorlib {} 
 .method static void Main() 
@@ -358,7 +370,7 @@ private static Image LoadPpm(string name)
 	return new Ibasa.SharpIL.Image(ppm.Image, 0, 0);
 }
 \end{lstlisting}
-\begin{lstlisting}[caption={LoadPpm CIL}]
+\begin{lstlisting}[caption={LoadPpm CIL},language=cil]
 .method private hidebysig static 
 	class [Ibasa.SharpIL]Ibasa.SharpIL.Image LoadPpm(string name) 
 	cil managed 
@@ -563,7 +575,7 @@ on line 16 in \texttt{Main}. While the property getter is just a method
 it is marked up specially in the \texttt{.property} clause so that
 other tools can treat it as such. 
 
-\begin{lstlisting}[numbers=left]
+\begin{lstlisting}[numbers=left,language=cil]
 .class private auto ansi beforefieldinit Square     
 extends [mscorlib]System.Object 
 { 
@@ -669,7 +681,7 @@ excessive boxing of values.
 If we look at the definition of \texttt{List<T>} in Microsoft\textquoteright{}s
 distribution of .NET 4.0 we can see how the generic parameter is declared
 and used.
-\begin{lstlisting}[numbers=left]
+\begin{lstlisting}[numbers=left,language=cil]
 .class public auto ansi serializable beforefieldinit List`1<T>
 extends [mscorlib]System.Object 
 implements System.Collections.Generic.IList`1<!0>, 
@@ -699,7 +711,7 @@ then it can be compared equal to other values of its type. Adding
 the constraint that the first generic parameters has this property
 is shown here. Note the \texttt{(IEquatable`1<!0>)} before the \texttt{T}.
 
-\begin{lstlisting}[]
+\begin{lstlisting}[language=cil]
 .class public auto ansi sealed beforefieldinit
 	CompressedList`1<(IEquatable`1<!0>) T> 
 extends [mscorlib]System.Object
@@ -1458,7 +1470,7 @@ public class Cons<T> : List<T>
 \end{lstlisting}
 
 
-\begin{lstlisting}[caption={Corresponding CIL},escapechar={~}]
+\begin{lstlisting}[caption={Corresponding CIL},escapechar={~},language=cil]
 .class public abstract auto ansi beforefieldinit List<T>
 extends [mscorlib]System.Object 
 {
@@ -1609,7 +1621,7 @@ public class Value<int value>
 \end{lstlisting}
 
 
-\begin{lstlisting}[caption={Corresponding CIL}]
+\begin{lstlisting}[caption={Corresponding CIL},language=cil]
 .class public auto ansi beforefieldinit Value``1<int value>
 extends [mscorlib]System.Object 
 {
@@ -1672,7 +1684,7 @@ public class Value<MyClass c>
 \end{lstlisting}
 
 
-\begin{lstlisting}[caption={Corresponding CIL}]
+\begin{lstlisting}[caption={Corresponding CIL},language=cil]
 .class public auto ansi beforefieldinit Value``1<class MyClass c>
 extends [mscorlib]System.Object 
 {
