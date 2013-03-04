@@ -354,12 +354,12 @@ in CIL code.
 \end{lstlisting}
 
 
-CIL supports many features not common for low level assembly code,
-as well as basic operations such as add, jump, load, store. Operations
-such as field access, method call, object creation, casting etc all
-have dedicated CIL instructions. LoadPpm is a method from a real C\#
-application, it shows the use of locals, calling static and instance
-methods, method arguments, constructors and properties. 
+CIL supports many features not common for low level assembly code, as well as
+basic operations such as add, jump, load, store. Operations such as field
+access, method call, object creation, casting etc all have dedicated CIL
+instructions. A more concrete example of CIL code is \ref{lst:loadppm}. LoadPpm
+is a method from a real C\# application, it shows the use of locals, calling
+static and instance methods, method arguments, constructors and properties. 
 
 \begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc,caption={LoadPpm C\#}]
 private static Image LoadPpm(string name)
@@ -370,7 +370,7 @@ private static Image LoadPpm(string name)
 	return new Ibasa.SharpIL.Image(ppm.Image, 0, 0);
 }
 \end{lstlisting}
-\begin{lstlisting}[caption={LoadPpm CIL},language=cil]
+\begin{lstlisting}[caption={LoadPpm CIL},language=cil,label={lst:loadppm}]
 .method private hidebysig static 
 	class [Ibasa.SharpIL]Ibasa.SharpIL.Image LoadPpm(string name) 
 	cil managed 
@@ -402,8 +402,8 @@ private static Image LoadPpm(string name)
 \end{lstlisting}
 
 
-While CIL is targeted by a variety of languages Visual Basic and C\#
-match it's semantics most closely so we will use C\# code instead
+Therefore, while CIL is targeted by a variety of languages Visual Basic and C\#
+match its semantics most closely. We will use C\# code instead
 of raw CIL when possible in examples. Some CLI/C\# features are uncommon
 in other languages so we we'll briefly go over them. Some of these
 features may affect ideas for our extensions, others just help simplify
@@ -416,34 +416,60 @@ The CLI supports a number of features to provide a comprehensive target for a
 variety of languages. The specification defines a type system, a virtual
 execution system that provides an environment for executing code, and finally
 metadata that provides a structured way to represent all the information the
-CLI needs to load types, layout objects, resolve methods, translating CIL,
-enforcing security and set up runtime context boundaries. 
+CLI needs to load types, layout objects, resolve methods, translate CIL,
+enforce security and set up runtime context boundaries. 
 
 The CLI specification is made of three main parts, the type system, the
 execution system, and metadata. The type system is covered in the next section.
 
 \subsubsection{The type system}
 
-The type system of the CLI is covered in more detail later, but briefly covered
-here as well.
+The type system of the CLI is covered in more detail later, in
+\ref{sec:cli_type_system} but briefly covered here as well.
 
 Types in the CLI fall into two categories, value types and reference types.
 Value types are built in types such as integers and floats, or user defined
-enumerations and structures. Reference types are the built in types (Object and
-String), objects, interfaces, arrays, delegates, boxed value types, managed and
-unmanaged pointers.
+enumerations and structures. Reference types are the built-in types
+(\texttt{Object} and \texttt{String}), objects, interfaces, arrays, delegates,
+boxed value types, managed and unmanaged pointers.
 
 Value types describe the sequence of bits that make up a value of that type.
 Reference types describes the sequence of bits that make up the value but also
-describe the location of that value. Some types do not fully describe any
-values (abstract classes and interfaces). While every value has a type it is
-not possible to infer the type given the value if the value is of a value type,
-if the value is a reference type it is always possible to infer the type.
+describe the location of that value.
+
+\begin{quotation}
+A type fully describes a value if it unambiguously defines the value's
+representation and the operations defined on that value.
+
+For a value type, defining the representation entails describing the sequence
+of bits that make up the value's representation. For a reference type, defining
+the representation entails describing the location and the sequence of bits
+that make up the value's representation.
+\end{quotation}
+
+While every value has an exact type it is not always possible to determine the
+type by looking at the representation of the value. For example the 32 bits
+used to represent an integer or a float are indistinguishable. Some types it is
+possible to determine the exact type from the value. Objects are self typing as
+they explicitly store their type as part of their value.
+
+Some types do not fully describe any values (abstract classes and interfaces).
+While every value has a type it is not possible to infer the type given the
+value if the value is of a value type, if the value is a reference type it is
+always possible to infer the type.
 
 \subsubsection{The virtual execution system}
 
-The VES\footnote{Virtual Execution System} provides an environment for executing
-managed code. It supports some built-in data types, control flow constructs,
+The VES\footnote{Virtual Execution System} provides an environment for
+executing CIL managed code. Managed code is code that can only be run under the
+\emph{management} of a virtual machine (while originally coined to refer to CIL
+code only, this terminology has also spread to other \emph{managed} languages
+such as Java). Unmanaged code in contrary is raw machine code run directly on the
+processor. This distinction is clearly has some grey area when you consider
+operation systems, memory permissions and new CPU based code security methods
+but it's clear enough for our purpose of separating native from managed code. 
+
+It supports some built-in data types, control flow constructs,
 an exception handling model and support for the CIL instruction set.
 
 The supported data types are:
@@ -459,12 +485,14 @@ The supported data types are:
 
 All signed integers are implemented with two's-complement arithmetic.
 
-Managed memory supports garbage collection so does not need to be manually
-deallocated. Both managed pointers and references can be changed during a
-garbage collection cycle as objects are moved in memory.
+Managed memory supports garbage collection, as such allocated objects do not
+not need to be manually deallocated. The locations pointed to by managed
+pointers and references can be changed during a garbage collection cycle as
+objects are moved in memory. While a managed pointer or reference is still
+valid (i.e. reachable) the object will remain in memory.
 
 Exceptions objects are any valid class type (a boxed value type or any class),
-but not native integers. When an exception is throw the CLI searches for the
+but not native integers, when an exception is thrown the runtime searches for the
 first \texttt{catch} handler up the stack that covers the throw instruction. If
 no \texttt{catch} handler is found execution is aborted. If a match is found
 the stack is wound back to that \texttt{catch} handler executing all
@@ -482,6 +510,8 @@ set up runtime context boundaries.
 
 \subsection{CLI type system}
 
+\label{sec:cli_type_system}
+
 %Why are types important? Important to our project or in general?%
 
 
@@ -491,28 +521,26 @@ The CLI (and C\#) differentiates between value types (structs) and
 reference types (classes). Value types are allocated inline, either
 on the stack or as part of a containing types allocation. Reference
 types are allocated on the heap and referred to by a pointer (called
-a reference), these are tracked by the garbage collector. To compare
+a reference); these are tracked by the garbage collector. To compare
 this to C++, \texttt{Foo} is a value type, while \texttt{Foo{*}} is
 a reference type, the semantics are similar.
 
 
 \subsection{Literal and initonly\label{sub:Literal-and-initonly}}
 
-Fields in the CLI can be marked as \texttt{initonly}, and if they
-are static fields, \texttt{literal}.
+Fields in the CLI can be marked as \texttt{initonly}, and if they are static
+fields, \texttt{literal}. Properties do not support either of these modifiers.
 
-A \texttt{static literal} field has no space allocated for it in the
-metadata, instead any reference to that field must have the literal
-value copied into the use site, as such literal fields must be a primitive
-type (int, float, string, etc) In C\# the keyword \texttt{const} is
-used instead of \texttt{literal}.
+A \texttt{static literal} field has no space allocated for it in the metadata,
+instead any reference to that field must have the literal value copied into the
+use site, as such literal fields must be a primitive type (int, float, string,
+etc) In C\# the keyword \texttt{const} is used instead of \texttt{literal}.
 
-An \texttt{initonly} field can only be written to by a constructor
-method (or if static by the type initializer method). Other methods
-can only load from the field. In C\# the keyword \texttt{readonly}
-is used instead of \texttt{initonly}. The property initonly is not
-transitive, for example the following C\# shows a readonly Pair field
-being mutated, this is valid code.
+An \texttt{initonly} field can only be written to by a constructor method (or
+if static by the type initializer method). Other methods can only load from the
+field. In C\# the keyword \texttt{readonly} is used instead of
+\texttt{initonly}. The property initonly is not transitive, for example the
+following C\# mutates a readonly Pair field and is valid code.
 
 \begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc]
 class Pair
@@ -552,18 +580,21 @@ defined types to value dependence could present problems.
 
 \subsection{Properties}
 
-As pointed out above the CIL has instructions for field access but
-it also has first class support for properties. In the CIL code these
-look similar to method calls but in C\# they look like field access.
+As pointed out above the CIL has instructions for field access but it also has
+first class support for properties. Properties support get and set methods
+(both optional), which do not have to have the same visibility (it's valid to
+have a public get and private set). Properties can also have parameters which
+turns them into indexers.  In the CIL code these look similar to method calls
+but in C\# they look like field access.
 
-\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc]
+\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc, escapechar={~}]
 class Square {
 	public int Length;
 	public int Area { get { return Length * Length; } }
 
 	static void Main() {
 		Square sq = new Square();
-		sq.Length = 4;
+		~\colorbox{yellow}{sq.Length = 4;}~
 		Console.WriteLine(sq.Area); // outputs 16
 	}
 }
@@ -573,9 +604,9 @@ class Square {
 The corresponding CIL follows, note the method call for \texttt{get\_Area}
 on line 16 in \texttt{Main}. While the property getter is just a method
 it is marked up specially in the \texttt{.property} clause so that
-other tools can treat it as such. 
+other tools can treat it specially. 
 
-\begin{lstlisting}[numbers=left,language=cil]
+\begin{lstlisting}[numbers=left,language=cil,escapechar={~}]
 .class private auto ansi beforefieldinit Square     
 extends [mscorlib]System.Object 
 { 
@@ -591,14 +622,14 @@ extends [mscorlib]System.Object
 		ldc.i4.4          
 		stfld int32 Square::Length         
 		ldloc.0          
-		callvirt instance int32 Square::get_Area()         
+		~\colorbox{yellow}{callvirt instance int32 Square::get_Area()}~
 		call void [mscorlib]System.Console::WriteLine(int32)         
 		ret
 	}
 	
 	.property instance int32 Area     
 	{
-		.get instance int32 Square::get_Area()
+		~\colorbox{yellow}{.get instance int32 Square::get_Area()}~
 	}
 	
 	.field public int32 Length 
@@ -617,11 +648,11 @@ extends [mscorlib]System.Object
 }
 \end{lstlisting}
 
-
-Properties support get and set methods (both optional), which do not
-have to have the same visibility (it's valid to have a public get
-and private set). Properties can also have parameters which turns
-them into indexers.
+Adding parameters to a property changes it into an indexer. The CIL remains
+pretty similar but C\# treats indexers very differently. C\# only allows
+indexers called \texttt{this}, \texttt{this} is translated to \texttt{Item}
+when compiled to CIL. If a type has an indexer \texttt{Item} then values of the
+type can have an indexer expression appended to them (like accessing an array).
 
 \begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc]
 class StringIntMap {
@@ -636,7 +667,13 @@ void Main() {
 }
 \end{lstlisting}
 
+Other languages (such as F\# and C++/CLI) allow named indexers. While they
+both treat \texttt{Item} specially in the same way as C\# they allow parameters
+on explicitly named properties as well.
 
+\begin{lstlisting}[keywordstyle={\color{blue}},language=haskell]
+let row = 1 in matrix.rows[row]
+\end{lstlisting}
 
 \subsection{Generics}
 
@@ -649,10 +686,10 @@ the CLI and .NET). While the final design and implementation that
 shipped with .NET differs slightly from the design presented in \cite{ext-vox},
 the paper does give an insight into what we need to be thinking about
 while designing value parametrics. One major change between the proposal
-and the final implementation is the use of value types and generic.
+and the final implementation is the use of value types as generic arguments.
 It was originally thought that allowing value types as generic arguments
 was not worth the performance cost of having to re-jit all code that
-used it; the final implementation decided that the expressivity and
+used them; the final implementation decided that the expressivity and
 performance increase from not boxing out weighed this downside. It's
 worth taking some time to look at how generics ended up being specified
 in ECMA-335\cite{ecma-335} and implemented in Mono (due to copyright
@@ -1513,7 +1550,7 @@ extends [mscorlib]System.Object
 	}
 
 	.method public hidebysig virtual instance class 
-		Test.List`1<!!U> Flatten<~\colorbox{yellow}{= T List<!!0>}~ U>() cil managed
+		Test.List`1<!!U> Flatten<~\colorbox{yellow}{= t list<!!0>}~ U>() cil managed
 	{
 		.maxstack 1
 		newobj instance void Test.Nil`1<!!U>::.ctor()
