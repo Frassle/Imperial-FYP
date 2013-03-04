@@ -622,14 +622,14 @@ extends [mscorlib]System.Object
 		ldc.i4.4          
 		stfld int32 Square::Length         
 		ldloc.0          
-		~\colorbox{yellow}{callvirt instance int32 Square::get_Area()}~
+		~\colorbox{yellow}{callvirt instance int32 Square::get\_Area()}~
 		call void [mscorlib]System.Console::WriteLine(int32)         
 		ret
 	}
 	
 	.property instance int32 Area     
 	{
-		~\colorbox{yellow}{.get instance int32 Square::get_Area()}~
+		~\colorbox{yellow}{.get instance int32 Square::get\_Area()}~
 	}
 	
 	.field public int32 Length 
