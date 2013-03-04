@@ -1762,29 +1762,30 @@ in the new system it could run in the old system safely but would not
 necessarily be verifiable.
 
 This will be done by assembly rewriting. The CLI supports metadata reflection,
-writing and rewriting via objects in the \texttt{System.Reflection}
-namespace. Our implementation will extend these objects to support our new
-metadata constructs. With this we can mark up standard C\# or F\# code with
-special methods and attributes and rewrite the resulting assemblies to include
-our metadata.
+writing and rewriting via objects in the \texttt{System.Reflection} namespace.
+Our implementation will extend these objects to support our new metadata
+constructs. With this we can mark up standard C\# or F\# code with special
+methods and attributes and rewrite the resulting assemblies to include our
+metadata.
 
 \section{Type equality}
 
 For type equality there is very little we need to define. We need a method
 \texttt{U Cast<T, U>(T obj)} that checks \texttt{T} and \texttt{U} are equal at
-runtime and casts \texttt{obj} to type \texttt{U} if they are. Also an
-attribute \texttt{EqualityAttribute<T,U>} that indicates that we
-consider T and U equal in this context. 
+runtime and casts \texttt{obj} to type \texttt{U} if they are. We will also
+have another special method \texttt{void EqualTypes<T, U>()} that will check
+that T and U are equal types at runtime. Both these methods will throw an
+exception \texttt{TypeEqualityException} if \texttt{T} and \texttt{U} are not
+equal.
 
-The rewriter would search an assembly for uses of \texttt{Cast} and 
-\texttt{EqualityAttribute<T,U>}. Any use of \texttt{EqualityAttribute<T,U>} 
-will be removed and the method metadata rewritten to include the new type 
-equality tags. Any use of \texttt{Cast} would rewrite it's containing 
-method as if it had \texttt{EqualityAttribute<T,U>} attribute and also remove 
-the call to \texttt{Cast}.
+The rewriter would search an assembly for uses of \texttt{Cast<T, U>} and
+\texttt{EqualTypes<T,U>}. Any use of \texttt{EqualTypes<T,U>} will be removed
+and the method metadata rewritten to include the new type equality tags. Any
+use of \texttt{Cast<T, T>} would rewrite it's containing method as if it had
+called \texttt{EqualTypes<T,U>} and also remove the call to \texttt{Cast}.
 
 \begin{lstlisting}[caption={Cast},keywordstyle={\color{blue}},language=sharpc]
-public static class Cast
+public static class TypeEquality
 {
 	public static U Cast<T, U>(T obj)
 	{
@@ -1794,35 +1795,76 @@ public static class Cast
 		}
 		else
 		{
-			throw new InvalidCastException();
+			throw new TypeEqualityException();
+		}
+	}
+	public static void EqualTypes<T, U>()
+	{
+		if(typeof(T) != typeof(U))
+		{
+			throw new TypeEqualityException();
 		}
 	}
 }
 \end{lstlisting}
 
-This system of testing has a number of advantages. Firstly it allows us to run our tests in a standard CLI runtime, secondly it means we can 
+This system of testing has a number of advantages. Firstly it allows us to
 write our tests in a high level language such as C\# instead of low level CIL.
+The main benefit of writing in a high level language should be clear, it's much
+easier. However we also get another less obvious benefit, that we are able to
+test both imperative (C\#) and functional (F\#) code. This should mean coverage
+over most aspects of the CLI.
 
-The main benefit of writing in a high level language should be clear, it's much easier. However we also get another less obvious benefit, that we are able to test both imperative (C\#) and functional (F\#) code. This should mean coverage over most aspects of the CLI.
+Secondly we can run the tests on the standard CLI, this gives us something to
+test against. Running in the standard CLI is not equivalent to running the
+rewritten program in the new CLI (which we will call CLI+), but does allow some
+deductions to be made.
 
-Being able to run on a standard CLI runtime allows some verification. If a program $P$ runs correctly (doesn't throw an exception) in a runtime 
-$r$ we write $\vdash_r P$. If it does not run correctly we write $\nvdash_o P$. If a program is correct in regards to type equality constraints 
-then $P \diamond_tc$ is true. A program $P$ can be rewritten to $P'$ by our rewriter, this is written $P \underset{R}{\rightarrow} P'$. Lastly 
-the two systems we consider are the standard CLI $o$ and our new CLI with type equality constraints $n$.
+A program $P$ is the source code in a CLI language, such as C\#. It may or may
+not make use of \texttt{TypeEquality.Cast} and
+\texttt{TypeEquality.EqualTypes}. It can be compiled by a compiler $C$ to give
+a CIL assembly, this assembly can be run on a runtime to give a value. The two
+runtimes are $CLI$ and $CLI+$, values are either some value $v$ representing
+the overall act of computation done by the program or an exception thrown by
+the program, the only exceptions we care about are $TypeEqualityException$, or
+$VerificationException$.  Finally a CIL assembly can be rewritten by the
+rewriter $R$ to produce a CIL+ assembly.
 
-With this notation we can write the following:\\
-A program that runs in the old system will continue to run in the new system.
-\[ P \vdash_o \implies P \vdash_n \]
-A program with correct type constraints will run correctly in the old system.
-\[ P \diamond_tc \implies P \vdash_o \]
-A program with correct type constraints when rewritten will run in the new system.
-\[ P \diamond_tc \wedge P \underset{R}{\rightarrow} P' \implies P \vdash_n \]
-A program with incorrect type constraints when rewritten will not run in the new system.
-\[ ¬P \diamond_tc \wedge P \underset{R}{\rightarrow} P' \implies P \nvdash_n \]
+With this notation in place we can make the following statements:\\
+1. $C(P) \underset{CLI}{\rightarrow} TypeEqualityException \implies R(C(P))
+\underset{CLI+}{\rightarrow} VerificationException$\\
+2. $R(C(P)) \underset{CLI+}{\not\rightarrow} VerificationException \implies
+C(P) \underset{CLI}{\not\rightarrow} TypeEqualityException$\\
+3. $C(P) \underset{CLI}{\rightarrow} v \wedge R(C(P))
+\underset{CLI+}{\not\rightarrow} VerificationException \implies R(C(P))
+\underset{CLI+}{\rightarrow} v$\\
+4. $C(P) \underset{CLI}{\rightarrow} v \implies C(P)
+\underset{CLI+}{\rightarrow} v$\\
 
-All this together means that we can do some verification of our new system against the old system. If a program ran correctly in the old system 
-it should also run correctly in the new system. If a program has correct equality type constraints then it should run in the old system (and by 
-the first rule also run in the new system) and when rewritten it should run in the new system.
+Equation 1 states that if a program throws a \texttt{TypeEqualityException} in
+the standard CLI then it will throw a \texttt{VerificationException} in the new
+CLI. If it doesn't throw a \texttt{VerificationException} then we know
+something is wrong with either the rewriter or the new runtime. For the sake of
+these tests we will assume that the rewriter is correct.
+
+Equation 2 states that if the program once rewritten and run in the new CLI
+does not throw a \texttt{VerificationException} then running the code in the
+old CLI will not throw a \texttt{TypeEqualityException}. If a
+\texttt{TypeEqualityException} is throw then something is wrong with the new
+runtime.
+
+Equation 3 states that if the program computes a value $v$ in the standard CLI
+and verifies correctly in the new CLI then the new CLI should compute the same
+value $v$.
+
+Equation 4 states that if the same standard CLI assembly (no rewriting) is run
+on both runtimes they should compute the same value.
+
+All this together means that we can do some verification of our new system
+against the old system. If a program ran correctly in the old system it should
+also run correctly in the new system. If a program has correct equality type
+constraints then it should run in the old system (and by the forth rule also
+run in the new system) and when rewritten it should run in the new system.
 
 
 \chapter{Evaluation plan}
