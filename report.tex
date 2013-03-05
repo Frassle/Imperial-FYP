@@ -12,7 +12,7 @@
 \makeatletter
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
-\usepackage{amsmath,amssymb,dot2texi,tikz,hyperref,enumitem}
+\usepackage{amsmath,amssymb,dot2texi,tikz,hyperref,enumitem,amsthm}
 \usetikzlibrary{shapes,arrows}
 
 \usepackage[T1]{fontenc}
@@ -27,6 +27,8 @@
 
 \usepackage{url}
 \usepackage{listings}
+
+\newtheorem{lemma}{Lemma}
 
 \lstdefinelanguage{sharpc}{language=[Sharp]C}
 
@@ -1756,33 +1758,47 @@ extends [mscorlib]System.Object
 \chapter{Testing}
 
 As part of our implementation we will develop a number of tests to show that
-our system works. These tests will show that there is no current code that does
-not run in the new system (backwards compatibility) and also show if code runs
-in the new system it could run in the old system safely but would not
-necessarily be verifiable.
+our system works. These tests will show that there is no CLI code that does
+not run in the new system (backwards compatibility) and that the new system is
+correct.
 
-This will be done by assembly rewriting. The CLI supports metadata reflection,
-writing and rewriting via objects in the \texttt{System.Reflection} namespace.
-Our implementation will extend these objects to support our new metadata
-constructs. With this we can mark up standard C\# or F\# code with special
-methods and attributes and rewrite the resulting assemblies to include our
-metadata.
+Normally these tests would be written in CIL assembly, however writing tests in
+CIL assembly would be time consuming and error prone. Instead test writing will
+be assisted by an assembly rewriter. The rewriter will look for calls to
+special methods and attributes in a CLI assembly and rewrite the bytecode and
+metadata to use features in our extended system.  Assembly rewriting will be
+done using the CLI metadata reflection, writing and rewriting via the
+\texttt{System.Reflection} namespace.  Our implementation will extend these
+objects to support our new metadata constructs. With this we can mark up
+standard C\# or F\# code with special methods and attributes and rewrite the
+resulting assemblies to include our metadata.
+
+This system of testing has a number of advantages. Firstly it allows us to
+write our tests in a high level language such as C\# instead of low level CIL.
+The main benefit of writing in a high level language should be clear, it's much
+easier. However we also get another less obvious benefit, that we are able to
+test both imperative (C\#) and functional (F\#) code. This should mean coverage
+over most aspects of the CLI.
+
+Secondly we can run the tests on the standard CLI, this gives us something to
+test against. Running in the standard CLI is not equivalent to running the
+rewritten program in the new CLI (which we will call CLI+), but does allow some
+deductions to be made.
 
 \section{Type equality}
 
-For type equality there is very little we need to define. We need a method
-\texttt{U Cast<T, U>(T obj)} that checks \texttt{T} and \texttt{U} are equal at
-runtime and casts \texttt{obj} to type \texttt{U} if they are. We will also
-have another special method \texttt{void EqualTypes<T, U>()} that will check
-that T and U are equal types at runtime. Both these methods will throw an
-exception \texttt{TypeEqualityException} if \texttt{T} and \texttt{U} are not
-equal.
+For type equality there is two methods we need to define. \texttt{U Cast<T,
+U>(T obj)} that checks \texttt{T} and \texttt{U} are equal at runtime and casts
+\texttt{obj} to type \texttt{U} if they are; and \texttt{void EqualTypes<T,
+U>()} that will check that T and U are equal types at runtime. Both these
+methods will throw an exception \texttt{TypeEqualityException} if \texttt{T}
+and \texttt{U} are not equal.
 
-The rewriter would search an assembly for uses of \texttt{Cast<T, U>} and
+The rewriter will search an assembly for uses of \texttt{Cast<T, U>} and
 \texttt{EqualTypes<T,U>}. Any use of \texttt{EqualTypes<T,U>} will be removed
 and the method metadata rewritten to include the new type equality tags. Any
-use of \texttt{Cast<T, T>} would rewrite it's containing method as if it had
-called \texttt{EqualTypes<T,U>} and also remove the call to \texttt{Cast}.
+use of \texttt{Cast<T, U>} will also rewrite the metadata to include the new
+type equality tags and will also remove the call to \texttt{Cast}.
 
 \begin{lstlisting}[caption={Cast},keywordstyle={\color{blue}},language=sharpc]
 public static class TypeEquality
@@ -1790,7 +1806,7 @@ public static class TypeEquality
 	public static U Cast<T, U>(T obj)
 	{
 		if(typeof(T) == typeof(U))
-		{
+    {
 			return (U)(Object)obj;
 		}
 		else
@@ -1808,17 +1824,6 @@ public static class TypeEquality
 }
 \end{lstlisting}
 
-This system of testing has a number of advantages. Firstly it allows us to
-write our tests in a high level language such as C\# instead of low level CIL.
-The main benefit of writing in a high level language should be clear, it's much
-easier. However we also get another less obvious benefit, that we are able to
-test both imperative (C\#) and functional (F\#) code. This should mean coverage
-over most aspects of the CLI.
-
-Secondly we can run the tests on the standard CLI, this gives us something to
-test against. Running in the standard CLI is not equivalent to running the
-rewritten program in the new CLI (which we will call CLI+), but does allow some
-deductions to be made.
 
 A program $P$ is the source code in a CLI language, such as C\#. It may or may
 not make use of \texttt{TypeEquality.Cast} and
@@ -1830,35 +1835,45 @@ the program, the only exceptions we care about are $TypeEqualityException$, or
 $VerificationException$.  Finally a CIL assembly can be rewritten by the
 rewriter $R$ to produce a CIL+ assembly.
 
-With this notation in place we can make the following statements:\\
-1. $C(P) \underset{CLI}{\rightarrow} TypeEqualityException \implies R(C(P))
-\underset{CLI+}{\rightarrow} VerificationException$\\
-2. $R(C(P)) \underset{CLI+}{\not\rightarrow} VerificationException \implies
-C(P) \underset{CLI}{\not\rightarrow} TypeEqualityException$\\
-3. $C(P) \underset{CLI}{\rightarrow} v \wedge R(C(P))
+If $R$ and CLI+ are correct then the following statements should hold:
+\begin{lemma}
+$C(P) \underset{CLI}{\rightarrow} TypeEqualityException \implies R(C(P))
+\underset{CLI+}{\rightarrow} VerificationException$
+\end{lemma}
+\begin{lemma}
+$R(C(P)) \underset{CLI+}{\not\rightarrow} VerificationException \implies
+C(P) \underset{CLI}{\not\rightarrow} TypeEqualityException$
+\end{lemma}
+\begin{lemma}
+$C(P) \underset{CLI}{\rightarrow} v \wedge R(C(P))
 \underset{CLI+}{\not\rightarrow} VerificationException \implies R(C(P))
-\underset{CLI+}{\rightarrow} v$\\
-4. $C(P) \underset{CLI}{\rightarrow} v \implies C(P)
-\underset{CLI+}{\rightarrow} v$\\
+\underset{CLI+}{\rightarrow} v$
+\end{lemma}
+\begin{lemma}
+$C(P) \underset{CLI}{\rightarrow} v \iff C(P) \underset{CLI+}{\rightarrow} v$
+\end{lemma}
 
-Equation 1 states that if a program throws a \texttt{TypeEqualityException} in
+Lemma 1 states that if a program throws a \texttt{TypeEqualityException} in
 the standard CLI then it will throw a \texttt{VerificationException} in the new
-CLI. If it doesn't throw a \texttt{VerificationException} then we know
+CLI. If CLI+ doesn't throw a \texttt{VerificationException} then we know
 something is wrong with either the rewriter or the new runtime. For the sake of
-these tests we will assume that the rewriter is correct.
+these tests we will assume that the rewriter is correct. This property does not
+hold in reverse ($R(C(P)) \underset{CLI+}{\rightarrow} VerificationException
+\implies C(P) \underset{CLI}{\rightarrow} TypeEqualityException$) as the call
+to \texttt{Cast<T, U>} or \texttt{EqualTypes<T, U>} might not be hit be every
+control flow path.
 
-Equation 2 states that if the program once rewritten and run in the new CLI
-does not throw a \texttt{VerificationException} then running the code in the
-old CLI will not throw a \texttt{TypeEqualityException}. If a
-\texttt{TypeEqualityException} is throw then something is wrong with the new
-runtime.
+Lemma 2 states that if the rewritten program runs in CLI+ and does not throw a
+\texttt{VerificationException} then running the code in the CLI will not throw
+a \texttt{TypeEqualityException}. If a \texttt{TypeEqualityException} is thrown
+then something is wrong with the new runtime.
 
-Equation 3 states that if the program computes a value $v$ in the standard CLI
+Lemma 3 states that if the program computes a value $v$ in the standard CLI
 and verifies correctly in the new CLI then the new CLI should compute the same
 value $v$.
 
-Equation 4 states that if the same standard CLI assembly (no rewriting) is run
-on both runtimes they should compute the same value.
+Lemma 4 states that if the same CLI assembly (no rewriting) is run on both
+runtimes they should compute the same value.
 
 All this together means that we can do some verification of our new system
 against the old system. If a program ran correctly in the old system it should
