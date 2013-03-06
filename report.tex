@@ -1873,13 +1873,17 @@ and verifies correctly in the new CLI then the new CLI should compute the same
 value $v$.
 
 Lemma 4 states that if the same CLI assembly (no rewriting) is run on both
-runtimes they should compute the same value.
+runtimes they should compute the same value. While this is similar to lemma 3
+it's difference is the lack of any assembly rewriting. 
 
 All this together means that we can do some verification of our new system
 against the old system. If a program ran correctly in the old system it should
-also run correctly in the new system. If a program has correct equality type
-constraints then it should run in the old system (and by the forth rule also
-run in the new system) and when rewritten it should run in the new system.
+also run correctly in the new system (lemma 4). If a program has correct equality type
+constraints then it should run in the old system (and by the lemma 4 also
+run in the new system) and when rewritten it should run in the new system
+(lemma 3). If a program throws a \texttt{TypeEqualityException} then it should
+throw a \texttt{VerificationException} when rewritten and run in the new
+system.
 
 
 \chapter{Evaluation plan}
