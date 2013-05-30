@@ -1,0 +1,108 @@
+%% LyX 2.0.4 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+\documentclass[english]{report}
+\usepackage[T1]{fontenc}
+\usepackage[latin9]{inputenc}
+\usepackage{listings}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+\usepackage{color}
+\usepackage{textcomp}
+\usepackage[dot]{bibtopic}
+
+\makeatletter
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% User specified LaTeX commands.
+\usepackage{amsmath,amssymb,dot2texi,tikz,hyperref,enumitem}
+\usetikzlibrary{shapes,arrows}
+
+\usepackage[T1]{fontenc}
+\usepackage[sc]{mathpazo}
+\usepackage{fullpage}
+
+\usepackage{float}
+\floatstyle{boxed}
+\restylefloat{figure}
+
+\usepackage{url}
+\usepackage{listings}
+
+\lstdefinelanguage{sharpc}{language=[Sharp]C}
+
+% "define" Scala
+\lstdefinelanguage{scala}{
+  morekeywords={abstract,case,catch,class,def,%
+    do,else,extends,false,final,finally,%
+    for,if,implicit,import,match,mixin,%
+    new,null,object,override,package,%
+    private,protected,requires,return,sealed,%
+    super,this,throw,trait,true,try,%
+    type,val,var,while,with,yield},
+  otherkeywords={=>,<-,<\%,<:,>:,\#,@},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[n]{/*}{*/},
+  morestring=[b]",
+  morestring=[b]',
+  morestring=[b]"""
+}
+
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\usepackage{caption}
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{%
+  \parbox{\textwidth}{\colorbox{black}{\parbox{\textwidth}{#1#2#3}}\vskip4pt}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white}
+\lstset{frame=lrbt,xleftmargin=\fboxsep,xrightmargin=-\fboxsep}
+
+\makeatother
+
+\usepackage{babel}
+\begin{document}
+\begin{titlepage}
+\begin{center}
+%Upper part of the page 
+\includegraphics[width=0.50\textwidth]{imperial_crest_colour.jpg}\\[1cm]
+\textsc{\LARGE Imperial College London}\\[1.5cm]
+\textsc{\Large Value dependent types for the CLI}\\[0.5cm]
+% Title 
+\HRule \\[0.4cm] 
+{ \huge \bfseries Values as type parameters }\\[0.4cm]
+\HRule \\[1.5cm]
+% Author and supervisor 
+\begin{minipage}{0.4\textwidth} 
+\begin{flushleft} \large 
+\emph{Author:}\\ 
+Fraser \textsc{Waters}\\
+\href{mailto:fraser.waters08@imperial.ac.uk}{fraser.waters08@imperial.ac.uk} 
+\end{flushleft} 
+\end{minipage} 
+\begin{minipage}{0.4\textwidth} 
+\begin{flushright} \large 
+\emph{Supervisor:} \\ Professor Sophia \textsc{Drossopoulou} 
+\end{flushright} 
+\end{minipage}
+
+\vfill
+
+% Bottom of the page 
+{\large \today}
+
+\end{center}
+\end{titlepage}
+
+\tableofcontents{}
+\begin{abstract}
+Values as type parameters adds a from of value dependent typing to the CLI.
+\end{abstract}
+
+\chapter{Introduction}
+
+\chapter{References}
+
+\bibliographystyle{plain}
+\begin{btSect}{value_types}
+\btPrintAll
+\end{btSect}
+
+\end{document}
