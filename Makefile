@@ -1,5 +1,6 @@
 all:
 	latexmk -pdf report.tex
+	latexmk -pdf typeEquality.tex
 
 diff:
 	latexdiff submission.tex report.tex > diff.tex
