@@ -18,6 +18,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[sc]{mathpazo}
 \usepackage{fullpage}
+\usepackage{bussproofs}
 
 \usepackage{float}
 \floatstyle{boxed}
@@ -307,7 +308,7 @@ to the CLI specification.
 
 \section{Generic constraints}
 
-Section 9.11 (Constraints on generic parameters)\cite{ecma-335} specifies
+Section II.9.11 (Constraints on generic parameters)\cite{ecma-335} specifies
 generic constraints. A type parameter that has been constrained must
 be instantiated with an argument that is assignable to each of declared
 constraints, and that satisfies all special constraints.
@@ -355,7 +356,53 @@ Id {[}'<' GenPars '>'{]} {[}extends TypeSpec {[} implements TypeSpec{]}
 {[}',' TypeSpec{]}{*}{]}}'', while method declarations follow the
 pattern ``\texttt{.method MethAttr{*} {[}CallConv{]} Type {[}marshal
 '(' {[}NativeType{]} ')'{]} MethodName {[}'<' GenPars '>'{]} '(' Parameters
-')' ImplAttr{*}}''. 
+')' ImplAttr{*}}''.
+
+Adding a new clause ``\texttt{where {[}Type '=' Type{[}',' Type '=' Type{]}{*}{]}}
+to method declarations after the parameter list gives us a list of Types that must 
+be equal to other types. It's not strictly necceassry to have this clause on type 
+declarations as for top level types it makes very little sense and for inner types 
+it can be emulated be adding the clause to each method.
+
+\section{Assignment compatability}
+
+Assigment compatability is defined in section I.8.7 of \cite{ecma-335}, further to this 
+verification assigment compatability is defined in III.1.8.1.2.3. Verification assgiment 
+compataiblity is mostly defined in terms of general assigment compatability from I.8.7.3.
+
+Verification assigment compatability is used be the verifier for determining if method calls, field 
+referances and loads and stores are valid for a given type and signature. If verification assingment compatability 
+is extended to understand type eqaulity constraints then operations that were unverifiable but type correct can now
+be checked as verifiable as well.
+
+The rules for \emph{verifier-assignable-to} are already reflexive and transitive, adding another rule 
+\emph{equality-assignable-to} to the list that defines the rules for type equality constraints is all 
+that's needed to define type eqaulity constraints.
+
+\subsection{\emph{equality-assingable-to}}
+
+
+\begin{prooftree}
+\AxiomC{T=U\elem\gamma} 
+\LeftLabel{eq-hyp}
+\UnaryInfC{\gamma \entails T=U}
+\end{prooftree}
+
+
+
+
+General asignament 
+compatability is defined in section I.8.7.3, which is reproduced here.
+
+
+
+b if method requires a this pointer, as specified by its method signature I.8.6.1.5, then one is
+one the stack and its verification type is verifier-assignable-to III.1.8.1.2.3 the this signature
+of the method’s signature;
+
+\section{Method calls}
+
+
 
 
 \section{Metadata tables}
@@ -379,7 +426,7 @@ generic parameter. Each generic parameter can be constrained to derive
 from zero or one class. Each generic parameter can be constrained
 to implement zero or more interfaces. 
 
-Conceptually, each row in the GenericParamConstraint table is =owned\textquoteleft{}
+Conceptually, each row in the GenericParamConstraint table is owned
 by a row in the GenericParam table. 
 
 All rows in the GenericParamConstraint table for a given Owner shall
