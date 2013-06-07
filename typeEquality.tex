@@ -388,13 +388,11 @@ that's needed to define type eqaulity constraints.
 
 \subsection{\emph{equality-assingable-to}}
 
-
 \begin{prooftree}
-\AxiomC{$T=U \elem \gamma$} 
+\AxiomC{$T=U \in \Gamma$}
 \LeftLabel{eq-hyp}
-\UnaryInfC{$\gamma \entails T=U$}
+\UnaryInfC{$\Gamma \vdash T=U$}
 \end{prooftree}
-
 
 
 
@@ -405,7 +403,7 @@ compatability is defined in section I.8.7.3, which is reproduced here.
 
 b if method requires a this pointer, as specified by its method signature I.8.6.1.5, then one is
 one the stack and its verification type is verifier-assignable-to III.1.8.1.2.3 the this signature
-of the method’s signature;
+of the method's signature;
 
 \section{Method calls}
 
