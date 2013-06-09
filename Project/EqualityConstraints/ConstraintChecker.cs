@@ -4,14 +4,36 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Mono.Cecil.Rocks;
+
 namespace EqualityConstraints
 {
     class ConstraintChecker
     {
+        public static List<System.Int32> mylist;
+
         public static bool Check(Mono.Cecil.AssemblyDefinition assembly)
         {
             foreach (var module in assembly.Modules)
             {
+                Console.WriteLine(System.Int32.MaxValue);
+
+                var refs = module.GetTypeReferences();
+
+                var tt = Type.GetType("System.Collections.Generic.List`1");
+                var ttc = Type.GetType("System.Collections.Generic.List`1[System.Int32]");
+
+                Mono.Cecil.TypeReference t;
+                module.TryGetTypeReference("System.Collections.Generic.List`1", out t);
+
+                Mono.Cecil.TypeReference i;
+                if(!module.TryGetTypeReference("System.Int32", out i))
+                {
+                    i = module.Import(typeof(System.Int32));
+                }
+
+                var tg = t.Resolve().MakeGenericInstanceType(i);
+
                 foreach (var type in module.Types)
                 {
                     if (!Check(type))

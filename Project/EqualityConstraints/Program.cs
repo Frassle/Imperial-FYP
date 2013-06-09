@@ -10,7 +10,8 @@ namespace EqualityConstraints
     {
         static void Main(string[] args)
         {
-            var ass = Mono.Cecil.AssemblyDefinition.ReadAssembly(@"D:\VisualStudio\Projects\Ibasa\Ibasa\bin\Debug\Ibasa.dll");
+            var ass = Mono.Cecil.AssemblyDefinition.ReadAssembly(
+@"C:\Users\Fraser\Documents\Important dont delete\Imperial\4th Year\ValueDependent\Project\EqualityConstraints\bin\Debug\EqualityConstraints.exe");
             Console.WriteLine(ConstraintChecker.Check(ass) ? "pass" : "fail");
         }
     }
