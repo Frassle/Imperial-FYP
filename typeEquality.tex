@@ -401,7 +401,7 @@ equality constraints on the current method $\epsilon$ which defines equal types.
 
 \begin{prooftree}
 \AxiomC{$T=U \in \epsilon$}
-\AxiomC{$\Gamma \vdash C<T> \mathit{ ok}$}
+\AxiomC{$\Gamma \vdash C<T> \,\mathit{ok}$}
 \LeftLabel{eq-con}
 \BinaryInfC{$\Gamma,\epsilon \vdash C<T>=C<U>$}
 \end{prooftree}
@@ -413,7 +413,7 @@ equality constraints on the current method $\epsilon$ which defines equal types.
 \end{prooftree}
 
 \begin{prooftree}
-\AxiomC{$\Gamma \vdash T \mathit{ ok}$}
+\AxiomC{$\Gamma \vdash T \,\mathit{ok}$}
 \LeftLabel{eq-refl}
 \UnaryInfC{$\Gamma,\epsilon \vdash T=T$}
 \end{prooftree}
@@ -438,8 +438,8 @@ can be satisifed by the current context. This is done by checking that for each 
 method ($T=U$) T and U are \emph{equal-to} in the current context after applying substitution for generic parameters.
 
 \begin{prooftree}
-\AxiomC{$\Gamma \vdash m : <\bar{U}> \mathit{ where } \epsilon'$}
-\AxiomC{$\forall e \in \epsilon'[\bar{T}/\bar{U}] (\Gamma, \epsilon \vdash e)$}
+\AxiomC{$\Gamma \vdash m : <\bar{U}> \,\mathit{where}\, \epsilon'$}
+\AxiomC{$\forall e \in (\epsilon'[\bar{T}/\bar{U}]).\Gamma, \epsilon \vdash e$}
 \LeftLabel{call}
 \BinaryInfC{$\Gamma,\epsilon \vdash m<\bar{T}>$}
 \end{prooftree}
