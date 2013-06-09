@@ -382,30 +382,57 @@ referances and loads and stores are valid for a given type and signature. If ver
 is extended to understand type eqaulity constraints then operations that were unverifiable but type correct can now
 be checked as verifiable as well.
 
-The rules for \emph{verifier-assignable-to} are already reflexive and transitive, adding another rule 
-\emph{equality-assignable-to} to the list that defines the rules for type equality constraints is all 
-that's needed to define type eqaulity constraints.
+Adding another rule to \emph{verifier-assignable-to} to use the rules for equality constraints is all that is needed
+to enhance this part of the system.
+
+10. T is \emph{equality-assingable-to} U.
 
 \subsection{\emph{equality-assingable-to}}
 
+\emph{equality-assingable-to} is used to determine if two type names refer to the same actual type.
+It uses the both the global typing enviroment $\Gamma$ and the
+equality constraints on the current method $\epsilon$ which defines equal types.
+
 \begin{prooftree}
-\AxiomC{$T=U \in \Gamma$}
+\AxiomC{$T=U \in \epsilon$}
 \LeftLabel{eq-hyp}
-\UnaryInfC{$\Gamma \vdash T=U$}
+\UnaryInfC{$\Gamma,\epsilon \vdash T=U$}
 \end{prooftree}
 
+\begin{prooftree}
+\AxiomC{$T=U \in \epsilon$}
+\AxiomC{$\Gamma \vdash C<T>\,\mathit{ok}$}
+\LeftLabel{eq-con}
+\BinaryInfC{$\Gamma,\epsilon \vdash C<T>=C<U>$}
+\end{prooftree}
 
+\begin{prooftree}
+\AxiomC{$\Gamma,\epsilon \vdash C<T>=C<U>$}
+\LeftLabel{eq-decon}
+\UnaryInfC{$\Gamma,\epsilon \vdash T=U$}
+\end{prooftree}
 
-General asignament 
-compatability is defined in section I.8.7.3, which is reproduced here.
+\begin{prooftree}
+\AxiomC{$\Gamma \vdash T\,\mathit{ok}$}
+\LeftLabel{eq-refl}
+\UnaryInfC{$\Gamma,\epsilon \vdash T=T$}
+\end{prooftree}
 
+\begin{prooftree}
+\AxiomC{$U=T \in \epsilon$}
+\LeftLabel{eq-sym}
+\UnaryInfC{$\Gamma,\epsilon \vdash T=U$}
+\end{prooftree}
 
-
-b if method requires a this pointer, as specified by its method signature I.8.6.1.5, then one is
-one the stack and its verification type is verifier-assignable-to III.1.8.1.2.3 the this signature
-of the method's signature;
+\begin{prooftree}
+\AxiomC{$\Gamma,\epsilon \vdash T=U$}
+\AxiomC{$\Gamma,\epsilon \vdash U=V$}
+\LeftLabel{eq-sym}
+\BinaryInfC{$\Gamma,\epsilon \vdash T=V$}
+\end{prooftree}
 
 \section{Method calls}
+
 
 
 
