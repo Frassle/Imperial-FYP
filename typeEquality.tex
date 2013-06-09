@@ -401,7 +401,7 @@ equality constraints on the current method $\epsilon$ which defines equal types.
 
 \begin{prooftree}
 \AxiomC{$T=U \in \epsilon$}
-\AxiomC{$\Gamma \vdash C<T>\,\mathit{ok}$}
+\AxiomC{$\Gamma \vdash C<T> \mathit{ ok}$}
 \LeftLabel{eq-con}
 \BinaryInfC{$\Gamma,\epsilon \vdash C<T>=C<U>$}
 \end{prooftree}
@@ -413,7 +413,7 @@ equality constraints on the current method $\epsilon$ which defines equal types.
 \end{prooftree}
 
 \begin{prooftree}
-\AxiomC{$\Gamma \vdash T\,\mathit{ok}$}
+\AxiomC{$\Gamma \vdash T \mathit{ ok}$}
 \LeftLabel{eq-refl}
 \UnaryInfC{$\Gamma,\epsilon \vdash T=T$}
 \end{prooftree}
@@ -433,9 +433,17 @@ equality constraints on the current method $\epsilon$ which defines equal types.
 
 \section{Method calls}
 
-Any method calls must be checked that the equality constraints can be maintained in the 
-new context of the method being called. This is done by checking that for each constraint listed on the 
-method ($T=U$) T and U are \emph{equal-to} in the current context.
+Any method calls must be checked that any equality constraints on the method being called 
+can be satisifed by the current context. This is done by checking that for each constraint listed on the 
+method ($T=U$) T and U are \emph{equal-to} in the current context after applying substitution for generic parameters.
+
+\begin{prooftree}
+\AxiomC{$\Gamma \vdash m : <\bar{U}> \mathit{ where } \epsilon'$}
+\AxiomC{$\forall e \in \epsilon'[\bar{T}/\bar{U}] (\Gamma, \epsilon \vdash e)$}
+\LeftLabel{call}
+\BinaryInfC{$\Gamma,\epsilon \vdash m<\bar{T}>$}
+\end{prooftree}
+
 This is an addition to the verifiabilty rules for the call, calli and callvirt instructions.
 
 \section{Metadata tables}
