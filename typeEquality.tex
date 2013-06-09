@@ -385,11 +385,11 @@ be checked as verifiable as well.
 Adding another rule to \emph{verifier-assignable-to} to use the rules for equality constraints is all that is needed
 to enhance this part of the system.
 
-10. T is \emph{equality-assingable-to} U.
+10. T is \emph{equal-to} U.
 
-\subsection{\emph{equality-assingable-to}}
+\subsection{\emph{equal-to}}
 
-\emph{equality-assingable-to} is used to determine if two type names refer to the same actual type.
+\emph{equal-to} is used to determine if two type names refer to the same actual type.
 It uses the both the global typing enviroment $\Gamma$ and the
 equality constraints on the current method $\epsilon$ which defines equal types.
 
@@ -433,9 +433,10 @@ equality constraints on the current method $\epsilon$ which defines equal types.
 
 \section{Method calls}
 
-
-
-
+Any method calls must be checked that the equality constraints can be maintained in the 
+new context of the method being called. This is done by checking that for each constraint listed on the 
+method ($T=U$) T and U are \emph{equal-to} in the current context.
+This is an addition to the verifiabilty rules for the call, calli and callvirt instructions.
 
 \section{Metadata tables}
 
