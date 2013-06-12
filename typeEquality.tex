@@ -2,16 +2,15 @@
 
 \section{Generalized algebraic data types}
 
-This report looks into how to add type equality constraints to the
-CLI. Type equality constraints for C\# are described in \cite{gadts},
-we'll be using these ideas but for the CLI not C\#. The basic idea
-is to extend generic constraints to allow equality constraints on
-generic types, section 3.1 (Equational constraints for C\#) of \cite{gadts}
-describes this extension. This would allow a generic type to be declared
-equal to another type, this would be checked statically at compile
-time. For example a list flatten method could check that the list
-was a list of lists by the addition of the \texttt{where T=List<U>}
-clause.
+The first extension will be to add type equality constraints and a match-and-bind 
+instruction to the CLI. Type equality constraints for C\# are described in 
+\cite{gadts}, we will be using these ideas but for the CLI not C\#. The basic idea
+is to extend generic constraints to allow equality constraints on generic 
+types, section 3.1 (Equational constraints for C\#) of \cite{gadts} describes 
+this extension. This would allow a generic type to be declared equal to another 
+type, this would be checked statically at compile time. For example a list 
+flatten method could check that the list was a list of lists by the addition
+of the \texttt{where T=List<U>} clause.
 
 \begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc,tabsize=4]
 public abstract class List<T> {
@@ -34,7 +33,6 @@ public class Cons<T> : List<T> {
 }
 \end{lstlisting}
 
-
 Calling \texttt{Flatten} on a \texttt{List<T>} would statically check
 that \texttt{T=List<U>} where \texttt{U} is any type. Thus in the
 method body of flatten we can assume that the type of \texttt{head}
@@ -43,16 +41,17 @@ paper suggests this as a C\# extension generic constraints are currently
 encoded at the CLI level and so we could add this as a CLI extension,
 thus allowing this to be added to C\# and other languages easily. 
 
-
-\section{Example}
+\subsection{Example}
 
 The following shows a minimal list example, in both C\# and CIL.
 
-\begin{lstlisting}[caption={Type equality constraints in extended C\#},keywordstyle={\color{blue}},language=sharpc,tabsize=4]
+
+\begin{lstlisting}[caption={Type equality constraints in extended C\#\protect \\
+Extension of listing \ref{lis:csharp gadt}},escapechar={~},keywordstyle={\color{blue}},language=sharpc]
 public abstract class List<T>
 {
 	public abstract List<T> Append(List<T> list);
-	public abstract List<U> Flatten<U>() where T=List<U>;
+	public abstract List<U> Flatten<U>() ~\colorbox{yellow}{where T=List<U>;}~
 }
 
 public class Nil<T> : List<T>
@@ -61,7 +60,7 @@ public class Nil<T> : List<T>
 	{
 		return list;
 	}
-	public abstract List<U> Flatten<U>()
+	public abstract List<U> Flatten<U>() // type constraints are inherited
 	{
 		return new Nil<U>();
 	}
@@ -83,15 +82,14 @@ public class Cons<T> : List<T>
 		return new Cons<T>(Head, Tail.Append(list));
 	}
 
-	public override List<U> Flatten<U>()
+	public override List<U> Flatten<U>() // type constraints are inherited
 	{
-		return Head.Append(Tail.Flatten<U>());
+		return Head.Append(Tail.Flatten<U>()); // invalid in standard C#
 	}
 }
 \end{lstlisting}
 
-
-\begin{lstlisting}[caption={Corresponding CIL},tabsize=4]
+\begin{lstlisting}[caption={Corresponding CIL},escapechar={~},language=cil]
 .class public abstract auto ansi beforefieldinit List<T>
 extends [mscorlib]System.Object 
 {
@@ -109,7 +107,7 @@ extends [mscorlib]System.Object
 	{     }
 
 	.method public hidebysig newslot abstract virtual instance class 
-		Test.List`1<!!U> Flatten<= T List<!!0> U>() cil managed
+		Test.List`1<!!U> Flatten<~\colorbox{yellow}{= T List<!!0>}~ U>() cil managed
 	{     }
 }
 
@@ -134,7 +132,7 @@ extends [mscorlib]System.Object
 	}
 
 	.method public hidebysig virtual instance class 
-		Test.List`1<!!U> Flatten<= T List<!!0> U>() cil managed
+		Test.List`1<!!U> Flatten<~\colorbox{yellow}{= t list<!!0>}~ U>() cil managed
 	{
 		.maxstack 1
 		newobj instance void Test.Nil`1<!!U>::.ctor()
@@ -176,7 +174,7 @@ extends Test.List`1<!T>
 	}
 
     .method public hidebysig virtual instance class
-		Test.List`1<!!U> Flatten<= T List<!!0> U>() cil managed     
+		Test.List`1<!!U> Flatten<~\colorbox{yellow}{= T List<!!0>}~ U>() cil managed     
 	{         
 		.maxstack 2
 		nop
@@ -186,8 +184,11 @@ extends Test.List`1<!T>
 		ldfld class Test.List`1<!0> Test.Cons`1<!T>::Tail
 		callvirt instance class Test.List`1<!!0> 
 			Test.List`1<!T>::Flatten<!!U>()
+
+		// the following callvirt would not verify in the standard CLI
+
 		callvirt instance class Test.List`1<!0> 
-			Test.List`1<!!U>::Append(class Test.List`1<!0>)
+			Test.List`1<!!U>::Append(class Test.List`1<!0>) 
 		ret
 	}
 
@@ -196,16 +197,33 @@ extends Test.List`1<!T>
 }
 \end{lstlisting}
 
+As per the style used in ECMA-335, match would be specified something
+like the following.
+
+\begin{framed}
+\begin{tabular}{|c|c|>{\centering}p{0.75\linewidth}|}
+\hline 
+\multicolumn{3}{|c}{match}\tabularnewline
+\hline 
+\hline 
+Format & Assembly Format & Description\tabularnewline
+\hline 
+\ldots{} & match typetoken & matches and object against an open or closed generic type and returns
+the object cast to that type and the RuntimeHandles for the types
+required for closure if typetoken is an open generic type.\tabularnewline
+\hline 
+\end{tabular}
+
+Stack Transition: \ldots{}, obj $\rightarrow$ \ldots{}, obj, RuntimeHandles
+\end{framed}
 
 The syntax here is purely to demonstrate the intuition of the feature.
 Exact syntax will be expanded on as we explore how this can be added
 to the CLI specification.
 
+\section{Specification changes}
 
-\chapter{Specification changes}
-
-
-\section{Generic constraints}
+\subsection{Generic constraints}
 
 Section II.9.11 (Constraints on generic parameters)\cite{ecma-335} specifies
 generic constraints. A type parameter that has been constrained must
@@ -242,7 +260,6 @@ class Foo<T>
 }
 \end{lstlisting}
 
-
 In this example \texttt{Bar} can only be called if \texttt{Foo<T>}
 was initialized with \texttt{int}, and \texttt{Baz} only if it was
 initialized with \texttt{string}. A similar thing can be done with
@@ -263,7 +280,7 @@ be equal to other types. It's not strictly necceassry to have this clause on typ
 declarations as for top level types it makes very little sense and for inner types 
 it can be emulated be adding the clause to each method.
 
-\section{Assignment compatability}
+\subsection{Assignment compatability}
 
 Assigment compatability is defined in section I.8.7 of \cite{ecma-335}, further to this 
 verification assigment compatability is defined in III.1.8.1.2.3. Verification assgiment 
@@ -279,7 +296,7 @@ to enhance this part of the system.
 
 \textbullet{} T is \emph{equal-to} U.
 
-\subsection{\emph{equal-to}}
+\subsubsection{\emph{equal-to}}
 
 \emph{equal-to} is used to determine if two type names refer to the same actual type.
 It uses the both the global typing enviroment $\Gamma$ and the
@@ -323,7 +340,7 @@ equality constraints on the current method $\epsilon$ which defines equal types.
 \BinaryInfC{$\Gamma,\epsilon \vdash T=V$}
 \end{prooftree}
 
-\section{Method calls}
+\subsection{Method calls}
 
 Any method calls must be checked that any equality constraints on the method being called 
 can be satisifed by the current context. This is done by checking that for each constraint listed on the 
@@ -338,7 +355,7 @@ method ($T=U$) T and U are \emph{equal-to} in the current context after applying
 
 This is an addition to the verifiabilty rules for the call, calli and callvirt instructions.
 
-\section{Metadata tables}
+\subsection{Metadata tables}
 
 Metadata tables are specified in section 22 (Metadata logical format:
 tables). We're mostly intreasted in section 22.21 (GenericParamConstraint),
@@ -387,9 +404,9 @@ specifying the second type; more precisely, a TypeDefOrRef (§24.2.6)
 coded index)
 \end{itemize}
 
-\chapter{Implementation changes}
+\section{Implementation changes}
 
-\section{Runtime}
+\subsection{Runtime}
 
 The runtime needs to be changed to load and understand equality constraint metadata, 
 these changes will be focused in mono/metadata/metadata.h/c and mono/metadata/reflection.h/c.
@@ -398,22 +415,158 @@ for GenericParamConstraint can guide the new code for TypeRelationshipConstraint
 
 Verification is done in verify.c. Additions need to be made to verifiy that type relationship constraints
 are met when calling methods and to extend assingment compatability to use those type relationship constraints.
+This requires additions to \texttt{mono_method_verify} to check constraints on \texttt{call}, \texttt{calli} and 
+\texttt{callvirt} instructions, this can probably be done in \texttt{do_invoke_method}. 
+It also requires additions to \texttt{verify_stack_type_compatibility_full} to check the new assigment 
+compatabiltity rules.
 
-\section{corlib}
+\subsection{corlib}
 
 The core library needs to be changed to support type equality. Specificly the reflection libary defined in
 mcs/class/corlib/System.Reflection\[.Emit\]. This API is predomintly implement via internal calls that are 
 then defined in mono/metadata/icall-def.h.
 
-\section{Cecil and IKVM}
+\subsection{Cecil and IKVM}
 
 Mono.Cecil and IKVM are well known libaries for working with CIL code. They are generally considered better
 than the core library System.Reflection and System.Reflection.Emit. Any extensions of the system would be well
 served by extending these libaries to understand the extension as well.
 
-\chapter{References}
+\section{Testing}
 
-\bibliographystyle{plain}
-\bibliography{typeEquality}
+As part of any implementation a number of test cases should be developed to show 
+that the system works. These tests need to show that there is no CLI code that does
+not run in the new system (backwards compatibility) and that the new system is
+correct.
 
-\end{document}
+Normally these tests would be written in CIL assembly, however writing tests in
+CIL assembly would be time consuming and error prone. Instead test writing should
+be assisted by an assembly rewriter. The rewriter will look for calls to
+special methods and attributes in a CLI assembly and rewrite the bytecode and
+metadata to use features in the extended system.  Assembly rewriting will be
+done using the CLI metadata reflection, writing and rewriting via
+\texttt{System.Reflection} or another metadata editor such as \textt{Mono.Cecil}. 
+Any implementation will extend these objects to support the new metadata constructs. 
+With this we can mark up standard C\# or F\# code with special methods and 
+attributes and rewrite the resulting assemblies to include the new metadata.
+
+This system of testing has a number of advantages. Firstly it allows us to
+write our tests in a high level language such as C\# instead of low level CIL.
+The main benefit of writing in a high level language should be clear, it's much
+easier. However we also get another less obvious benefit, that we are able to
+test both imperative (C\#) and functional (F\#) code. This should mean coverage
+over most aspects of the CLI.
+
+Secondly we can run the tests on the standard CLI, this gives us something to
+test against. Running in the standard CLI is not equivalent to running the
+rewritten program in the new CLI (which we will call CLI+), but does allow some
+deductions to be made.
+
+For type equality there are two methods we need to define. \texttt{U Cast<T,
+U>(T obj)} that checks \texttt{T} and \texttt{U} are equal at runtime and casts
+\texttt{obj} to type \texttt{U} if they are; and \texttt{void EqualTypes<T,
+U>()} that will check that T and U are equal types at runtime. Both these
+methods will throw an exception \texttt{TypeEqualityException} if \texttt{T}
+and \texttt{U} are not equal.
+
+The rewriter will search an assembly for uses of \texttt{Cast<T, U>} and
+\texttt{EqualTypes<T,U>}. Any use of \texttt{EqualTypes<T,U>} will be removed
+and the method metadata rewritten to include the new type equality tags. Any
+use of \texttt{Cast<T, U>} will also rewrite the metadata to include the new
+type equality tags and will also remove the call to \texttt{Cast}.
+
+\begin{lstlisting}[caption={Cast},keywordstyle={\color{blue}},language=sharpc]
+public static class TypeEquality
+{
+	public static U Cast<T, U>(T obj)
+	{
+		if(typeof(T) == typeof(U))
+		{
+			return (U)(Object)obj;
+		}
+		else
+		{
+			throw new TypeEqualityException();
+		}
+	}
+	public static void EqualTypes<T, U>()
+	{
+		if(typeof(T) != typeof(U))
+		{
+			throw new TypeEqualityException();
+		}
+	}
+}
+\end{lstlisting}
+
+A program $P$ is the source code in a CLI language, such as C\#. It may or may
+not make use of \texttt{TypeEquality.Cast} and
+\texttt{TypeEquality.EqualTypes}. It can be compiled by a compiler $C$ to give
+a CIL assembly, this assembly can be run on a runtime to give a value. The two
+runtimes are $CLI$ and $CLI+$, values are either some value $v$ representing
+the overall act of computation done by the program or an exception thrown by
+the program, the only exceptions we care about are $TypeEqualityException$, or
+$VerificationException$.  Finally a CIL assembly can be rewritten by the
+rewriter $R$ to produce a CIL+ assembly.
+
+If $R$ and CLI+ are correct then the following statements should hold:
+\begin{lemma}
+$C(P) \underset{CLI}{\rightarrow} TypeEqualityException \implies R(C(P))
+\underset{CLI+}{\rightarrow} VerificationException$
+\end{lemma}
+\begin{lemma}
+$R(C(P)) \underset{CLI+}{\not\rightarrow} VerificationException \implies
+C(P) \underset{CLI}{\not\rightarrow} TypeEqualityException$
+\end{lemma}
+\begin{lemma}
+$C(P) \underset{CLI}{\rightarrow} v \wedge R(C(P))
+\underset{CLI+}{\not\rightarrow} VerificationException \implies R(C(P))
+\underset{CLI+}{\rightarrow} v$
+\end{lemma}
+\begin{lemma}
+$C(P) \underset{CLI}{\rightarrow} v \iff C(P) \underset{CLI+}{\rightarrow} v$
+\end{lemma}
+
+Lemma 1 states that if a program throws a \texttt{TypeEqualityException} in
+the standard CLI then it will throw a \texttt{VerificationException} in the new
+CLI. If CLI+ doesn't throw a \texttt{VerificationException} then we know
+something is wrong with either the rewriter or the new runtime. For the sake of
+these tests we will assume that the rewriter is correct. This property does not
+hold in reverse ($R(C(P)) \underset{CLI+}{\rightarrow} VerificationException
+\implies C(P) \underset{CLI}{\rightarrow} TypeEqualityException$) as the call
+to \texttt{Cast<T, U>} or \texttt{EqualTypes<T, U>} might not be hit be every
+control flow path.
+
+Lemma 2 states that if the rewritten program runs in CLI+ and does not throw a
+\texttt{VerificationException} then running the code in the CLI will not throw
+a \texttt{TypeEqualityException}. If a \texttt{TypeEqualityException} is thrown
+then something is wrong with the new runtime.
+
+Lemma 3 states that if the program computes a value $v$ in the standard CLI
+and verifies correctly in the new CLI then the new CLI should compute the same
+value $v$.
+
+Lemma 4 states that if the same CLI assembly (no rewriting) is run on both
+runtimes they should compute the same value. While this is similar to lemma 3
+it's difference is the lack of any assembly rewriting. 
+
+All this together means that we can do some verification of our new system
+against the old system. If a program ran correctly in the old system it should
+also run correctly in the new system (lemma 4). If a program has correct equality type
+constraints then it should run in the old system (and by the lemma 4 also
+run in the new system) and when rewritten it should run in the new system
+(lemma 3). If a program throws a \texttt{TypeEqualityException} then it should
+throw a \texttt{VerificationException} when rewritten and run in the new
+system.
+
+\section{Testing without a full implementation}
+
+While the above test plan is appropriate for checking an implementation is correct
+we do not have a real implementation. However we still wish to show that the system
+could work and is staticly checkable. To do this we will be using a similar system to 
+above. We can continue to write tests as described above, however instead of using 
+an assembly rewriter to transform them into an extended CIL format we simply perform
+the checks that the extended verifier would perform. Thus for every method call we 
+check to see if it calls \texttt{EqualTypes} and if so check that we can satisfy 
+those constraints, and for every call to \texttt{Cast} we check that the two types
+are indeed equal either directly or via equality constraints.
