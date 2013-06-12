@@ -385,7 +385,7 @@ be checked as verifiable as well.
 Adding another rule to \emph{verifier-assignable-to} to use the rules for equality constraints is all that is needed
 to enhance this part of the system.
 
-10. T is \emph{equal-to} U.
+\textbullet{} T is \emph{equal-to} U.
 
 \subsection{\emph{equal-to}}
 
@@ -483,10 +483,9 @@ greater than relationships as well.
 
 So the TypeRelationshipConstraint table has the following columns:
 \begin{itemize}
-\item Owner (an index into the TypeDef or MethodDef table, specifying the
-Type or Method to which this constraint applies; more precisely, a
-TypeOrMethodDef (§24.2.6) coded index)
-\item Flags (a 1-byte flag bitmask currently always set to 1. To be used
+\item Owner (an index into the MethodDef table, specifying the
+Method to which this constraint applies)
+\item Flags (a 1-byte flag bitmask currently always set to 0. To be used
 for extensions)
 \item ConstraintA (an index into the TypeDef, TypeRef, or TypeSpec tables,
 specifying the first type; more precisely, a TypeDefOrRef (§24.2.6)
