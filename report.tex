@@ -18,6 +18,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[sc]{mathpazo}
 \usepackage{fullpage}
+\usepackage{bussproofs}
 
 \usepackage{color}
 
@@ -1380,92 +1381,9 @@ Generics & No & No & No & Yes & No & No\tabularnewline
 \end{longtable}
 \par\end{center}
 
+\input{typeEquality.tex}
 
-\subsection{Concept of equality}
-
-To be able to say if a type \texttt{T} that depends on a value of
-\texttt{U} (that is \texttt{T<U a>}) is equal to \texttt{T<U b>} requires
-us to say what it means for \texttt{a} and \texttt{b} to be equal.
-All CLI objects have a method \texttt{bool Equal(object obj)} which
-we could use, however this is clearly unsound as an implementation
-of \texttt{Equal} could return nonsense, or never return at all.
-
-Instead we propose using structural equality. That is
-two values of any reference type are equal if and only if they are
-the same reference, and two values of a value type are equal if and
-only if all their fields are equal in this manner as well. 
-
-In practice this amounts to checking that the values have the same bytes in memory.
-At runtime this is an easy check to make and dynamic type checks and reflection would have
-no issues with it. Doing this at compile time requires that each instantiation of a value 
-parameter is constant, for value types this is simple to achive while still being easily usable.
-Two seperate instantions of a type \texttt{T<int i>} with the same \texttt{int} value will both end 
-up with the same byte values for the \texttt{int} value (although how and where this value is stored 
-still needs to be discussed). For custom value types some extra work is required to make sure they are
-immutable but instantion remains simple. 
-
-However given some reference type \texttt{U} with a constructor \texttt{U(int i)} two seperate instantions of 
-a type \texttt{T<U u>} done via two \texttt{new} expressions will result in two distinct references. 
-Given that all these values must be constant at compile time it's not clear how this could work. We can't 
-reference the value from another type specification as that itself requires the reference.
-
-\begin{lstlisting}[caption={An issue with refernce values},keywordstyle={\color{blue}},language=sharpc]
-var myT = new T<new U(1)>();
-var myOtherT = new T<T<new U(1)>.u>();
-}
-\end{lstlisting}
-
-We could extend the defintion of \texttt{literal}(\texttt{const} in C\#) to allow constants of custom types this would allow us to 
-initalize and store the reference once and then use it in type parameters.
-
-\begin{lstlisting}[caption={Literal refernces},keywordstyle={\color{blue}},language=sharpc]
-const U U1 = new U(1);
-
-public T<U1> SomeMethod(T<U1> t)
-{
-	return t;
-}
-\end{lstlisting}
-
-While this seems ideal due to the way \texttt{literal} works this would cause significant difficulty for reference types,
-but it would work for value types and would solve the storage issue mentioned earlier, so still a wanted extension.
-The reason for the difficulty is that uses of \texttt{literal} fields replace the use site with the value at compile time. 
-The value for a refernce is a mangaged reference pointer, decideding where that pointer should point is immpossible at compile time
-
-\subsection{Immutability}
-
-Type preservation means that an expression's type should not change
-under evaluation, therfore value type parameters should be immutable.
-As shown in subsection \ref{sub:Literal-and-initonly} the CLI does
-not have strong support for immutability. As such our initial work
-will concentrate on using the primitive types as their immutability
-can be easily guaranteed.
-
-As noted above the values used as paramaters should be immutable, allowing these values to change at runtime would be unsound 
-as the system has already made judgements based on the static value. For primative types immutablity is easily acchived by making 
-it immpossible to write to or take the address of the parameter. This also covers us for custom value types, as although instance 
-methods on value types take a managed pointer to the value (which could then be used to write to the fields) there is no way to
-get this reference in the first place. The value must be copied to a local variable and then instance methods can be called on that.
-
-For references the value we care about is the reference itself, the object pointed to does not need to be immutable.
-
-\subsection{Operations}
-
-Once we have the ability to mark up types with values, we will want
-to use the value for operations. Either for changing the value before
-passing it on as another type paramter or for using at runtime. Support
-for using the value in normal methods at runtime seems trivial, just
-expose it similar to a static readonly field. However supporting the
-ability to do operations on value parameters before passing them to
-another type constructor is more challenging. Firstly it will require
-some effort to fit into the CIL bytecode, currently opcodes are only
-allowed in method bodies, we would have to either point to a method
-to calculate the operations on value parameters or find some other
-way to fit opcodes at the declaration level. Secondly we have the
-issue of soundness as user defined operations can do anything.
-
-
-
+\input{valueTypes.tex}
 
 \bibliographystyle{plain}
 \bibliography{report}
