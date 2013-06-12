@@ -497,17 +497,27 @@ coded index)
 
 \chapter{Implementation changes}
 
-
-\section{Assembler}
-
-The mono assembler is found in /mcs/ilasm. 
-
-
 \section{Runtime}
 
-The runtime needs to be changed to load and understand equality constraint
-metadata, these changes will be focused on /mono/metadata.
+The runtime needs to be changed to load and understand equality constraint metadata, 
+these changes will be focused in mono/metadata/metadata.h/c and mono/metadata/reflection.h/c.
+The TypeRelationshipConstraint table is very similar to the GenericParamConstraint table, the current code
+for GenericParamConstraint can guide the new code for TypeRelationshipConstraint.
 
+Verification is done in verify.c. Additions need to be made to verifiy that type relationship constraints
+are met when calling methods and to extend assingment compatability to use those type relationship constraints.
+
+\section{corlib}
+
+The core library needs to be changed to support type equality. Specificly the reflection libary defined in
+mcs/class/corlib/System.Reflection\[.Emit\]. This API is predomintly implement via internal calls that are 
+then defined in mono/metadata/icall-def.h.
+
+\section{Cecil and IKVM}
+
+Mono.Cecil and IKVM are well known libaries for working with CIL code. They are generally considered better
+than the core library System.Reflection and System.Reflection.Emit. Any extensions of the system would be well
+served by extending these libaries to understand the extension as well.
 
 \chapter{References}
 
