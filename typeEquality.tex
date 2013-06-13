@@ -388,47 +388,53 @@ coded index)
 
 \subsection{Runtime}
 
-The runtime needs to be changed to load and understand equality constraint metadata, 
-these changes will be focused in mono/metadata/metadata.h/c and mono/metadata/reflection.h/c.
-The TypeRelationshipConstraint table is very similar to the GenericParamConstraint table, the current code
-for GenericParamConstraint can guide the new code for TypeRelationshipConstraint.
+The runtime needs to be changed to load and understand equality constraint
+metadata, these changes will be focused in mono/metadata/metadata.h/c and
+mono/metadata/reflection.h/c.  The TypeRelationshipConstraint table is very
+similar to the GenericParamConstraint table, the current code for
+GenericParamConstraint can guide the new code for TypeRelationshipConstraint.
 
-Verification is done in verify.c. Additions need to be made to verify that type relationship constraints
-are met when calling methods and to extend assignment compatibility to use those type relationship constraints.
-This requires additions to \texttt{mono_method_verify} to check constraints on \texttt{call}, \texttt{calli} and 
-\texttt{callvirt} instructions, this can probably be done in \texttt{do_invoke_method}. 
-It also requires additions to \texttt{verify_stack_type_compatibility_full} to check the new assignment 
+Verification is done in verify.c. Additions need to be made to verify that type
+relationship constraints are met when calling methods and to extend assignment
+compatibility to use those type relationship constraints.  This requires
+additions to \texttt{mono\_method\_verify} to check constraints on
+\texttt{call}, \texttt{calli} and \texttt{callvirt} instructions, this can
+probably be done in \texttt{do\_invoke\_method}.  It also requires additions to
+\texttt{verify\_stack\_type\_compatibility\_full} to check the new assignment
 compatibility rules.
 
 \subsection{corlib}
 
-The core library needs to be changed to support type equality. Specifically the reflection library defined in
-mcs/class/corlib/System.Reflection\[.Emit\]. This API is predominately implement via internal calls that are 
-then defined in mono/metadata/icall-def.h.
+The core library needs to be changed to support type equality. Specifically the
+reflection library defined in mcs/class/corlib/System.Reflection\[.Emit\]. This
+API is predominately implement via internal calls that are then defined in
+mono/metadata/icall-def.h.
 
 \subsection{Cecil and IKVM}
 
-Mono.Cecil and IKVM are well known libraries for working with CIL code. They are generally considered better
-than the core library System.Reflection and System.Reflection.Emit. Any extensions of the system would be well
-served by extending these libraries to understand the extension as well.
+Mono.Cecil and IKVM are well known libraries for working with CIL code. They
+are generally considered better than the core library System.Reflection and
+System.Reflection.Emit. Any extensions of the system would be well served by
+extending these libraries to understand the extension as well.
 
 \section{Testing}
 
-As part of any implementation a number of test cases should be developed to show 
-that the system works. These tests need to show that there is no CLI code that does
-not run in the new system (backwards compatibility) and that the new system is
-correct.
+As part of any implementation a number of test cases should be developed to
+show that the system works. These tests need to show that there is no CLI code
+that does not run in the new system (backwards compatibility) and that the new
+system is correct.
 
 Normally these tests would be written in CIL assembly, however writing tests in
-CIL assembly would be time consuming and error prone. Instead test writing should
-be assisted by an assembly rewriter. The rewriter will look for calls to
+CIL assembly would be time consuming and error prone. Instead test writing
+should be assisted by an assembly rewriter. The rewriter will look for calls to
 special methods and attributes in a CLI assembly and rewrite the bytecode and
 metadata to use features in the extended system.  Assembly rewriting will be
 done using the CLI metadata reflection, writing and rewriting via
-\texttt{System.Reflection} or another metadata editor such as \textt{Mono.Cecil}. 
-Any implementation will extend these objects to support the new metadata constructs. 
-With this we can mark up standard C\# or F\# code with special methods and 
-attributes and rewrite the resulting assemblies to include the new metadata.
+\texttt{System.Reflection} or another metadata editor such as
+\textt{Mono.Cecil}.  Any implementation will extend these objects to support
+the new metadata constructs.  With this we can mark up standard C\# or F\# code
+with special methods and attributes and rewrite the resulting assemblies to
+include the new metadata.
 
 This system of testing has a number of advantages. Firstly it allows us to
 write our tests in a high level language such as C\# instead of low level CIL.
