@@ -2,15 +2,15 @@
 
 \section{Generalized algebraic data types}
 
-The first extension will be to add type equality constraints and a match-and-bind 
-instruction to the CLI. Type equality constraints for C\# are described in 
-\cite{gadts}, we will be using these ideas but for the CLI not C\#. The basic idea
-is to extend generic constraints to allow equality constraints on generic 
-types, section 3.1 (Equational constraints for C\#) of \cite{gadts} describes 
-this extension. This would allow a generic type to be declared equal to another 
-type, this would be checked statically at compile time. For example a list 
-flatten method could check that the list was a list of lists by the addition
-of the \texttt{where T=List<U>} clause.
+The first extension will be to add type equality constraints to the CLI. 
+Type equality constraints for C\# are described in \cite{gadts}, we will 
+be using these ideas but for the CLI not C\#. The basic idea is to extend 
+generic constraints to allow equality constraints on generic types, section 
+3.1 (Equational constraints for C\#) of \cite{gadts} describes this extension. 
+This would allow a generic type to be declared equal to another type, this 
+would be checked statically at compile time. For example a list flatten method
+could check that the list was a list of lists by the addition of the 
+\texttt{where T=List<U>} clause.
 
 \begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc,tabsize=4]
 public abstract class List<T> {
@@ -197,26 +197,6 @@ extends Test.List`1<!T>
 }
 \end{lstlisting}
 
-As per the style used in ECMA-335, match would be specified something
-like the following.
-
-\begin{framed}
-\begin{tabular}{|c|c|>{\centering}p{0.75\linewidth}|}
-\hline 
-\multicolumn{3}{|c}{match}\tabularnewline
-\hline 
-\hline 
-Format & Assembly Format & Description\tabularnewline
-\hline 
-\ldots{} & match typetoken & matches and object against an open or closed generic type and returns
-the object cast to that type and the RuntimeHandles for the types
-required for closure if typetoken is an open generic type.\tabularnewline
-\hline 
-\end{tabular}
-
-Stack Transition: \ldots{}, obj $\rightarrow$ \ldots{}, obj, RuntimeHandles
-\end{framed}
-
 The syntax here is purely to demonstrate the intuition of the feature.
 Exact syntax will be expanded on as we explore how this can be added
 to the CLI specification.
@@ -264,7 +244,7 @@ In this example \texttt{Bar} can only be called if \texttt{Foo<T>}
 was initialized with \texttt{int}, and \texttt{Baz} only if it was
 initialized with \texttt{string}. A similar thing can be done with
 non-generic inner types. So we need to look to add this new syntax
-somewhere seperate to the generic parameter list. Preferably it would
+somewhere separate to the generic parameter list. Preferably it would
 have similar syntax for both methods and types (as generic parameters
 look the same on a type declaration or method declaration). A type
 declaration currently follows the pattern ``\texttt{.class ClassAttr{*}
@@ -276,19 +256,19 @@ pattern ``\texttt{.method MethAttr{*} {[}CallConv{]} Type {[}marshal
 
 Adding a new clause ``\texttt{where {[}Type '=' Type{[}',' Type '=' Type{]}{*}{]}}
 to method declarations after the parameter list gives us a list of Types that must 
-be equal to other types. It's not strictly necceassry to have this clause on type 
+be equal to other types. It's not strictly necessary to have this clause on type 
 declarations as for top level types it makes very little sense and for inner types 
 it can be emulated be adding the clause to each method.
 
-\subsection{Assignment compatability}
+\subsection{Assignment compatibility}
 
-Assigment compatability is defined in section I.8.7 of \cite{ecma-335}, further to this 
-verification assigment compatability is defined in III.1.8.1.2.3. Verification assgiment 
-compataiblity is mostly defined in terms of general assigment compatability from I.8.7.3.
+Assignment compatibility is defined in section I.8.7 of \cite{ecma-335}, further to this 
+verification assignment compatibility is defined in III.1.8.1.2.3. Verification assignment 
+compatibility is mostly defined in terms of general assignment compatibility from I.8.7.3.
 
-Verification assigment compatability is used be the verifier for determining if method calls, field 
-referances and loads and stores are valid for a given type and signature. If verification assingment compatability 
-is extended to understand type eqaulity constraints then operations that were unverifiable but type correct can now
+Verification assignment compatibility is used be the verifier for determining if method calls, field 
+references and loads and stores are valid for a given type and signature. If verification assignment compatibility 
+is extended to understand type equality constraints then operations that were unverifiable but type correct can now
 be checked as verifiable as well.
 
 Adding another rule to \emph{verifier-assignable-to} to use the rules for equality constraints is all that is needed
@@ -299,7 +279,7 @@ to enhance this part of the system.
 \subsubsection{\emph{equal-to}}
 
 \emph{equal-to} is used to determine if two type names refer to the same actual type.
-It uses the both the global typing enviroment $\Gamma$ and the
+It uses the both the global typing environment $\Gamma$ and the
 equality constraints on the current method $\epsilon$ which defines equal types.
 
 \begin{prooftree}
@@ -343,7 +323,7 @@ equality constraints on the current method $\epsilon$ which defines equal types.
 \subsection{Method calls}
 
 Any method calls must be checked that any equality constraints on the method being called 
-can be satisifed by the current context. This is done by checking that for each constraint listed on the 
+can be satisfied by the current context. This is done by checking that for each constraint listed on the 
 method ($T=U$) T and U are \emph{equal-to} in the current context after applying substitution for generic parameters.
 
 \begin{prooftree}
@@ -353,12 +333,12 @@ method ($T=U$) T and U are \emph{equal-to} in the current context after applying
 \BinaryInfC{$\Gamma,\epsilon \vdash m<\bar{T}>$}
 \end{prooftree}
 
-This is an addition to the verifiabilty rules for the call, calli and callvirt instructions.
+This is an addition to the verifiability rules for the call, calli and callvirt instructions.
 
 \subsection{Metadata tables}
 
 Metadata tables are specified in section 22 (Metadata logical format:
-tables). We're mostly intreasted in section 22.21 (GenericParamConstraint),
+tables). We're mostly interested in section 22.21 (GenericParamConstraint),
 which explains how generic constraints are stored in the assembly. 
 \begin{quotation}
 The GenericParamConstraint table has the following columns:
@@ -413,24 +393,24 @@ these changes will be focused in mono/metadata/metadata.h/c and mono/metadata/re
 The TypeRelationshipConstraint table is very similar to the GenericParamConstraint table, the current code
 for GenericParamConstraint can guide the new code for TypeRelationshipConstraint.
 
-Verification is done in verify.c. Additions need to be made to verifiy that type relationship constraints
-are met when calling methods and to extend assingment compatability to use those type relationship constraints.
+Verification is done in verify.c. Additions need to be made to verify that type relationship constraints
+are met when calling methods and to extend assignment compatibility to use those type relationship constraints.
 This requires additions to \texttt{mono_method_verify} to check constraints on \texttt{call}, \texttt{calli} and 
 \texttt{callvirt} instructions, this can probably be done in \texttt{do_invoke_method}. 
-It also requires additions to \texttt{verify_stack_type_compatibility_full} to check the new assigment 
-compatabiltity rules.
+It also requires additions to \texttt{verify_stack_type_compatibility_full} to check the new assignment 
+compatibility rules.
 
 \subsection{corlib}
 
-The core library needs to be changed to support type equality. Specificly the reflection libary defined in
-mcs/class/corlib/System.Reflection\[.Emit\]. This API is predomintly implement via internal calls that are 
+The core library needs to be changed to support type equality. Specifically the reflection library defined in
+mcs/class/corlib/System.Reflection\[.Emit\]. This API is predominately implement via internal calls that are 
 then defined in mono/metadata/icall-def.h.
 
 \subsection{Cecil and IKVM}
 
-Mono.Cecil and IKVM are well known libaries for working with CIL code. They are generally considered better
+Mono.Cecil and IKVM are well known libraries for working with CIL code. They are generally considered better
 than the core library System.Reflection and System.Reflection.Emit. Any extensions of the system would be well
-served by extending these libaries to understand the extension as well.
+served by extending these libraries to understand the extension as well.
 
 \section{Testing}
 
@@ -563,7 +543,7 @@ system.
 
 While the above test plan is appropriate for checking an implementation is correct
 we do not have a real implementation. However we still wish to show that the system
-could work and is staticly checkable. To do this we will be using a similar system to 
+could work and is statically checkable. To do this we will be using a similar system to 
 above. We can continue to write tests as described above, however instead of using 
 an assembly rewriter to transform them into an extended CIL format we simply perform
 the checks that the extended verifier would perform. Thus for every method call we 
