@@ -1432,17 +1432,21 @@ extension well enough to not have made any major mistakes.
 
 \section{Value dependent types}
 
-The good
-\begin{itemize}
-	\item Discussion on the issues, difficulties and problems with designing value dependent types
-	\item Some ideas on how things could be moved forward
-\end{itemize}
+While at the start of this project we had grand plans for value dependent types work on them 
+has been difficult. This should of been obvious given how rare implementations of value 
+dependence are but we wanted to give it our best shot. 
 
-The bad
-\begin{itemize}
-	\item Not nearly enough to start specifying the system
-	\item Conflicting design goals between whats needed for performance and whats clean
-\end{itemize}
+We still feel that value dependent types would be beneficial to the CLI architecture, despite
+the difficulties surrounding them. Our original motivating example (encountered nearly 9 months 
+ago) is still relevant. Thus although we have no final design or specification we hope that our discussions
+in this report can help move ideas about value dependence forward.
+
+On that note we're pleased with the ideas and issues discussed so far. While it doesn't cover nearly enough 
+ground it's starting to expose what needs to be thought about when designing value dependence for the CLI.
+
+One problem that we have continually ran into while thinking about value dependence is the trade off between
+an elegant system and a performant system. These often appear to be at conflict with each other resulting in ideas
+that we can't consider acceptable due to a shortcoming in one or the other goal.
 
 \chapter{Conclusion}
 
