@@ -1387,9 +1387,62 @@ Generics & No & No & No & Yes & No & No\tabularnewline
 
 \chapter{Evaluation}
 
+\section{Type equality constraints}
 
+Our specification of type equality constraints extends the expressibility of the CLI. 
+We feel that having this expressible at the CLI level (and not just the language) level
+is beneficial, it means it's easier to put to use in languages that target the CLI as 
+the work require to make it run correctly has already been done, and the runtime metadata 
+available from reflection can more accurately match the expressions at the language level.
 
+There are a number of positive points about the final design of this feature, most importantly 
+that it is a fairly small change to the CLI system requiring only a few localized modifications 
+to method calls and the specification of assignment compatibility. The fact that the changes to
+assignment compatibility cascade to affect the rest of the system in the correct way is a neat 
+feature. The modifications required in each location are themselves fairly small additions, and 
+notably no subtractions so all old code would continue to behave the same way in the new system.
+While it has not been possible to implement the system in Mono we have described which parts of 
+Mono will need to be modified to support each part of the new system.
 
+The system also has some room for extension thanks to the flags field in the metadata table. 
+While currently this is defined to always be zero, future work could add other type relationships.
+
+The final positive point to make is that we have describe a versatile test system that could be
+used by any implementation to help check that the implementation behaves correctly.
+
+This work has not gone perfectly however, a number of ideas we had at the start of the project 
+have not been brought to fruition. Most major of these is the lack of any implementation, but 
+we also have no description of how to do match-and-bind.
+
+Match-and-bind requires a fairly hefty transform step from a high level language to CIL, we had 
+hoped to define an instruction that would do this work for the compiler writer so they merely had 
+to output the one instruction. It would of been a nice addition and is something to consider in any
+future work.
+
+The lack of an implementation is a big disappointment. At the start of the project we spent a small amount 
+of time looking into Mono and decided that it would be possible to extend. However when the time came 
+to start modifying Mono the expanse of the system overwhelmed us. As pointed out above we manage to track down
+which parts, functions and files definitely need to be changed, but working out exactly how to incorporate the 
+system proved much more difficult than we anticipated.
+
+Finally we have no way to know for sure that the system we have describe is correct. We have found no work 
+into formally specifying and proving properties about the CLI. Given no ground work (which would be a significant
+project in it's own right) which we could extend off we only have the hope that we have understood the CLI and this
+extension well enough to not have made any major mistakes.
+
+\section{Value dependent types}
+
+The good
+\begin{itemize}
+	\item Discussion on the issues, difficulties and problems with designing value dependent types
+	\item Some ideas on how things could be moved forward
+\end{itemize}
+
+The bad
+\begin{itemize}
+	\item Not nearly enough to start specifying the system
+	\item Conflicting design goals between whats needed for performance and whats clean
+\end{itemize}
 
 \chapter{Conclusion}
 
