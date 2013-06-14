@@ -1381,7 +1381,13 @@ Generics & No & No & No & Yes & No & No\tabularnewline
 \end{longtable}
 \par\end{center}
 
+The CLI currently inhabits the lower levels of our list above, currently only supporting Generics. 
+Our first point of work is to add type equality constraints, moving the CLI up in what it can express
+and given an equivalent system to GADTs.
 
+Following the specification of type equality constraints we will discuss values as type parameters. These
+allow more programs to be checked by the type system and also open up optimization benefits but are a more
+complex extension than equality constraints.
 
 \input{typeEquality.tex}
 
