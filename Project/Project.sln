@@ -3,6 +3,10 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EqualityConstraints", "EqualityConstraints\EqualityConstraints.csproj", "{EE1CC7CC-1546-4FF0-90A1-971B66147CF8}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "ConstraintChecker", "ConstraintChecker\ConstraintChecker.fsproj", "{AE45A935-3B87-48AF-B753-F74BEA0D2E56}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{98196C21-6218-436E-8696-1F6862174495}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +17,14 @@ Global
 		{EE1CC7CC-1546-4FF0-90A1-971B66147CF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE1CC7CC-1546-4FF0-90A1-971B66147CF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EE1CC7CC-1546-4FF0-90A1-971B66147CF8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE45A935-3B87-48AF-B753-F74BEA0D2E56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE45A935-3B87-48AF-B753-F74BEA0D2E56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE45A935-3B87-48AF-B753-F74BEA0D2E56}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE45A935-3B87-48AF-B753-F74BEA0D2E56}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98196C21-6218-436E-8696-1F6862174495}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98196C21-6218-436E-8696-1F6862174495}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98196C21-6218-436E-8696-1F6862174495}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98196C21-6218-436E-8696-1F6862174495}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

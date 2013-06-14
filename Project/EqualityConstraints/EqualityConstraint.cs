@@ -6,47 +6,38 @@ using System.Threading.Tasks;
 
 namespace EqualityConstraints
 {
-    [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = true)]
-    sealed class EqualityConstraint : Attribute
+    [Serializable]
+    public class TypeEqualityException : Exception
     {
-        readonly string TypeT;
-        readonly string TypeU;
+        public TypeEqualityException() { }
+        public TypeEqualityException(string message) : base(message) { }
+        public TypeEqualityException(string message, Exception inner) : base(message, inner) { }
+        protected TypeEqualityException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context)
+            : base(info, context) { }
+    }
 
-        // This is a positional argument
-        public EqualityConstraint(string t, string u)
-        {
-            TypeT = t;
-            TypeU = u;
-        }
-
-        public string T
-        {
-            get { return TypeT; }
-        }
-
-        public string U
-        {
-            get { return TypeU; }
-        }
-
-        public static U Cast<T, U>(T value)
-            where T : class 
-            where U : class
+    public static class TypeEquality
+    {
+        public static U Cast<T, U>(T obj)
         {
             if (typeof(T) == typeof(U))
             {
-                return value as U;
+                return (U)(Object)obj;
             }
-
-            throw new Exception();
+            else
+            {
+                throw new TypeEqualityException();
+            }
         }
-    }
 
-    public class FList<T>
-    {
-        [EqualityConstraint("T", "List<U>")]
-        public void Method<U>(T a)
+        public static void EqualTypes<T, U>()
         {
+            if (typeof(T) != typeof(U))
+            {
+                throw new TypeEqualityException();
+            }
         }
     }
 }
