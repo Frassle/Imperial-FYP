@@ -429,6 +429,24 @@ coded index)
 
 \section{Implementation changes}
 
+This system could be implemented in the open source Mono runtime. The Mono
+runtime is requires the majority of the changes to support this extension. The
+reflection library also requires changing however it is mostly implemented via
+internal calls to the runtime.
+
+The runtime is written in C, and has around 410,000 lines of code (total lines
+of C code is 414,181). Mono including all it's supporting tools and libraries
+comes to over 5,000,000 lines of code. While Mono is well organized trying to
+learn a project of this size with no prior experience was optimistic. 
+
+An implementation of this system was a goal of this project, but time
+constraints, the complexity of Mono and our inexperience with the system has
+resulted in us not having an implementation.
+
+We have however spent a lot of time reading and attempting to understand the
+Mono source code and feel that recording what needs to be changed at a high
+level is useful information.
+
 \subsection{Runtime}
 
 The runtime needs to be changed to load and understand equality constraint
@@ -460,7 +478,20 @@ are generally considered better than the core library System.Reflection and
 System.Reflection.Emit. Any extensions of the system would be well served by
 extending these libraries to understand the extension as well.
 
-\section{Testing}
+\subsection{Assembler}
+
+While it would seem that changing the CIL assembler would be an integral
+requirement of this extension it is not actually all that useful. Most CIL code
+is generated via in-memory data structures using libraries such as Cecil and
+then written out directly to binary format skipping the text stage, coupled
+with the fact that hand written CIL is rare the assembler is not very
+important. 
+
+We also could not find up to date source code for a CIL assembler. The
+assembler in the Mono source tree pre-dates .NET 2.0, not even supporting
+generics!
+
+\section{Test plan}
 
 As part of any implementation a number of test cases should be developed to
 show that the system works. These tests need to show that there is no CLI code
@@ -590,12 +621,13 @@ system.
 
 \section{Testing without a full implementation}
 
-While the above test plan is appropriate for checking an implementation is correct
-we do not have a real implementation. However we still wish to show that the system
-could work and is statically checkable. To do this we will be using a similar system to 
-above. We can continue to write tests as described above, however instead of using 
-an assembly rewriter to transform them into an extended CIL format we simply perform
-the checks that the extended verifier would perform. Thus for every method call we 
-check to see if it calls \texttt{EqualTypes} and if so check that we can satisfy 
-those constraints, and for every call to \texttt{Cast} we check that the two types
+While the above test plan is appropriate for checking an implementation is
+correct we do not have an implementation. However we still wish to show that
+the system could work and is statically checkable. To do this we will be using
+a similar system to above. We can continue to write tests as described above,
+however instead of using an assembly rewriter to transform them into an
+extended CIL format we simply perform the checks that the extended verifier
+would perform. Thus for every method call we check to see if it calls
+\texttt{EqualTypes} and if so check that we can satisfy those constraints at
+all call sites, and for every call to \texttt{Cast} we check that the two types
 are indeed equal either directly or via equality constraints.
