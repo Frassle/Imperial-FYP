@@ -13,7 +13,7 @@ to another type, this would be checked statically at compile time. For example
  a list flatten method could check that the list was a list of lists by the 
  addition of the \texttt{where T=List<U>} clause.
 
-\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc,tabsize=4]
+\begin{lstlisting}[caption={Type equality constraints in extended C\#},keywordstyle={\color{blue}},language=sharpc,tabsize=4]
 public abstract class List<T> {
 	...
 	public abstract List<T> Append(List<T> list);
