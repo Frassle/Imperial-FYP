@@ -2,7 +2,7 @@
 
 Our second extension is the addition of values as type parameters to the CLI.
 Drawing on what we've learnt in our background research, our knowledge of the 
-CLI and the design goals laid out by out motvating example we discuss some of
+CLI and the design goals laid out by our motivating example we discuss some of
 our ideas and issues with value dependent types.
 
 \subsection{Concept of equality}
@@ -87,3 +87,57 @@ allowed in method bodies, we would have to either point to a method
 to calculate the operations on value parameters or find some other
 way to fit opcodes at the declaration level. Secondly we have the
 issue of soundness as user defined operations can do anything.
+
+\subsection{Variable structures}
+
+As described in our motivating example one use case of dependent types is for vector types.
+
+We want these vectors to be value types with all their data allocated inline. This makes for fast and local
+allocations which is good for cache coherancy, but also makes it possible to easily transfer them to native
+APIs such as OpenGL and OpenCL.
+
+The standard CLI can define types with a fixed size, either via multiple fields and explict layout or via explict size.
+Neither of these allow a types inline size to be changed per use case, the only dynamically sized types in the CLI are
+arrays which are allocated on the heap.
+
+\begin{lstlisting}[caption={Vector using CLI array}, keywordstyle={\color{blue}},language=sharpc]
+public struct Vector
+{
+	public readonly float[] values;
+	
+	public Vector(int n) {
+		values = new float[n];
+	}
+	
+	...
+}
+\end{lstlisting}
+
+While this allows vectors of differnt dimensions it is not cache efficent, easy to copy to native APIs or immutable.
+It also requires many runtime checks to make sure that the vectors passed into methods are the right size.
+
+\begin{lstlisting}[caption={Runtime checks needed when using arrays}, keywordstyle={\color{blue}},language=sharpc]
+public static float Dot(Vector a, Vector b)
+{
+	if(a.values.length != b.values.length)
+		throw new ArgumentException("a and b are differnt sizes.");
+		
+	float dot = 0;
+	for(int i=0; i<a.Length; ++i)
+	{
+		dot += a.values[i]*b.values[i];
+	}
+	return dot;
+}
+\end{lstlisting}
+
+
+
+\begin{lstlisting}[caption={A fixed size vector type}, keywordstyle={\color{blue}},language=sharpc]
+public struct Vector<int n>
+{
+	public fixed float values[n];
+	
+	...
+}
+\end{lstlisting}
