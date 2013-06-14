@@ -9,6 +9,7 @@ namespace Tests
     {
         static void Main(string[] args)
         {
+            ListTest.Main();
         }
     }
 }
