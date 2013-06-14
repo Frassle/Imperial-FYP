@@ -119,10 +119,10 @@ Value dependent types are a powerful extension to type systems allowing
 types to be parametrized by terms. This project looks into how value
 dependent types could be introduced to the CLI, the underlying virtual
 machine specification for C\#, Visual Basic, F\# and many other languages,
-to allow more programs to be succinctly expressed at the CLI level
-and exposed to these languages. We show how the system can easily be 
-enhanced with type equality constraints, and discuss some issues and solutions
-to allow values as type parameters.
+to allow more programs to be succinctly expressed at the CLI level and 
+exposed to these languages. We show how the CLI can be enhanced with type
+equality constraints, and discuss some issues and solutions to allow 
+values as type parameters.
 \end{abstract}
 
 \chapter{Introduction}
@@ -360,11 +360,12 @@ in CIL code.
 CIL supports many features not common for low level assembly code, as well as
 basic operations such as add, jump, load, store. Operations such as field
 access, method call, object creation, casting etc all have dedicated CIL
-instructions. A more concrete example of CIL code is \ref{lst:loadppm}. LoadPpm
-is a method from a real C\# application, it shows the use of locals, calling
-static and instance methods, method arguments, constructors and properties. 
+instructions. A more concrete example of CIL code is listing \ref{lst:loadppm}. 
+Listing \ref{lst:loadppmcsharp} shows LoadPpm, a method from a real C\# application.
+This demonstrates the use of locals, calling static and instance methods, method arguments, 
+constructors and properties. The corrsponding CLI code is shown in listing \ref{lst:loadppm}.
 
-\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc,caption={LoadPpm C\#}]
+\begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc,label={lst:loadppmcsharp},caption={LoadPpm C\#}]
 private static Image LoadPpm(string name)
 {
 	var path = System.IO.Path.Combine(Toplevel(), "Memorial", name);
@@ -1379,6 +1380,8 @@ Generics & No & No & No & Yes & No & No\tabularnewline
 \hline 
 \end{longtable}
 \par\end{center}
+
+
 
 \input{typeEquality.tex}
 
