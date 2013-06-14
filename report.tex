@@ -120,7 +120,9 @@ types to be parametrized by terms. This project looks into how value
 dependent types could be introduced to the CLI, the underlying virtual
 machine specification for C\#, Visual Basic, F\# and many other languages,
 to allow more programs to be succinctly expressed at the CLI level
-and exposed to these languages.
+and exposed to these languages. We show how the system can easily be 
+enhanced with type equality constraints, and discuss some issues and solutions
+to allow values as type parameters.
 \end{abstract}
 
 \chapter{Introduction}
@@ -309,23 +311,20 @@ their instances, the size of the byte code and the speed to process
 it and the speed and size of the JITed code.
 
 
-\section{Project}
+\section{Contributions}
 
-This project will investigate value dependent types in the CLI. It
-will be split into 3 parts. 
+This project has investigated the background of value dependent types
+and looked into how they could be applied to improve the CLI. We show 
+how type equality constraints can be added to the CLI to allow the 
+expression of Generalized Algebraic Data Types. We also discuss how
+values as type parameters could be added, and the issues surrounding them.
+
+The report is split into 3 parts.
 \begin{enumerate}
-\item To investigate the use and benefits of value dependent typing.
-\item To show how value dependent types could be added to the CLI, preferably
-in a clean and backwards compatible way.
-\item If part 2 is successful to implement value dependent typing in Mono. 
-\item If part 2 is unsuccessful then an through explanation of why it can't
-be done should be written.
+\item A background investigation of value dependent typing and the CLI.
+\item A specification to add type equality constraints to the CLI.
+\item A discussion of values as type parameters.
 \end{enumerate}
-The rest of this report looks more in depth at the CLI and then covers
-various type system enhancements related to value dependence and value
-dependence itself. It finishes with an plan for the rest of the project
-and it's evaluation.
-
 
 \chapter{Background}
 
