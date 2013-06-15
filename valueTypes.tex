@@ -2,8 +2,11 @@
 
 Our second extension is the addition of values as type parameters to the CLI.
 Drawing on what we've learnt in our background research, our knowledge of the 
-CLI and the design goals laid out by our motivating example we discuss some of
+CLI and the design goals laid out by our motivating example, we discuss some of
 our ideas and issues with value dependent types.
+
+These ideas will be often discuessed in terms of high level design, but 
+must always take into account that they are really targted at the CLI level.
 
 \subsection{Concept of equality}
 
@@ -14,32 +17,34 @@ All CLI objects have a method \texttt{bool Equal(object obj)} which
 we could use, however this is clearly unsound as an implementation
 of \texttt{Equal} could return nonsense, or never return at all.
 
-Instead we propose using structural equality. That is
+Instead, we propose using structural equality. That is,
 two values of any reference type are equal if and only if they are
 the same reference, and two values of a value type are equal if and
 only if all their fields are equal in this manner as well. 
 
-In practice this amounts to checking that the values have the same bytes in memory.
+In practice, this amounts to checking that the values have the same bytes in memory.
 At runtime this is an easy check to make and dynamic type checks and reflection would have
 no issues with it. Doing this at compile time requires that each instantiation of a value 
-parameter is constant, for value types this is simple to achieve while still being easily usable.
+parameter is constant. For value types this is simple to achieve while still being easily usable.
 Two separate instantiations of a type \texttt{T<int i>} with the same \texttt{int} value will both end 
 up with the same byte values for the \texttt{int} value (although how and where this value is stored 
 still needs to be discussed). For custom value types some extra work is required to make sure they are
-immutable but instantiation remains simple. 
+immutable, but instantiation remains simple. 
 
-However given some reference type \texttt{U} with a constructor \texttt{U(int i)} two separate instantiations of 
+However, given some reference type \texttt{U} with a constructor \texttt{U(int i)} two separate instantiations of 
 a type \texttt{T<U u>} done via two \texttt{new} expressions will result in two distinct references. 
-Given that all these values must be constant at compile time it's not clear how this could work. We can't 
+Listing \ref{lst:refissue} demonstrates this issue. The paramter passed to the inner \texttt{T} constructor of the second 
+line is a different instance of \texttt{U} to that present in the first line.
+Given that all these values must be constant at compile time its not clear how this could work. We can't 
 reference the value from another type specification as that itself requires the reference.
 
-\begin{lstlisting}[caption={An issue with reference values},keywordstyle={\color{blue}},language=sharpc]
+\begin{lstlisting}[label={lst:refissue},caption={An issue with reference values},keywordstyle={\color{blue}},language=sharpc]
 var myT = new T<new U(1)>();
 var myOtherT = new T<T<new U(1)>.u>();
 }
 \end{lstlisting}
 
-We could extend the definition of \texttt{literal}(\texttt{const} in C\#) to allow constants of custom types this would allow us to 
+We could extend the definition of \texttt{literal}(\texttt{const} in C\#) to allow constants of custom types. This would allow us to 
 initialize and store the reference once and then use it in type parameters.
 
 \begin{lstlisting}[caption={Literal references},keywordstyle={\color{blue}},language=sharpc]
@@ -51,8 +56,9 @@ public T<U1> SomeMethod(T<U1> t)
 }
 \end{lstlisting}
 
-While this seems ideal due to the way \texttt{literal} works this would cause significant difficulty for reference types,
-but it would work for value types and would solve the storage issue mentioned earlier, so still a wanted extension.
+While allowing any type as a constant seems ideal, due to the way \texttt{literal} works this would cause significant 
+difficulty for reference types, but it would work for value types and would solve the storage issue mentioned earlier, 
+so still a wanted extension.
 The reason for the difficulty is that uses of \texttt{literal} fields replace the use site with the value at compile time. 
 The value for a reference is a managed reference pointer, deciding where that pointer should point is impossible at compile time
 
@@ -60,12 +66,12 @@ The value for a reference is a managed reference pointer, deciding where that po
 
 Type preservation means that an expression's type should not change
 under evaluation, therefore value type parameters should be immutable.
-As shown in subsection \ref{sub:Literal-and-initonly} the CLI does
-not have strong support for immutability. As such our initial work
+As shown in subsection \ref{sub:Literal-and-initonly}, the CLI does
+not have strong support for immutability. As such, our initial work
 will concentrate on using the primitive types as their immutability
 can be easily guaranteed.
 
-As noted above the values used as parameters should be immutable, allowing these values to change at runtime would be unsound 
+As noted above, the values used as parameters should be immutable, allowing these values to change at runtime would be unsound 
 as the system has already made judgements based on the static value. For primitive types immutability is easily achieved by making 
 it impossible to write to or take the address of the parameter. This also covers us for custom value types, as although instance 
 methods on value types take a managed pointer to the value (which could then be used to write to the fields) there is no way to
@@ -77,20 +83,30 @@ For references the value we care about is the reference itself, the object point
 
 Once we have the ability to mark up types with values, we will want
 to use the value for operations. Either for changing the value before
-passing it on as another type parameter or for using at runtime. Support
-for using the value in normal methods at runtime seems trivial, just
-expose it similar to a static readonly field. However supporting the
+passing it on as another type parameter or for using at runtime. 
+For example to be able to concatenate two fixed arrays together as shown in listing \ref{lst:arrayconcat}.
+
+\begin{lstlisting}[label={lst:arrayconcat},caption={Concatenate two arrays},keywordstyle={\color{blue}},language=sharpc]
+public class Array<int length> { 
+	...
+	
+	public Array<length + n> Concatenate(Array<n> other) { ... }
+}
+\end{lstlisting}
+
+Support for using the value in normal methods at runtime seems trivial, just
+expose it similar to a static readonly field. However, supporting the
 ability to do operations on value parameters before passing them to
-another type constructor is more challenging. Firstly it will require
+another type constructor is more challenging. Firstly, it will require
 some effort to fit into the CIL bytecode, currently opcodes are only
 allowed in method bodies, we would have to either point to a method
 to calculate the operations on value parameters or find some other
-way to fit opcodes at the declaration level. Secondly we have the
+way to fit opcodes at the declaration level. Secondly, we have the
 issue of soundness as user defined operations can do anything.
 
 \subsection{Variable structures}
 
-As described in our motivating example one use case of dependent types is for vector types.
+As described in our motivating example, one use case of dependent types is for vector types.
 
 We want these vectors to be value types with all their data allocated inline. This makes for fast and local
 allocations which is good for cache coherancy, but also makes it possible to easily transfer them to native
@@ -113,7 +129,7 @@ public struct Vector
 }
 \end{lstlisting}
 
-While this allows vectors of differnt dimensions it is not cache efficent, easy to copy to native APIs or immutable.
+While this allows vectors of differnt dimensions, it is not cache efficent, easy to copy to native APIs or immutable.
 It also requires many runtime checks to make sure that the vectors passed into methods are the right size.
 
 \begin{lstlisting}[caption={Runtime checks needed when using arrays}, keywordstyle={\color{blue}},language=sharpc]
@@ -132,11 +148,12 @@ public static float Dot(Vector a, Vector b)
 \end{lstlisting}
 
 
-
 \begin{lstlisting}[caption={A fixed size vector type}, keywordstyle={\color{blue}},language=sharpc]
 public struct Vector<int n>
 {
-	public fixed float values[n];
+	//fixed buffers are currently supported in C\#,
+	//but their size must be a compile time constant
+	public fixed float values[n]; 
 	
 	...
 }

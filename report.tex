@@ -20,6 +20,7 @@
 \usepackage{fullpage}
 \usepackage{bussproofs}
 \usepackage{framed}
+\usepackage{centernot}
 
 \usepackage{color}
 
@@ -32,6 +33,15 @@
 
 \newtheorem{lemma}{Lemma}
 
+\def\signed #1{{\leavevmode\unskip\nobreak\hfil\penalty50\hskip2em
+  \hbox{}\nobreak\hfil(#1)%
+  \parfillskip=0pt \finalhyphendemerits=0 \endgraf}}
+
+\newsavebox\mybox
+\newenvironment{aquote}[1]
+  {\savebox\mybox{#1}\begin{quote}}
+  {\signed{\usebox\mybox}\end{quote}}
+  
 \lstdefinelanguage{sharpc}{language=[Sharp]C}
 
 % "define" Scala
@@ -129,7 +139,7 @@ values as type parameters.
 
 \section{Value dependent types}
 
-Dependent types allow expression to be statically typed based on values;
+Dependent types allow expressions to be statically typed based on values;
 rather like how parametric types can be based on other types. There
 are some functional languages such as Agda\cite{agda}, Coq\cite{coq},
 Idris\cite{idris} and Cayanne\cite{cayenne} that support dependent
@@ -146,20 +156,19 @@ that can be parametrized on values.
 
 \section{Motivation}
 
-One of the main motivations for looking into value dependence is for
-work in graphics and physics applications where most vectors and matrices
-in the problem domain are small (3 or 4 elements, but no reason this
-couldn't scale to many more for other applications). Using types such
+One of the main motivations for looking into value dependence is their potential 
+use for work in graphics and physics applications. Vectors and matrices
+in these problem domain are often small (3 or 4 elements). Using types such
 as Vector3, Vector4, Matrix3x4 which are 3 and 4 element float vectors
-and a 3 by 4 float matrix respectively, make writing code much easier
+and a 3 by 4 float matrix respectively, makes writing code much easier
 than working with multiple float variables. Currently there is no
-nice way to represent all the different sizes for types like this
-in C\# (or any other CLI language). Consequently it lead me to the
+nice way to represent all the different sizes for vector and matrix types
+in C\# (or any other CLI language). This has lead me to the
 creation of a numeric type generator, a separate program that outputs
 the source code for a pre defined set of configurations (currently
 Vector2 to Vector8 and Matrix2x2 up to Matrix4x4). While the use of
-these types is mostly acceptable extending them is difficult. As shown
-below using the generator requires writing the code in literal strings,
+these types is mostly acceptable, extending them is difficult. As shown
+below, using the generator requires writing the code in literal strings,
 these literals can not be checked at compile time for obvious mistakes
 and the IDE does not offer auto completion when writing them, the
 generator has to be run then the emitted code must be compiled to
@@ -228,25 +237,26 @@ different sizes.
 \subsection{Performance\label{sub:Performance}}
 
 There are ways to avoid the generator step now, however they do not
-have acceptable performance and layout properties to be used. 
+have acceptable performance or memory layout properties.
 
-The simplest way is to define Vector as dynamicly sized (like arrays)
-this loses all static type safety but does mean functions would only
+The simplest way is to define \texttt{Vector} as dynamicly sized (like arrays).
+This simple definition loses all static type safety but does mean functions would only
 have to be written once, saving us the effort of creating and maintaining
-the generator but a cost. Vector is no longer purely a value type
+the generator but a cost. A dynamically sized \texttt{Vector} is also no longer purely a value type
 as it will have a reference field in it, this changes the semantics
 from the current vector types (due to no user defined copy constructors
-or assignment operators in the CLI) and also makes them more expensive
+or assignment operators in the CLI) and also makes it more expensive
 as they are now tracked by the garbage collector. It also makes inter
-operating with native APIs such as OpenGL harder as the Vectors will
+operating with native APIs such as OpenGL harder, as the Vectors will
 have to be marshaled to correctly copy the elements of their internal
 array to the native API, the current vector types can just be pinned
-and pointer copied.
+and pointer copied due to their flat data layout.
 
 Another way is to define an interface \texttt{Vector} that defines
 the indexing operator and length property, and then write functions
-using this interface. However we still need to create concrete types
-for each vector size which requires the generator.
+using this interface. We still need to create concrete types
+for each vector size which requires the generator, saving us little work
+and giving dubious benefit.
 
 \begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc]
 interface Vector
@@ -268,11 +278,11 @@ public static float Dot<T>(T a, T b) where T : Vector
 
 The issue with this interface approach (and this give some suggestion
 as to how we would want to implement dependent types) is that the
-loop cannot be unrolled. For high performance code that theses small
-vector types are supposed to be used for that's an unacceptable trade
+loop cannot be unrolled. For high performance code these small
+vector types are supposed to be used for it is an unacceptable trade
 off, especially as we still have to maintain the generator anyway.
 With dependent types we could have better performance characteristics
-and with the preferred flat data layout. 
+and with the preferred flat data layout.
 
 While these vector types are the main motivator for value dependence
 there are more uses for value dependent types, we explore these in
@@ -321,9 +331,23 @@ values as type parameters could be added, and the issues surrounding them.
 
 The report is split into 3 parts.
 \begin{enumerate}
-\item A background investigation of value dependent typing and the CLI.
+\item A background investigation of value dependent typing and the CLI..
+This makes up the first part of this report. We give an overview of a number of 
+languages, what sort of value dependence they support, what problem they solve and 
+any disadvantages.
 \item A specification to add type equality constraints to the CLI.
+We describe what changes need to be made to ECMA-335 to support the expression
+of type equality constraints at the CLI level and how this extends verifiable code.
+We also give a high level description of what would need to be changed in the Mono runtime
+to support such a specification change.
+\item A test plan for testing extensions to the CLI.
+Given that any changes to the CLI ought to be well tested we devised a test plan
+detailing how to write tests for a CLI extensions. This test plan allows us to write 
+tests in high level languages rather than CLI assembly (or having to emit CLI bytecode 
+programmatically). We also show how to test our specification of type equality constraints
+without a runtime implementation.
 \item A discussion of values as type parameters.
+Finally we end with a discussion of how values as type parameters could be added to the CLI.
 \end{enumerate}
 
 \chapter{Background}
@@ -334,9 +358,9 @@ The report is split into 3 parts.
 
 \subsection{Common intermediate language}
 
-To allow the reader to more easily follow later discussions we will
+To allow the reader to more easily follow later discussions, we will
 first briefly go over the CLI and CIL. For those more familiar with
-Java; the CLI can be compared to the JVM, and CIL to Java Bytecode.
+Java, the CLI can be compared to the JVM and CIL to Java Bytecode.
 The CLI runs Common Intermediate Language (CIL) byte code. CIL is
 a type rich, stack based assembly language. Below is \emph{Hello World}
 in CIL, it shows the loading of a literal string and then calling
@@ -432,16 +456,16 @@ The type system of the CLI is covered in more detail later, in
 \ref{sec:cli_type_system} but briefly covered here as well.
 
 Types in the CLI fall into two categories, value types and reference types.
-Value types are built in types such as integers and floats, or user defined
+Value types are built-in types such as integers and floats, or user defined
 enumerations and structures. Reference types are the built-in types
 (\texttt{Object} and \texttt{String}), objects, interfaces, arrays, delegates,
 boxed value types, managed and unmanaged pointers.
 
 Value types describe the sequence of bits that make up a value of that type.
-Reference types describes the sequence of bits that make up the value but also
+Reference types describe the sequence of bits that make up the value but also
 describe the location of that value.
 
-\begin{quotation}
+\begin{aquote}{ECMA-335 I.8.2.3}
 A type fully describes a value if it unambiguously defines the value's
 representation and the operations defined on that value.
 
@@ -449,7 +473,7 @@ For a value type, defining the representation entails describing the sequence
 of bits that make up the value's representation. For a reference type, defining
 the representation entails describing the location and the sequence of bits
 that make up the value's representation.
-\end{quotation}
+\end{aquote}
 
 While every value has an exact type it is not always possible to determine the
 type by looking at the representation of the value. For example the 32 bits
@@ -458,8 +482,8 @@ possible to determine the exact type from the value. Objects are self typing as
 they explicitly store their type as part of their value.
 
 Some types do not fully describe any values (abstract classes and interfaces).
-While every value has a type it is not possible to infer the type given the
-value if the value is of a value type, if the value is a reference type it is
+While every value has a type, it is not possible to infer the type given the
+value if the value is of a value type. If the value is a reference type it is
 always possible to infer the type.
 
 \subsubsection{The virtual execution system}
@@ -468,9 +492,9 @@ The VES\footnote{Virtual Execution System} provides an environment for
 executing CIL managed code. Managed code is code that can only be run under the
 \emph{management} of a virtual machine (while originally coined to refer to CIL
 code only, this terminology has also spread to other \emph{managed} languages
-such as Java). Unmanaged code in contrary is raw machine code run directly on the
-processor. This distinction is clearly has some grey area when you consider
-operation systems, memory permissions and new CPU based code security methods
+such as Java). Unmanaged code, in contrary, is raw machine code run directly on the
+processor. This distinction clearly has some grey area when you consider
+operating systems, memory permissions and new CPU based code security methods,
 but it's clear enough for our purpose of separating native from managed code. 
 
 It supports some built-in data types, control flow constructs,
@@ -493,13 +517,13 @@ Managed memory supports garbage collection, as such allocated objects do not
 not need to be manually deallocated. The locations pointed to by managed
 pointers and references can be changed during a garbage collection cycle as
 objects are moved in memory. While a managed pointer or reference is still
-valid (i.e. reachable) the object will remain in memory.
+valid (i.e. reachable), the object it points to will remain in memory.
 
 Exceptions objects are any valid class type (a boxed value type or any class),
-but not native integers, when an exception is thrown the runtime searches for the
+but not native integers. When an exception is thrown the runtime searches for the
 first \texttt{catch} handler up the stack that covers the throw instruction. If
-no \texttt{catch} handler is found execution is aborted. If a match is found
-the stack is wound back to that \texttt{catch} handler executing all
+no \texttt{catch} handler is found then execution is aborted. If a match is found
+the stack is wound back to that \texttt{catch} handler, executing all
 \texttt{finally} and \texttt{fault} handlers found on the way up.
 
 \subsubsection{Metadata}
@@ -577,10 +601,13 @@ class Program
 }
 \end{lstlisting}
 
-
 This is a very weak concept of immutability, and when adding user
-defined types to value dependence could present problems.
-
+defined types to value dependence could present problems. For example if a 
+type was paramaterized on a \texttt{Pair} value, should it be possible to write 
+to the \texttt{A} and \texttt{B} fields. If so then clearly our value is the instance
+of the \texttt{Pair} not it's data. However what if \texttt{Pair} was a value type (struct)?
+A readonly struct can still have it's fields written to, but a struct doesn't have the concept
+of an instance it's just data.
 
 \subsection{Properties}
 
@@ -605,8 +632,8 @@ class Square {
 \end{lstlisting}
 
 
-The corresponding CIL follows, note the method call for \texttt{get\_Area}
-on line 16 in \texttt{Main}. While the property getter is just a method
+The corresponding CIL follows. Note the method call for \texttt{get\_Area}
+on line 16 in \texttt{Main}. While the property getter is just a method,
 it is marked up specially in the \texttt{.property} clause so that
 other tools can treat it specially. 
 
@@ -655,7 +682,7 @@ extends [mscorlib]System.Object
 Adding parameters to a property changes it into an indexer. The CIL remains
 pretty similar but C\# treats indexers very differently. C\# only allows
 indexers called \texttt{this}, \texttt{this} is translated to \texttt{Item}
-when compiled to CIL. If a type has an indexer \texttt{Item} then values of the
+when compiled to CIL. If a type has an indexer \texttt{Item}, then values of the
 type can have an indexer expression appended to them (like accessing an array).
 
 \begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc]
@@ -774,8 +801,6 @@ Dictionary<TKey, int> b; // open
 Dictionary<string, int> c; // close
 \end{lstlisting}
 
-
-
 \section{C++ templates\label{sec:Cpp-templates}}
 
 C++ templates allow functions and types to be parametrized by types
@@ -825,9 +850,9 @@ and \texttt{StorageT}. \texttt{ElementT} is the element type, float,
 double, int or another type that supports the same operations. \texttt{StorageT}
 is a type that provides access to the elements, either by pointing
 to an external data source or storing the data itself. Two of the
-built in storage types (fixed and external) are templated on the value
+built-in storage types (fixed and external) are templated on the value
 of how many elements they store/point to. When using these statically
-sized storage types you get extra static type safety that you're not
+sized storage types, you get extra static type safety that you're not
 mixing vector sizes in operations.
 
 \begin{lstlisting}[keywordstyle={\color{blue}},language={C++}]
@@ -837,13 +862,12 @@ cml::matrix<float, fixed<2,2>> i(1, 2, 3, 4);
 cml::matrix<float, fixed<3,3>> j = i; // compile error
 \end{lstlisting}
 
-
-It's worth noting that although this example looks like the constructors
-match the value passed to fixed they are actually pre declared constructors
-for all normal sizes, using the wrong constructor will either leave
-some elements uninitialized or not use some of the values passed in.
-Real variadic parameters that matched the dimension of the vector/matrix
-would be better, and with the new features of C++11 might be possible.
+It's worth noting that although this example looks like the number of paramters 
+passed to the constructors match the value passed to fixed, they are 
+actually predeclared constructors for a variaty of sizes. Using the wrong 
+constructor will either leave some elements uninitialized or not use some of 
+the values passed in. Real variadic parameters that matched the dimension of 
+the vector/matrix would be better, and with the new features of C++11 might be possible.
 
 %Path dependance?
 %Printf example.
@@ -868,9 +892,9 @@ as cubic centimeters.
 \begin{lstlisting}[keywordstyle={\color{blue}},language=ML]
 [<Measure>] type ml = cm^3
 \end{lstlisting}
-The normal unit operators such as multiplication, division and powers
+The normal unit operators, such as multiplication, division and exponentiation,
 are usable and can be worked out by the type inference engine. For
-example in the following, code type inference correctly identifies
+example in the following code, type inference correctly identifies
 \texttt{distance} as type \texttt{float<meter>}.
 \begin{lstlisting}[keywordstyle={\color{blue}},language=ML]
 let speed = 55.0<meter/second>
@@ -886,7 +910,7 @@ the MSDN documentation\cite{fsharp-units-of-measure}
 \begin{quotation}
 ``Unit formulas that mean the same thing can be written in various
 equivalent ways. Therefore, the compiler converts unit formulas into
-a consistent form, which converts negative powers to reciprocals,
+a consistent form, which converts negative exponents to reciprocals,
 groups units into a single numerator and a denominator, and alphabetizes
 the units in the numerator and denominator.''
 \end{quotation}
@@ -1062,8 +1086,8 @@ risk that Scala ran into where the virtual machine reflection system
 no longer resembled the language type system, thus pushing for the
 implementation of a whole new reflection system to be built. 
 
-Therefore if we are to investigate the addition of adding path dependent
-types we also need to add instance inner types to the CLI. Alternatively
+Therefore if we are to investigate adding path dependent
+types we also need to add instance inner types to the CLI. Alternatively,
 we could try to design value dependence such that the following was
 possible.
 
@@ -1090,12 +1114,10 @@ class Board
 }
 \end{lstlisting}
 
-
 Allowing the value parameter to be any type is much more general than
 path dependence, In this case \texttt{Coordinate} would not even need
 to be an inner class of \texttt{Board}. However  this is a very ambitious
 addition and if it's even possible is uncertain.
-
 
 \section{Virtual types\label{sec:Virtual-types}}
 
@@ -1303,7 +1325,7 @@ compiling templates such that the final code is small and fast is
 difficult, they also make the language unsound as a template can recurse
 forever (although most compilers have hard limits to this).
 
-The next most general is \textbf{value dependence}. Value dependence
+The next most general are \textbf{value dependence}. Value dependence
 allowed types to be constructed based on values. While this is powerful
 allowing arbitrary values as parameters is undecidable, as it amounts
 to determining whether two different programs produce the same result.
@@ -1339,7 +1361,7 @@ As the CLI already supports generics further investigation of virtual
 types seems unnecessary. Finally, path dependence is a simpler case
 of value dependence as are F\# units of measure. 
 
-So while full value dependence may be too much, GADTs aren't enough
+While full value dependence may be too much, GADTs aren't enough
 leading us to think about an extension somewhere in between the two.
 
 \[
@@ -1381,11 +1403,11 @@ Generics & No & No & No & Yes & No & No\tabularnewline
 \end{longtable}
 \par\end{center}
 
-The CLI currently inhabits the lower levels of our list above, currently only supporting Generics. 
+The CLI currently inhabits the lower levels of our list above, only supporting Generics. 
 Our first point of work is to add type equality constraints, moving the CLI up in what it can express
 and given an equivalent system to GADTs.
 
-Following the specification of type equality constraints we will discuss values as type parameters. These
+Following the specification of type equality constraints, we will discuss values as type parameters. These
 allow more programs to be checked by the type system and also open up optimization benefits but are a more
 complex extension than equality constraints.
 

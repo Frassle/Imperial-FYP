@@ -2,14 +2,14 @@
 
 Our first extension will be to add type equality constraints to the CLI. 
 Type equality constraints for C\# are described in \cite{gadts}, we will 
-be using these ideas but for the CLI not C\#. 
+be using these ideas applied to the CLI not C\#. 
 
 \section{Generalized algebraic data types}
 
 The basic idea is to extend generic constraints to allow equality constraints 
-on generic types, section 3.1 (Equational constraints for C\#) of \cite{gadts} 
-describes this extension. This would allow a generic type to be declared equal 
-to another type, this would be checked statically at compile time. For example
+on generic types. Section 3.1 (Equational constraints for C\#) of \cite{gadts} 
+describes this extension. This extension would allow a generic type to be declared equal 
+to another type, and be statically checked at compile time. For example,
 a list flatten method could check that the list was a list of lists by the 
 addition of the \texttt{where T=List<U>} clause.
 
@@ -91,6 +91,12 @@ public class Cons<T> : List<T>
 	}
 }
 \end{lstlisting}
+
+This small example shows all the new features of type equality constraints. As
+stated before, it is a small addition. The features are the addition of type
+equality constraints after methods (\texttt{where T=List<U>}) and the ability
+to treat a value of one type as another without having to cast
+(\texttt{Head.Append(...)}).
 
 \begin{lstlisting}[caption={Corresponding CIL},escapechar={~},language=cil]
 .class public abstract auto ansi beforefieldinit List<T>
@@ -200,14 +206,17 @@ extends Test.List`1<!T>
 }
 \end{lstlisting}
 
-This small example shows all the new features of type equality constraints. As
-stated before it is a small addition. The features are the addition of type
-equality constraints after methods (\texttt{where T=List<U>}) and the ability
-to treat a value of one type as another without having to cast
-(\texttt{Head.Append(...)}).
+The corresponding CLI code has very similar additions to C\#. Methods can have equality 
+constraints, but note that they need to be redeclared, they are not automatically inherited. 
+This is to keep a close mapping between the metadata and the syntax. Methods can be called 
+on types that do not declare that method, but are equal to a type that does. This can be seen 
+with the \texttt{callvirt} to \texttt{Append} instruction. At the point that instruction is 
+called the stack slot that will be used for the \texttt{this} argument is of type \texttt{T}, a 
+type that does not define \texttt{Append} and is not constrained to any interface or base class
+that defines \texttt{Append}.
 
 While there is no implementation of these extensions, the work done in
-\cite{gadts} on formalization and it's simple mapping to the CLI described here
+\cite{gadts} on formalization and its simple mapping to the CLI described here
 should be enough to convince that this is a sensible, safe and correct extension 
 of the type system.
 
@@ -217,19 +226,21 @@ ECMA-335\cite{ecma-335} is the specification for the CLI. It defines everything
 from the low level details of assembly file format to high level concepts such
 as types, values and locations.
 
-The specification is 548 pages long, and while not all of it is relevent to
+The specification is 548 pages long, and while not all of it is relevant to
 equality constraints it is still a large system to understand. As equality
-constraints share some similarites to generic constraints we begin with an
-overview of them. 
+constraints share some similarities to generic constraints we begin with an
+overview of them. The changes required however are fairly small and localized to 
+a few areas of the specification. Assignment compatibility, method call verification 
+and metadata tables are the only areas modified by the addition of type equality constraints.
 
 \subsection{Generic constraints}
 
 Section II.9.11 (Constraints on generic parameters)\cite{ecma-335} specifies
 generic constraints. A type parameter that has been constrained must
 be instantiated with an argument that is assignable to each of declared
-constraints, and that satisfies all special constraints.
+constraints, and that satisfies all special constraints. 
 
-The special constraints are, \texttt{+}, \texttt{-}, \texttt{class},
+The special constraints currently defined in the CLI are, \texttt{+}, \texttt{-}, \texttt{class},
 \texttt{valuetype} and \texttt{.ctor}. \texttt{class} constrains the
 argument to be a reference type. \texttt{valuetype} constrains the
 argument to be a value type, except for any instance of\texttt{ System.Nullable<T>}.
@@ -241,18 +252,25 @@ respectively.
 
 While it might seem that this is a good place to add our extension
 type equality constraints are a constraint on the entire parameter
-list, not on each individual parameter. There's also the potential
+list, not on each individual parameter as with generic constraints. 
+For example a method \texttt{m<U,V>} could have a constraint relating
+\texttt{U} and \texttt{V}, where it does not make sense to apply the 
+constraint to either one of the parameters. There's also the potential
 to add an equality constraint to a non-generic method.
 
 \begin{lstlisting}[keywordstyle={\color{blue}},language=sharpc]
 class Foo<T>
 {
-	public void Bar(List<int> list) where T = int
+	public void Bar<U, V>(T list) where T = Pair<U, V>
+	{
+		...
+	}
+	public void Fizz(List<int> list) where T = int
 	{
 		...
 	}
 	
-	public void Baz(List<string> list) where T = string
+	public void Buzz(List<string> list) where T = string
 	{
 		...
 	}
@@ -260,18 +278,24 @@ class Foo<T>
 \end{lstlisting}
 
 In this example \texttt{Bar} can only be called if \texttt{Foo<T>}
-was initialized with \texttt{int}, and \texttt{Baz} only if it was
+was initialized with \texttt{Pair<U,V>}, \texttt{Fizz} only if it
+was initialized with \texttt{int}, and \texttt{Buzz} only if it was
 initialized with \texttt{string}. A similar thing can be done with
-non-generic inner types. So we need to look to add this new syntax
-somewhere separate to the generic parameter list. Preferably it would
-have similar syntax for both methods and types (as generic parameters
-look the same on a type declaration or method declaration). A type
-declaration currently follows the pattern ``\texttt{.class ClassAttr{*}
-Id {[}'<' GenPars '>'{]} {[}extends TypeSpec {[} implements TypeSpec{]}
-{[}',' TypeSpec{]}{*}{]}}'', while method declarations follow the
-pattern ``\texttt{.method MethAttr{*} {[}CallConv{]} Type {[}marshal
-'(' {[}NativeType{]} ')'{]} MethodName {[}'<' GenPars '>'{]} '(' Parameters
-')' ImplAttr{*}}''.
+non-generic inner types. 
+
+So we need to look to add this new syntax somewhere separate to the 
+generic parameter list. Preferably it would have similar syntax for 
+both methods and types (as generic parameters look the same on a type 
+declaration or method declaration). A type declaration currently follows 
+the pattern:
+\newline
+``\texttt{.class ClassAttr{*} Id {[}'<' GenPars '>'{]} {[}extends TypeSpec {[} \newline
+implements TypeSpec{]} {[}',' TypeSpec{]}{*}{]}}''
+\newline
+While method declarations follow the pattern:
+\newline
+``\texttt{.method MethAttr{*} {[}CallConv{]} Type {[}marshal '(' {[}NativeType{]} ')'{]} MethodName {[}'<' GenPars '>'{]} '(' Parameters ')' ImplAttr{*}}''.
+\newline
 
 Adding a new clause ``\texttt{where {[}Type '=' Type{[}',' Type '=' Type{]}{*}{]}}
 to method declarations after the parameter list gives us a list of Types that must 
@@ -285,10 +309,11 @@ Assignment compatibility is defined in section I.8.7 of \cite{ecma-335}, further
 verification assignment compatibility is defined in III.1.8.1.2.3. Verification assignment 
 compatibility is mostly defined in terms of general assignment compatibility from I.8.7.3.
 
-Verification assignment compatibility is used be the verifier for determining if method calls, field 
-references and loads and stores are valid for a given type and signature. If verification assignment compatibility 
-is extended to understand type equality constraints then operations that were unverifiable but type correct can now
-be checked as verifiable as well.
+Verification assignment compatibility is used be the verifier for determining if method calls, 
+field references and loads and stores are valid. This is decided based on the stack type and
+signiture at each instruction. If verification assignment compatibility is extended to understand 
+type equality constraints then operations that were unverifiable but type correct can now be 
+checked as verifiable as well.
 
 Adding another rule to \emph{verifier-assignable-to} to use the rules for equality constraints is all that is needed
 to enhance this part of the system.
@@ -301,7 +326,7 @@ to enhance this part of the system.
 It uses the both the global typing environment $\Gamma$ and the
 equality constraints on the current method $\epsilon$ which defines equal types.
 
-These rules are pretty much the same as the rules presented in Section 5 of
+These rules are the same as the rules presented in Section 5 of
 \cite{gadts}. 
 
 $\Gamma$ is the typing environment, $\epsilon$ is the current set of equality
@@ -354,7 +379,8 @@ constraints $\epsilon$.
 
 \subsection{Method calls}
 
-Any method calls must be checked that any equality constraints on the method
+In addition to verification rules already present on method call instructions, 
+method calls must now also be checked that any equality constraints on the method
 being called can be satisfied by the current context. This is done by checking
 that for each constraint listed on the method ($T=U$) T and U are
 \emph{equal-to} in the current context after applying substitution for generic
@@ -375,8 +401,10 @@ given by $\Gamma$ and $\epsilon$.
 \BinaryInfC{$\Gamma,\epsilon \vdash m<\bar{T}>$}
 \end{prooftree}
 
-This is an addition to the verifiability rules for the call, calli and callvirt
-instructions.
+This is an addition to the verifiability rules for the \texttt{call}, \texttt{calli} and \texttt{callvirt}
+instructions. \texttt{call} and \texttt{calli} are defined in section III.3.19 and III.3.20, \texttt{callvirt}
+is defined in section III.4.2. These sections describe the instructions operation as well as their correctness and 
+verification rules.
 
 \subsection{Metadata tables}
 
@@ -405,8 +433,11 @@ by a row in the GenericParam table.
 All rows in the GenericParamConstraint table for a given Owner shall
 refer to distinct constraints.
 \end{quotation}
-We need a similar table for our equality constraints. It will need
-an owner (a type or method) and then two types that are constrained
+We need a similar table for our equality constraints. We can't however 
+extend the GenericParamConstraint table as each row in that table is tied
+to one method paramter, we need each row to be tied to one method. 
+It will need an owner (a type or method) and then two type references 
+(either a defined or referenced type, or a generic type parameter) that are constrained
 to be equal within the owner. Another column that isn't necessary
 but could be useful is a flags field describing the relationship between
 the two types, currently this would always be set to equal, however
@@ -435,7 +466,7 @@ reflection library also requires changing however it is mostly implemented via
 internal calls to the runtime.
 
 The runtime is written in C, and has around 410,000 lines of code (total lines
-of C code is 414,181). Mono including all it's supporting tools and libraries
+of C code is 414,181). Mono including all its supporting tools and libraries
 comes to over 5,000,000 lines of code. While Mono is well organized trying to
 learn a project of this size with no prior experience was optimistic. 
 
@@ -450,7 +481,7 @@ level is useful information.
 \subsection{Runtime}
 
 The runtime needs to be changed to load and understand equality constraint
-metadata, these changes will be focused in mono/metadata/metadata.h/c and
+metadata. These changes will be focused in mono/metadata/metadata.h/c and
 mono/metadata/reflection.h/c.  The TypeRelationshipConstraint table is very
 similar to the GenericParamConstraint table, the current code for
 GenericParamConstraint can guide the new code for TypeRelationshipConstraint.
@@ -460,23 +491,25 @@ relationship constraints are met when calling methods and to extend assignment
 compatibility to use those type relationship constraints.  This requires
 additions to \texttt{mono\_method\_verify} to check constraints on
 \texttt{call}, \texttt{calli} and \texttt{callvirt} instructions, this can
-probably be done in \texttt{do\_invoke\_method}.  It also requires additions to
+probably be done in the procedure \texttt{do\_invoke\_method}.  It also requires additions to the procedure
 \texttt{verify\_stack\_type\_compatibility\_full} to check the new assignment
 compatibility rules.
 
 \subsection{corlib}
 
-The core library needs to be changed to support type equality. Specifically the
+The core library needs to be changed to support the metadata associated with type equality constraints. Specifically the
 reflection library defined in mcs/class/corlib/System.Reflection\[.Emit\]. This
-API is predominately implement via internal calls that are then defined in
+API is predominately implemented via internal calls that are then defined in
 mono/metadata/icall-def.h.
 
 \subsection{Cecil and IKVM}
 
-Mono.Cecil and IKVM are well known libraries for working with CIL code. They
-are generally considered better than the core library System.Reflection and
+Mono.Cecil and IKVM are well known libraries for working with CIL code. Used for
+generating and analzing CIL code, they allow the reading, editing and writing of 
+CIL assemblies. They are generally considered better than the core library System.Reflection and
 System.Reflection.Emit. Any extensions of the system would be well served by
-extending these libraries to understand the extension as well.
+extending these libraries to understand the extension as well. This would allow 
+tools that currently use Cecil and IKVM to target type equality constraints.
 
 \subsection{Assembler}
 
@@ -493,22 +526,28 @@ generics!
 
 \section{Test plan}
 
-As part of any implementation a number of test cases should be developed to
+As part of any implementation, a number of test cases should be developed to
 show that the system works. These tests need to show that there is no CLI code
 that does not run in the new system (backwards compatibility) and that the new
 system is correct.
 
 Normally these tests would be written in CIL assembly, however writing tests in
-CIL assembly would be time consuming and error prone. Instead test writing
-should be assisted by an assembly rewriter. The rewriter will look for calls to
-special methods and attributes in a CLI assembly and rewrite the bytecode and
+CIL assembly would be time consuming and error prone. Instead, test writing
+should be assisted by an assembly rewriter. The rewriter will look for calls 
+to special methods and attributes in a CLI assembly and rewrite the bytecode and
 metadata to use features in the extended system.  Assembly rewriting will be
 done using the CLI metadata reflection, writing and rewriting via
 \texttt{System.Reflection} or another metadata editor such as
-\texttt{Mono.Cecil}.  Any implementation will extend these objects to support
+\texttt{Mono.Cecil}. Any implementation will extend these objects to support
 the new metadata constructs.  With this we can mark up standard C\# or F\# code
 with special methods and attributes and rewrite the resulting assemblies to
 include the new metadata.
+
+This system of testing is not immeditely obvious. Discussions at the start of the project brought up the
+issue that writing tests was neccessary but writing them in CIL was difficult. It was suggested early on
+that we write tests in a high level language and modify the compiler to output the new CIL code. While this would 
+work, the high level langauge compilers are another very complex system that we would rather not touch. Unreleated work
+with calling native APIs from C\# using injected CIL led to the inspiration to do something similar for testing.
 
 This system of testing has a number of advantages. Firstly it allows us to
 write our tests in a high level language such as C\# instead of low level CIL.
@@ -559,6 +598,8 @@ public static class TypeEquality
 }
 \end{lstlisting}
 
+\subsection{Formal model}
+
 A program $P$ is the source code in a CLI language, such as C\#. It may or may
 not make use of \texttt{TypeEquality.Cast} and
 \texttt{TypeEquality.EqualTypes}. It can be compiled by a compiler $C$ to give
@@ -590,10 +631,9 @@ $C(P) \underset{CLI}{\rightarrow} v \iff C(P) \underset{CLI+}{\rightarrow} v$
 Lemma 1 states that if a program throws a \texttt{TypeEqualityException} in
 the standard CLI then it will throw a \texttt{VerificationException} in the new
 CLI. If CLI+ doesn't throw a \texttt{VerificationException} then we know
-something is wrong with either the rewriter or the new runtime. For the sake of
-these tests we will assume that the rewriter is correct. This property does not
-hold in reverse ($R(C(P)) \underset{CLI+}{\rightarrow} VerificationException
-\implies C(P) \underset{CLI}{\rightarrow} TypeEqualityException$) as the call
+something is wrong with either the rewriter or the new runtime. This property does not
+hold in reverse \newline($R(C(P)) \underset{CLI+}{\rightarrow} VerificationException
+\centernot \implies C(P) \underset{CLI}{\rightarrow} TypeEqualityException$) as the call
 to \texttt{Cast<T, U>} or \texttt{EqualTypes<T, U>} might not be hit be every
 control flow path.
 
@@ -622,12 +662,12 @@ system.
 \section{Testing without a full implementation}
 
 While the above test plan is appropriate for checking an implementation is
-correct we do not have an implementation. However we still wish to show that
-the system could work and is statically checkable. To do this we will be using
-a similar system to above. We can continue to write tests as described above,
-however instead of using an assembly rewriter to transform them into an
-extended CIL format we simply perform the checks that the extended verifier
+correct, we do not have an implementation. However, we still wish to show that
+the system could work and is statically checkable. To do this, we will be using
+a similar system to above, and continue to write tests as described above.
+However, instead of using an assembly rewriter to transform them into an
+extended CIL format, we use an assembly analyzer to perform the checks that the extended verifier
 would perform. Thus for every method call we check to see if it calls
-\texttt{EqualTypes} and if so check that we can satisfy those constraints at
+\texttt{EqualTypes} and if so, check that we can satisfy those constraints at
 all call sites, and for every call to \texttt{Cast} we check that the two types
-are indeed equal either directly or via equality constraints.
+are indeed equal, either directly or via equality constraints.
