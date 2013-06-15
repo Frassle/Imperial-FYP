@@ -5,8 +5,8 @@ Drawing on what we've learnt in our background research, our knowledge of the
 CLI and the design goals laid out by our motivating example, we discuss some of
 our ideas and issues with value dependent types.
 
-These ideas will be often discuessed in terms of high level design, but 
-must always take into account that they are really targted at the CLI level.
+These ideas will be often discussed in terms of high level design, but 
+must always take into account that they are really targeted at the CLI level.
 
 \subsection{Concept of equality}
 
@@ -33,7 +33,7 @@ immutable, but instantiation remains simple.
 
 However, given some reference type \texttt{U} with a constructor \texttt{U(int i)} two separate instantiations of 
 a type \texttt{T<U u>} done via two \texttt{new} expressions will result in two distinct references. 
-Listing \ref{lst:refissue} demonstrates this issue. The paramter passed to the inner \texttt{T} constructor of the second 
+Listing \ref{lst:refissue} demonstrates this issue. The parameter passed to the inner \texttt{T} constructor of the second 
 line is a different instance of \texttt{U} to that present in the first line.
 Given that all these values must be constant at compile time its not clear how this could work. We can't 
 reference the value from another type specification as that itself requires the reference.
@@ -109,10 +109,10 @@ issue of soundness as user defined operations can do anything.
 As described in our motivating example, one use case of dependent types is for vector types.
 
 We want these vectors to be value types with all their data allocated inline. This makes for fast and local
-allocations which is good for cache coherancy, but also makes it possible to easily transfer them to native
+allocations which is good for cache coherency, but also makes it possible to easily transfer them to native
 APIs such as OpenGL and OpenCL.
 
-The standard CLI can define types with a fixed size, either via multiple fields and explict layout or via explict size.
+The standard CLI can define types with a fixed size, either via multiple fields and explicit layout or via explicit size.
 Neither of these allow a types inline size to be changed per use case, the only dynamically sized types in the CLI are
 arrays which are allocated on the heap.
 
@@ -129,14 +129,14 @@ public struct Vector
 }
 \end{lstlisting}
 
-While this allows vectors of differnt dimensions, it is not cache efficent, easy to copy to native APIs or immutable.
+While this allows vectors of different dimensions, it is not cache efficient, easy to copy to native APIs or immutable.
 It also requires many runtime checks to make sure that the vectors passed into methods are the right size.
 
 \begin{lstlisting}[caption={Runtime checks needed when using arrays}, keywordstyle={\color{blue}},language=sharpc]
 public static float Dot(Vector a, Vector b)
 {
 	if(a.values.length != b.values.length)
-		throw new ArgumentException("a and b are differnt sizes.");
+		throw new ArgumentException("a and b are different sizes.");
 		
 	float dot = 0;
 	for(int i=0; i<a.Length; ++i)

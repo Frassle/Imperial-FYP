@@ -310,7 +310,7 @@ compatibility is mostly defined in terms of general assignment compatibility fro
 
 Verification assignment compatibility is used be the verifier for determining if method calls, 
 field references and loads and stores are valid. This is decided based on the stack type and
-signiture at each instruction. If verification assignment compatibility is extended to understand 
+signature at each instruction. If verification assignment compatibility is extended to understand 
 type equality constraints then operations that were unverifiable but type correct can now be 
 checked as verifiable as well.
 
@@ -434,7 +434,7 @@ refer to distinct constraints.
 \end{quotation}
 We need a similar table for our equality constraints. We can't however 
 extend the GenericParamConstraint table as each row in that table is tied
-to one method paramter, we need each row to be tied to one method. 
+to one method parameter, we need each row to be tied to one method. 
 It will need an owner (a type or method) and then two type references 
 (either a defined or referenced type, or a generic type parameter) that are constrained
 to be equal within the owner. Another column that isn't necessary
@@ -504,7 +504,7 @@ mono/metadata/icall-def.h.
 \subsection{Cecil and IKVM}
 
 Mono.Cecil and IKVM are well known libraries for working with CIL code. Used for
-generating and analzing CIL code, they allow the reading, editing and writing of 
+generating and analyzing CIL code, they allow the reading, editing and writing of 
 CIL assemblies. They are generally considered better than the core library System.Reflection and
 System.Reflection.Emit. Any extensions of the system would be well served by
 extending these libraries to understand the extension as well. This would allow 
@@ -542,10 +542,10 @@ the new metadata constructs.  With this we can mark up standard C\# or F\# code
 with special methods and attributes and rewrite the resulting assemblies to
 include the new metadata.
 
-This system of testing is not immeditely obvious. Discussions at the start of the project brought up the
-issue that writing tests was neccessary but writing them in CIL was difficult. It was suggested early on
+This system of testing is not immediately obvious. Discussions at the start of the project brought up the
+issue that writing tests was necessary but writing them in CIL was difficult. It was suggested early on
 that we write tests in a high level language and modify the compiler to output the new CIL code. While this would 
-work, the high level langauge compilers are another very complex system that we would rather not touch. Unreleated work
+work, the high level language compilers are another very complex system that we would rather not touch. Unrelated work
 with calling native APIs from C\# using injected CIL led to the inspiration to do something similar for testing.
 
 This system of testing has a number of advantages. Firstly it allows us to
@@ -631,7 +631,7 @@ Lemma 1 states that if a program throws a \texttt{TypeEqualityException} in
 the standard CLI then it will throw a \texttt{VerificationException} in the new
 CLI. If CLI+ doesn't throw a \texttt{VerificationException} then we know
 something is wrong with either the rewriter or the new runtime. This property does not
-hold in reverse \newline($R(C(P)) \underset{CLI+}{\rightarrow} VerificationException
+hold in reverse ($R(C(P)) \underset{CLI+}{\rightarrow} VerificationException
 \centernot \implies C(P) \underset{CLI}{\rightarrow} TypeEqualityException$) as the call
 to \texttt{Cast<T, U>} or \texttt{EqualTypes<T, U>} might not be hit be every
 control flow path.
