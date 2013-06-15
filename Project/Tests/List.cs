@@ -58,6 +58,12 @@ namespace Tests
     {
         public static void Main()
         {
+            Pass();
+            Fail();
+        }
+
+        static void Pass()
+        {
             var ilist1 = new Cons<int>(1, new Nil<int>());
             var ilist2 = ilist1.Append(new Cons<int>(2, new Cons<int>(3, new Nil<int>())));
 
@@ -65,6 +71,13 @@ namespace Tests
             var list2 = list1.Append(new Cons<List<int>>(ilist1, new Nil<List<int>>()));
 
             var flist = list2.Flatten<int>();
+        }
+
+        static void Fail()
+        {
+            var ilist = new Cons<int>(1, new Cons<int>(2, new Cons<int>(3, new Nil<int>())));
+
+            var flist = ilist.Flatten<int>();
         }
     }
 }
