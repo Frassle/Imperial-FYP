@@ -338,8 +338,14 @@ any disadvantages.
 \item A specification to add type equality constraints to the CLI.
 We describe what changes need to be made to ECMA-335 to support the expression
 of type equality constraints at the CLI level and how this extends verifiable code.
-We also give a high level description of what would need to be changed in the Mono runtime
-to support such a specification change.
+We also give a high level description of what would need to be changed in the Mono project
+to support such a specification change. The Mono project including all its supporting tools 
+and libraries comes to over 5,000,000 lines of code. While Mono is well organized trying to 
+learn a project of this size with no prior experience was optimistic. While an implementation
+of this system was a goal of this project, time constraints, the complexity of Mono and our 
+inexperience with the system has resulted in us achiving this. We have however spent a lot of 
+time reading and attempting to understand the Mono source code and feel that recording what needs 
+to be changed at a high level is useful information.
 \item A test plan for testing extensions to the CLI.
 Given that any changes to the CLI ought to be well tested we devised a test plan
 detailing how to write tests for a CLI extensions. This test plan allows us to write 
