@@ -147,6 +147,45 @@ public static float Dot(Vector a, Vector b)
 }
 \end{lstlisting}
 
+C\# allows the declaration of fixed size arrays. These are implemented via an internal, explicitly sized class and pointer
+arithmetic. Due to the pointer arithmetic they are only allowed in an unsafe context (a C\# construct to delimit unsafe code).
+The size of the fixed array must be a compile time constant. Given the fixed size and the generally unwanted requirement for
+unsafe code, fixed arrays don't have many uses. Certainly for these small vector types (which are often accessed for a specific 
+field such as \texttt{X}) it's better to use multiple fields.
+
+\begin{lstlisting}[caption={A fixed size vector type}, keywordstyle={\color{blue}},language=sharpc]
+public unsafe struct Vector3
+{
+	public fixed float values[3]; 
+	
+	...
+}
+\end{lstlisting}
+
+\begin{lstlisting}[caption={Translation to CIL}, keywordstyle={\color{blue}},language=cil]
+.class sequential ansi sealed nested public beforefieldinit Vector3
+    extends [mscorlib]System.ValueType
+{
+    .field public valuetype Test.Program/Vector3/<Values>e__FixedBuffer0 Values
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.FixedBufferAttribute::.ctor(class [mscorlib]System.Type, int32) = 
+			{ type(float32) int32(3) }
+    }
+
+    .class sequential ansi sealed nested public beforefieldinit <Values>e__FixedBuffer0
+        extends [mscorlib]System.ValueType
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.UnsafeValueTypeAttribute::.ctor()
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor()
+        .field public float32 FixedElementField
+
+    }
+}
+\end{lstlisting}
+
+
+If we introduce values as type paramters we want some way of adding or removing data based on that value. A \texttt{Vector<2>} 
+should only take up 2 floats of storage. 
 
 \begin{lstlisting}[caption={A fixed size vector type}, keywordstyle={\color{blue}},language=sharpc]
 public struct Vector<int n>
