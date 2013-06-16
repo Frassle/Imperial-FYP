@@ -20,18 +20,29 @@ namespace Tests
     }
 
     public class Lit : Exp<int> { 
-        int value;
+        int Value;
+
+        public Lit(int value)
+        {
+            Value = value;
+        }
 
         public override bool Eq(Exp<int> that)
         { return that.LitEq(this); }
         public override bool LitEq(Lit that)
-        { return value == that.value; }
+        { return Value == that.Value; }
     }
 
     public class Pair<A,B> : Exp<Tuple<A,B>> {
 
-        Exp<A> e1;
-        Exp<B> e2;
+        Exp<A> ExpA;
+        Exp<B> ExpB;
+
+        public Pair(Exp<A> a, Exp<B> b)
+        {
+            ExpA = a;
+            ExpB = b;
+        }
 
         public override bool Eq(Exp<Tuple<A, B>> that)
         {
@@ -42,7 +53,7 @@ namespace Tests
         {
             EqualityConstraints.TypeEquality.EqualTypes<Tuple<A, B>, Tuple<C, D>>();
             Pair<A, B> That = EqualityConstraints.TypeEquality.Cast<Pair<C, D>, Pair<A, B>>(that);
-            return That.e1.Eq(e1) && That.e2.Eq(e2); 
+            return That.ExpA.Eq(ExpA) && That.ExpB.Eq(ExpB); 
         }
     }
 
@@ -51,16 +62,14 @@ namespace Tests
         public static void Main()
         {
             Pass();
-            Fail();
         }
 
         static void Pass()
         {
+            Pair<int, int> p1 = new Pair<int, int>(new Lit(1), new Lit(2));
+            Pair<int, int> p2 = new Pair<int, int>(new Lit(3), new Lit(4));
 
-        }
-
-        static void Fail()
-        {
+            bool result = p1.Eq(p2);
         }
     }
 }
