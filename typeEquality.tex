@@ -286,12 +286,12 @@ non-generic inner types.
 So we need to look to add this new syntax somewhere separate to the 
 generic parameter list. Preferably it would have similar syntax for 
 both methods and types (as generic parameters look the same on a type 
-declaration or method declaration). A type declaration currently follows 
+declaration or method declaration). A type declaration (II.10.1) currently follows 
 the pattern:
 \newline
 ``\texttt{.class ClassAttr{*} Id {[}'<' GenPars '>'{]} {[}extends TypeSpec {[} implements TypeSpec{]} {[}',' TypeSpec{]}{*}{]}}''
 \newline
-While method declarations follow the pattern:
+While method declarations (II.15.4) follow the pattern:
 \newline
 ``\texttt{.method MethAttr{*} {[}CallConv{]} Type {[}marshal '(' {[}NativeType{]} ')'{]} MethodName {[}'<' GenPars '>'{]} '(' Parameters ')' ImplAttr{*}}''.
 \newline
