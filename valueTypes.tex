@@ -87,10 +87,10 @@ passing it on as another type parameter or for using at runtime.
 For example to be able to concatenate two fixed arrays together as shown in listing \ref{lst:arrayconcat}.
 
 \begin{lstlisting}[label={lst:arrayconcat},caption={Concatenate two arrays},keywordstyle={\color{blue}},language=sharpc]
-public class Array<int length> { 
+public class Array<T, int length> { 
 	...
 	
-	public Array<length + n> Concatenate(Array<n> other) { ... }
+	public Array<T, length + n> Concatenate<int n>(Array<T, n> other) { ... }
 }
 \end{lstlisting}
 
@@ -103,6 +103,29 @@ allowed in method bodies, we would have to either point to a method
 to calculate the operations on value parameters or find some other
 way to fit opcodes at the declaration level. Secondly, we have the
 issue of soundness as user defined operations can do anything.
+
+Another soloution to supporting operations would be to define a mini expression langaguge. This might 
+support just the basic opertations such as \texttt{+}, \texttt{*} and \texttt{<<}. Unfortuantly about
+the only problem this solves is unsoundness (as we can restrict the set of operations allowed). Fitting 
+this into the metadata is still an issue, and now we've introduced the problem of having to define this 
+language, which is pretty much just a mapping down to CIL bytecodes anyway!
+
+Operations on values exasperates the storage issues again. While above we described using the constant table
+metadata to store values and paramaters would just point to that table we can no longer do this. If values can be 
+changed then we are no longer working with constants, and we can't solve this problem in the same was as C++ templates 
+(expanding and running all template operations at compile time) because we have to support dynamic loading and linking.
+
+If our \texttt{Array} type from above was in a library then we need to record in the metadata that the return type
+of \texttt{Concatenate} is \texttt{length + n}. We have no way of collapsing that to a single constant as \texttt{Array}
+has not yet been instantiated.
+
+\begin{lstlisting}[caption={Using Array},keywordstyle={\color{blue}},language=sharpc]
+Array<int, 4> arr1 = new Array<int, 4>(new int[] { 1, 2, 3, 4});
+Array<int, 2> arr2 = new Array<int, 2>(new int[] { 5, 6});
+Array<int, 6> arr3 = arr1.Concatenate<2>(arr2); 
+// in all likelihood the <2> would be infered by high level languges
+\end{lstlisting}
+
 
 \subsection{Variable structures}
 
@@ -183,7 +206,6 @@ public unsafe struct Vector3
 }
 \end{lstlisting}
 
-
 If we introduce values as type paramters we want some way of adding or removing data based on that value. A \texttt{Vector<2>} 
 should only take up 2 floats of storage. 
 
@@ -197,3 +219,6 @@ public struct Vector<int n>
 	...
 }
 \end{lstlisting}
+
+There seems two immediate ways to solve this problem. Firstly by allowing a reference to the value parameter in the 
+\texttt{FixedBufferAttribute} or by adding fixed size buffers to the CLI as a supported type.
