@@ -221,4 +221,9 @@ public struct Vector<int n>
 \end{lstlisting}
 
 There seems two immediate ways to solve this problem. Firstly by allowing a reference to the value parameter in the 
-\texttt{FixedBufferAttribute} or by adding fixed size buffers to the CLI as a supported type.
+\texttt{FixedBufferAttribute} or by adding fixed size buffers to the CLI as a supported type. The former introduces the 
+issue of referencing a type paramater in an attribute, something that currently is not allowed. Allowing a value argument to 
+be referenced but not a type argument seems inconsitant, but one assumes type arguments are currently disallowed for good reason.
+The latter option of allowing fixed buffers in the type system is also more appealing to us. We belive the type system should be 
+descriptive as possible. Adding in fixed buffers properly, rather than with a hack using explictly sized structs and pointers, is 
+more elegant.
