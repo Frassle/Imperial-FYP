@@ -129,31 +129,43 @@ module Unification =
 
         match terms with
         | [] -> []
-        | (a,b)::rest when equalTerms a b -> rest
+        | (Type a, Type b)::rest ->
+            if a <> b then
+                failwith (sprintf "Could not unify %A and %A" (Type a) (Type b))
+            else
+                rest
         | (Generic (a, argsa), Generic (b, argsb))::rest ->
             if a <> b then
                 failwith (sprintf "Could not unify %A and %A" (Generic (a, argsa)) (Generic (b, argsb)))
             else
                 (List.zip argsa argsb) @ rest
-        | (Generic (a, argsa), Parameter x)::rest ->
-            (Parameter x, Generic (a, argsa)) :: rest
-        | (Parameter x, t)::rest when List.forall (fun y -> y<>x) (vars t) ->
-            (Parameter x, t) :: (replaceTerms x t rest)
-        | (Parameter x, Generic (a, args))::rest when List.exists (fun y -> y=x) (vars (Generic (a, args))) ->
-            failwith  (sprintf "Could not unify %s and %A" x (Generic (a, args)))
-        | head::tail -> unify tail
+        | (Parameter x, Parameter y)::rest ->
+            rest @ [(Parameter x, Parameter y)]
+        | (Parameter x, t)::rest ->
+            if List.exists (fun y -> y=x) (vars t) then
+                failwith (sprintf "Could not unify %A and %A" (Parameter x) t)
+            else
+                (replaceTerms x t rest) @ [(Parameter x, t)]            
+        | (term, Parameter x)::rest ->
+            (Parameter x, term) :: rest
+        | (terma, termb)::reset ->
+            failwith (sprintf "Could not unify %A and %A" terma termb)
     
     let unification terms =
-        let normal = function
-            | (Parameter x, t) -> true
-            | _ -> false
+        (Some terms)
+        |> Seq.unfold (function
+            | Some input ->
+                let output = unify input
 
-        let nonnormal = Seq.exists (not << normal)
+                let isDistinct = Seq.length (Seq.distinctBy fst output) = Seq.length output
+                let isNormal = Seq.forall (fun sub -> sub |> fst |> function Parameter x -> true | _ -> false) output
 
-        let mutable result = terms
-        while nonnormal result do
-            result <- unify terms
-        result
+                if isNormal && isDistinct then
+                    Some (output, None)
+                else
+                    Some (output, Some output)
+            | None -> None)
+        |> Seq.last
 
     let areEqualTerms substitution a b =
         let x = substitute substitution a
@@ -197,13 +209,16 @@ module Program =
 
         for constraints in Seq.map Metadata.getConstraints methods do
             if not (Seq.isEmpty constraints) then
-                let sub = Unification.unification constraints
+                try
+                    let sub = Unification.unification constraints
             
-                printfn "Terms:"
-                printfn "%A" constraints
-                printfn "Unification:"
-                printfn "%A" sub
-                printfn "---"
+                    printfn "Terms:"
+                    printfn "%A" constraints
+                    printfn "Unification:"
+                    printfn "%A" sub
+                    printfn "---"
+                with
+                | Failure msg -> printfn "%A" msg
             
         let castsites = 
             methods 
@@ -219,23 +234,29 @@ module Program =
 
         printfn "Casts"
         for (meth, sites) in castsites do
-            let constraints = Metadata.getConstraints meth
-            let sub = Unification.unification constraints
+            try
+                let constraints = Metadata.getConstraints meth
+                let sub = Unification.unification constraints
             
-            for (a,b) in sites do
+                for (a,b) in sites do
             
-                printf "Are %A and %A equal in %A? " a b meth
-                printfn "%s" (if Unification.areEqualTerms sub a b then "yes" else "no")
-            
-        printfn "Callsites"
-        for (meth, sites) in callsites do
-            let constraints = Metadata.getConstraints meth
-            let sub = Unification.unification constraints
-            
-            for context in sites do
-                for (a,b) in context do
                     printf "Are %A and %A equal in %A? " a b meth
                     printfn "%s" (if Unification.areEqualTerms sub a b then "yes" else "no")
+            with
+            | Failure msg -> printfn "%A in %A" msg meth
+
+        printfn "Callsites"
+        for (meth, sites) in callsites do
+            try
+                let constraints = Metadata.getConstraints meth
+                let sub = Unification.unification constraints
+            
+                for context in sites do
+                    for (a,b) in context do
+                        printf "Are %A and %A equal in %A? " a b meth
+                        printfn "%s" (if Unification.areEqualTerms sub a b then "yes" else "no")
+            with
+            | Failure msg -> printfn "%A in %A" msg meth
 
 
         printfn "%A" argv
